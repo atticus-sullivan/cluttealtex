@@ -1,0 +1,316 @@
+\documentclass[a4paper]{report}
+\usepackage[unicode]{hyperref}
+\usepackage{amsmath}
+\usepackage{tabularx}
+\newcommand\ClutTeX{Clut\TeX\_teal}
+\providecommand\BibTeX{\textsc{Bib}\TeX}
+\newcommand\texcmd[1]{\texttt{\textbackslash #1}}
+\newcommand\texenv[1]{\texttt{#1}}
+\newcommand\texpkg[1]{\texttt{#1}}
+\newcommand\metavar[1]{\textnormal{\textsf{#1}}}
+
+\title{\ClutTeX\ manual\\(Version 0.7.1)}
+\author{Lukas Heindl\thanks{thanks to ARATA Mizuki for writing cluttex of which \ClutTeX is a fork}}
+\date{2024-03-11}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\chapter{About \ClutTeX}
+\ClutTeX\ is an automation tool for \LaTeX\ document processing.
+Basic features are,
+\begin{itemize}
+\item Does not clutter your working directory with ``extra'' files, like \texttt{.aux} or \texttt{.log}.
+\item If multiple runs are required to generate correct document, do so.
+\item Watch input files, and re-process documents if changes are detected\footnote{needs an external program if you are on a Unix system}.
+\item Run MakeIndex, \BibTeX, Biber, if requested.
+\item Produces a PDF, even if the engine (e.g.\ p\TeX) does not suport direct PDF generation.
+  If you want a DVI file, use \texttt{--output-format=dvi} option.
+\item No external dependencies, \ClutTeX only uses texlua which should come with TeXLive
+\end{itemize}
+
+The unique feature of this program is that, auxiliary files such as \texttt{.aux} or \texttt{.toc} are created in an isolated location, so you will not be annoyed with these extra files.
+
+% A competitor: \href{http://www.personal.psu.edu/jcc8/latexmk/}{Latexmk}
+
+\chapter{How to use \ClutTeX}
+\section{Installation}
+If you want to install \ClutTeX\ manually, fetch an archive from GitHub\footnote{\url{https://github.com/atticus-sullivan/cluttex_teal}}, extract it, and copy \texttt{bin/cluttex\_teal} or \texttt{bin/cluttex\_teal.bat} to somewhere in your \texttt{PATH}.
+
+\section{Command-line usage}
+Usage:
+\begin{center}
+  \texttt{cluttex\_teal -e \metavar{ENGINE} \metavar{OPTIONs} [--] \metavar{INPUT}.tex}
+\end{center}
+
+\subsection{Basic options}
+\begin{description}
+\item[\texttt{-e}, \texttt{--engine=\metavar{ENGINE}}]
+  Set which \TeX\ engine/format to use.
+  \metavar{ENGINE} is one of the following:
+  \texttt{pdflatex}, \texttt{pdftex},
+  \texttt{lualatex}, \texttt{luatex}, \texttt{luajittex},
+  \texttt{xelatex}, \texttt{xetex},
+  \texttt{latex}, \texttt{etex}, \texttt{tex},
+  \texttt{platex}, \texttt{eptex}, \texttt{ptex},
+  \texttt{uplatex}, \texttt{euptex}, or \texttt{uptex}.
+  Required.
+\item[\texttt{-o}, \texttt{--output=\metavar{FILE}}]
+  Set output file name.
+  Default: \texttt{\metavar{JOBNAME}.\metavar{FORMAT}}
+\item[\texttt{--fresh}]
+  Clean auxiliary files before run.
+  Cannot be used in conjunction with \texttt{--output-directory}.
+\item[\texttt{--max-iterations=\metavar{N}}]
+  Set maximum number of run, for resolving cross-references and etc.
+  Default: 3
+\item[\texttt{--watch[=\metavar{ENGINE}]}]
+  Watch input files for change.
+  May need an external program to be available.
+  See \autoref{sec:watch-mode} for details.
+\item[\texttt{--color[=\metavar{WHEN}]}]
+  Colorize messages.
+  \metavar{WHEN} is one of \texttt{always}, \texttt{auto}, or \texttt{never}.
+  If \texttt{--color} option is omitted, \texttt{auto} is used.
+  If \metavar{WHEN} is omitted, \texttt{always} is used.
+\item[\texttt{--includeonly=\metavar{NAMEs}}]
+  Insert \texttt{\texcmd{includeonly}\{\metavar{NAMEs}\}}.
+\item[\texttt{--make-depends=\metavar{FILE}}]
+  Write Makefile-style dependencies information to \metavar{FILE}.
+\item[\texttt{--engine-executable=\metavar{COMMAND}}]
+  The actual \TeX\ command to use.
+\item[\texttt{--tex-option=\metavar{OPTION}}, \texttt{--tex-options=\metavar{OPTIONs}}]
+  Pass extra options to \TeX.
+\item[\texttt{--dvipdfmx-option=\metavar{OPTION}}, \texttt{--dvipdfmx-options=\metavar{OPTIONs}}]
+  Pass extra options to \texttt{dvipdfmx}.
+\item[\texttt{--[no-]change-directory}]
+  Change to the output directory when run.
+  May be useful with shell-escaping packages.
+\item[\texttt{-h}, \texttt{--help}]
+\item[\texttt{-v}, \texttt{--version}]
+\item[\texttt{-V}, \texttt{--verbose}]
+\item[\texttt{--print-output-directory}]
+  Print the output directory and exit.
+\item[\texttt{--package-support=PKG1[,PKG2,...,PKGn]}]
+  Enable special support for shell-escaping packages.
+  Currently supported packages are `\texttt{minted}` and `\texttt{epstopdf}`.
+\item[\texttt{--check-driver=DRIVER}]
+  Check that the correct driver file is loaded for certain packages.
+  \metavar{DRIVER} is one of \texttt{dvipdfmx}, \texttt{dvips}, or \texttt{dvisvgm}.
+  Can only be used with \texttt{--output-format=dvi}.
+\end{description}
+
+\subsection{Options for running auxiliary programs}
+\begin{description}
+\item[\texttt{--makeindex=\metavar{COMMAND}}]
+  Run MakeIndex.
+\item[\texttt{--bibtex=\metavar{COMMAND}}]
+  Run \BibTeX.
+\item[\texttt{--biber[=\metavar{COMMAND}]}]
+  Run Biber. Default value for \metavar{COMMAND}: \texttt{biber}
+\item[\texttt{--makeglossaries[=\metavar{COMMAND}]}]
+  Run makeglossaries. Experimental.
+\item[\texttt{--glossaries[=\metavar{OPTION\_STRING}]}]
+  Setup a custom glossary. See \autoref{sec:glossaries} for the syntax of \metavar{OPTION\_STRING} and examples.
+\end{description}
+
+\subsection{\TeX-compatible options}
+\begin{description}
+\item[\texttt{--[no-]shell-escape}]
+\item[\texttt{--shell-restricted}]
+\item[\texttt{--synctex=\metavar{NUMBER}}]
+  Generate Sync\TeX\ file.
+  Note that \texttt{.synctex.gz} is created alongside the final \texttt{.pdf}.
+  See \autoref{sec:synctex} for details.
+\item[\texttt{--[no-]file-line-error}]
+  Default: Yes
+\item[\texttt{--[no-]halt-on-error}]
+  Default: Yes
+\item[\texttt{--interaction=\metavar{STRING}}]
+  \metavar{STRING} is one of \texttt{batchmode}, \texttt{nonstopmode}, \texttt{scrollmode}, or \texttt{errorstopmode}.
+  Default: \texttt{nonstopmode}
+\item[\texttt{--jobname=\metavar{STRING}}]
+\item[\texttt{--fmt=\metavar{FORMAT}}]
+\item[\texttt{--output-directory=\metavar{DIR}}]
+  Set output directory for \TeX\ engine.
+  Auxiliary files are produced in this directory.
+  Default: somewhere in the temporary directory.
+\item[\texttt{--output-format=\metavar{FORMAT}}]
+  Set output format.
+  Possible values are \texttt{pdf} or \texttt{dvi}.
+  Default: \texttt{pdf}
+\end{description}
+
+Long options, except \TeX-compatible ones, need two hyphens (e.g. \texttt{-synctex=1} is accepted, but not \texttt{--color}).
+Combining multiple short options, like \texttt{-Ve pdflatex}, is not supported.
+
+\section{Sync\TeX}\label{sec:synctex}
+You can generate Sync\TeX\ data with \texttt{--synctex=1} option.
+
+Although \ClutTeX\ has ``Don't clutter your working directory'' as its motto, the \texttt{.synctex.gz} file is always produced alongside the PDF file.
+This is because Sync\TeX\ cannot find its data file if it's not in the same directory as the PDF.
+
+\section{Watch mode}\label{sec:watch-mode}
+If \texttt{--watch} option is given, \ClutTeX\ enters \emph{watch mode} after processing the document.
+
+On Windows, a built-in filesystem watcher is implemented.
+
+On other platforms, an auxiliary program \texttt{fswatch}\footnote{\url{http://emcrisostomo.github.io/fswatch/}} or \texttt{inotifywait} needs to be installed.
+The auxiliary program will be detected automatically, but you can also select one specific tool via the paramter of the \texttt{--watch} option.
+
+\section{MakeIndex and \BibTeX}
+If you want to generate index or bibliography, using MakeIndex or \BibTeX, set \texttt{--makeindex}, \texttt{--bibtex}, or \texttt{--biber} option.
+You need to explicitly specify the command name as an argument (e.g. \texttt{--makeindex=makeindex}, \texttt{--bibtex=bibtex}).
+
+If you want to use Biber to process bibliography, the option to use is \texttt{--biber}, not \texttt{--bibtex=biber}.
+
+\subsection{Glossaries}
+\label{sec:glossaries}
+For more complex setups of indices you can use the \texttt{glossaries} option.
+Its parameter takes the form
+\texttt{type:outputFile:inputFile:logFile:pathToCommand:commandArgs} (colons
+need to be escaped with \texttt{\textbackslash{}:}).
+
+You might obmit trailing arguments which you do not need.
+
+\begin{tabularx}{\linewidth}{cX}
+	\texttt{type} &
+	type of the glossary, used to determine which tool to run (e.g. \texttt{makeindex})
+	\newline
+	(this or \texttt{pathToCommand} are mandatory)
+	\\
+	\texttt{outputFile} &
+	name of the output file of the tool being run
+	\newline
+	(mandatory)
+	\\
+	\texttt{inputFile} &
+	file generated by \LaTeX which then is being read by the tool being run
+	\newline
+	(optional -- generated from \texttt{outputFile} by using \texttt{.XXs} as extension)
+	\\
+	\texttt{logFile} &
+	log file of the tool being run
+	(optional -- generated from \texttt{outputFile} by using \texttt{.XXl} as extension)
+	\\
+	\texttt{pathToCommand} &
+	specify an exact path to the tool which shall be run to avoid needing to
+	put it in your \texttt{PATH}
+	\newline
+	(this or \texttt{pathToCommand} are mandatory)
+	\\
+	\texttt{commandArgs} &
+	additional argument for the tool being run
+\end{tabularx}
+
+Examples:
+\begin{itemize}
+	\item  \texttt{makeindex:main.acr:main.acn:main.alg}
+		\newline
+		default setup for
+		acronyms with the glossaries package
+	\item \texttt{makeindex:main.glo:main.gls:main.glg}
+		\newline
+		default setup for the
+		normal glossary with the glossaries package
+		\newline
+		(default if no argument is givent to the \texttt{glossaries} option)
+\end{itemize}
+
+\section{For writing a large document}
+When writing a large document with \LaTeX, you usually split the \TeX\ files with \texcmd{include} command.
+When doing so, \texcmd{includeonly} can be used to eliminate processing time.
+But writing \texcmd{includeonly} in the \TeX\ source file is somewhat inconvenient.
+After all, \texcmd{includeonly} is about \emph{how} to process the document, not about its content.
+
+Therefore, \ClutTeX\ provides an command-line option to use \texcmd{includeonly}.
+See \autoref{sec:makefile-example} for example.
+
+Tips: When using \texttt{includeonly}, avoid using \texttt{--makeindex} or \texttt{--biber}.
+
+Another technique for eliminating time is, setting \texttt{--max-iterations=1}.
+It stops \ClutTeX\ from processing the document multiple times, which may take several extra minutes.
+
+\section{Using Makefile}\label{sec:makefile-example}
+You can create Makefile to avoid writing \ClutTeX\ options each time.
+Example:
+\begin{verbatim}
+main.pdf: main.tex chap1.tex chap2.tex
+    cluttex_teal -e lualatex -o $@ --makeindex=mendex $<
+
+main-preview.pdf: main.tex chap1.tex chap2.tex
+    cluttex_teal -e lualatex -o $@ --makeindex=mendex --max-iterations=1 $<
+
+chap1-preview.pdf: main.tex chap1.tex
+    cluttex_teal -e lualatex -o $@ --max-iterations=1 --includeonly=chap1 $<
+
+chap2-preview.pdf: main.tex chap2.tex
+    cluttex_teal -e lualatex -o $@ --max-iterations=1 --includeonly=chap2 $<
+\end{verbatim}
+
+With \texttt{--make-depends} option, you can let \ClutTeX\ infer sub-files and omit them from Makefile.
+Example:
+
+\begin{verbatim}
+main.pdf: main.tex
+    cluttex_teal -e lualatex -o $@ --make-depends=main.pdf.dep $<
+
+-include main.pdf.dep
+\end{verbatim}
+
+After initial \texttt{make} run, \texttt{main.pdf.dep} will contain something like this:
+\begin{verbatim}
+main.pdf: ... main.tex ... chap1.tex chap2.tex
+\end{verbatim}
+
+Note that \texttt{--make-depends} option is still experimental, and may not work well with other options like \texttt{--makeindex}.
+
+\section{Default output directory}
+The auxiliary files like \texttt{.aux} are generated somewhere in the temporary directory, by default.
+The directory name depends on the following three parameters:
+\begin{itemize}
+\item The absolute path of the input file
+\item \texttt{--jobname} option
+\item \texttt{--engine} option
+\end{itemize}
+On the other hand, the following parameters doesn't affect the directory name:
+\begin{itemize}
+\item \texttt{--includeonly}
+\item \texttt{--makeindex}, \texttt{--bibtex}, \texttt{--biber}, \texttt{--makeglossaries}
+\end{itemize}
+
+If you need to know the exact location of the automatically-generated output directory, you can invoke \ClutTeX\ with \texttt{--print-output-directory}.
+For example, \texttt{clean} target of your Makefile could be written as:
+\begin{verbatim}
+clean:
+    -rm -rf $(shell cluttex_teal -e pdflatex --print-output-directory main.tex)
+\end{verbatim}
+
+\ClutTeX\ itself doesn't erase the auxiliary files, unless \texttt{--fresh} option is set.
+Note that, the use of a temporary directory means, the auxiliary files may be cleared when the computer is rebooted.
+
+\section{Support for \texpkg{minted} and \texpkg{epstopdf}}
+In general, packages that execute external commands (shell-escape) don't work well with \texttt{-output-directory}.
+Therefore, they don't work well with \ClutTeX.
+
+However, some packages provide a package option to let them know the location of \texttt{-output-directory}.
+For example, \texpkg{minted} provides \texttt{outputdir}, and \texpkg{epstopdf} provides \texttt{outdir}.
+
+\ClutTeX\ can supply them the appropriate options, but only if it knows that the package is going to be used.
+To let \ClutTeX\ what packages are going to be used, use \texttt{--package-support} option.
+
+For example, if you want to typeset a document that uses \texpkg{minted}, run the following:
+\begin{verbatim}
+cluttex_teal -e pdflatex --shell-escape --package-support=minted document.tex
+\end{verbatim}
+
+\section{Check for driver file}
+
+\ClutTeX\ can check that the correct driver file is loaded when certain packages are loaded.
+Currently, the list of supported packages are \texpkg{graphics}, \texpkg{color}, \texpkg{expl3}, \texpkg{hyperref}, and \texpkg{xy}.
+
+The check is always done with PDF mode.
+To check the driver with DVI mode, use \texttt{--check-driver} option.
+
+\end{document}

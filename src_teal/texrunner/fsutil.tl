@@ -1,53 +1,52 @@
 --[[
   Copyright 2016 ARATA Mizuki
+  Copyright 2024 Lukas Heindl
 
-  This file is part of ClutTeX.
+  This file is part of ClutTeX_teal.
 
-  ClutTeX is free software: you can redistribute it and/or modify
+  ClutTeX_teal is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
 
-  ClutTeX is distributed in the hope that it will be useful,
+  ClutTeX_teal is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with ClutTeX.  If not, see <http://www.gnu.org/licenses/>.
+  along with ClutTeX_teal.  If not, see <http://www.gnu.org/licenses/>.
 ]]
 
-local assert = assert
-local os = os
-local os_execute = os.execute
+local os = require "os_"
 local os_remove = os.remove
 local filesys = require "lfs"
 local pathutil = require "texrunner.pathutil"
 local shellutil = require "texrunner.shellutil"
 local escape = shellutil.escape
 
-local copy_command
+local copy_command:function(string,string): string
 if os.type == "windows" then
-  function copy_command(from, to)
+  function copy_command(from: string, to: string): string
     -- TODO: What if `from` begins with a slash?
     return "copy " .. escape(from) .. " " .. escape(to) .. " > NUL"
   end
 else
-  function copy_command(from, to)
+  function copy_command(from: string, to: string): string
     -- TODO: What if `from` begins with a hypen?
     return "cp " .. escape(from) .. " " .. escape(to)
   end
 end
 
-local isfile = filesys.isfile or function(path)
+local function isfile(path: string): boolean
   return filesys.attributes(path, "mode") == "file"
 end
 
-local isdir = filesys.isdir or function(path)
+local function isdir (path: string): boolean
   return filesys.attributes(path, "mode") == "directory"
 end
 
-local function mkdir_rec(path)
+local function mkdir_rec(path: string): boolean|nil, nil|string
   local succ, err = filesys.mkdir(path)
   if not succ then
     succ, err = mkdir_rec(pathutil.parentdir(path))
@@ -58,7 +57,7 @@ local function mkdir_rec(path)
   return succ, err
 end
 
-local function remove_rec(path)
+local function remove_rec(path: string): boolean|nil, nil|string
   if isdir(path) then
     for file in filesys.dir(path) do
       if file ~= "." and file ~= ".." then

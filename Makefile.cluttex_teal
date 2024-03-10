@@ -1,0 +1,45 @@
+all: bin/cluttex_teal bin/cluttex_teal.bat
+
+.PHONY: all archive check-version
+
+sources= \
+		 src_lua/texrunner/pathutil.lua \
+		 src_lua/texrunner/pathutil_unix.lua \
+		 src_lua/texrunner/pathutil_windows.lua \
+		 src_lua/texrunner/shellutil.lua \
+		 src_lua/texrunner/shellutil_unix.lua \
+		 src_lua/texrunner/shellutil_windows.lua \
+		 src_lua/texrunner/fsutil.lua \
+		 src_lua/texrunner/option.lua \
+		 src_lua/texrunner/tex_engine.lua \
+		 src_lua/texrunner/reruncheck.lua \
+		 src_lua/texrunner/auxfile.lua \
+		 src_lua/texrunner/luatexinit.lua \
+		 src_lua/texrunner/recovery.lua \
+		 src_lua/texrunner/handleoption.lua \
+		 src_lua/texrunner/isatty.lua \
+		 src_lua/texrunner/message.lua \
+		 src_lua/texrunner/fswatcher_windows.lua \
+		 src_lua/texrunner/safename.lua \
+		 src_lua/texrunner/checkdriver.lua \
+		 src_lua/cluttex_teal.lua
+
+bin/cluttex_teal: $(sources) utils/build_cluttex_teal.lua
+	@mkdir -p bin
+	lua utils/build_cluttex_teal.lua --unix-shellscript $@
+	lua utils/checkglobal.lua $@
+	chmod +x $@
+
+bin/cluttex_teal.bat: $(sources) utils/build_cluttex_teal.lua
+	@mkdir -p bin
+	lua utils/build_cluttex_teal.lua --windows-batchfile $@
+	lua utils/checkglobal.lua $@
+
+version_file=$(shell bin/cluttex_teal --version 2>&1 | grep --only-matching -E 'v\d+(\.\d+)*' | sed 's/^v/VERSION_/;s/\./_/g')
+
+check-version: all
+	@bin/cluttex_teal --version
+	grep VERSION src_lua/cluttex_teal.lua
+	grep VERSION bin/cluttex_teal
+	grep VERSION bin/cluttex_teal.bat
+	grep -i VERSION doc/cluttex_teal.tex

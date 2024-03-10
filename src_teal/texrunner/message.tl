@@ -1,42 +1,43 @@
 --[[
   Copyright 2018 ARATA Mizuki
+  Copyright_teal 2024 Lukas Heindl
 
-  This file is part of ClutTeX.
+  This file is part of ClutTeX_teal.
 
-  ClutTeX is free software: you can redistribute it and/or modify
+  ClutTeX_teal is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
 
-  ClutTeX is distributed in the hope that it will be useful,
+  ClutTeX_teal is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with ClutTeX.  If not, see <http://www.gnu.org/licenses/>.
+  along with ClutTeX_teal.  If not, see <http://www.gnu.org/licenses/>.
 ]]
 
+global CLUTTEX_VERBOSITY: integer
 local use_colors = false
 
-local function set_colors(mode)
-  local M
+local function set_colors(mode: string)
   if mode == "always" then
-    M = require "texrunner.isatty"
+    local isatty = require "texrunner.isatty"
     use_colors = true
-    if use_colors and M.enable_virtual_terminal then
-      local succ = M.enable_virtual_terminal(io.stderr)
+    if use_colors and isatty.enable_virtual_terminal then
+      local succ = isatty.enable_virtual_terminal(io.stderr)
       if not succ and CLUTTEX_VERBOSITY >= 2 then
-        io.stderr:write("ClutTeX: Failed to enable virtual terminal\n")
+        io.stderr:write("ClutTeX_teal: Failed to enable virtual terminal\n")
       end
     end
   elseif mode == "auto" then
-    M = require "texrunner.isatty"
-    use_colors = M.isatty(io.stderr)
-    if use_colors and M.enable_virtual_terminal then
-      use_colors = M.enable_virtual_terminal(io.stderr)
+    local isatty = require "texrunner.isatty"
+    use_colors = isatty.isatty(io.stderr)
+    if use_colors and isatty.enable_virtual_terminal then
+      use_colors = isatty.enable_virtual_terminal(io.stderr)
       if not use_colors and CLUTTEX_VERBOSITY >= 2 then
-        io.stderr:write("ClutTeX: Failed to enable virtual terminal\n")
+        io.stderr:write("ClutTeX_teal: Failed to enable virtual terminal\n")
       end
     end
   elseif mode == "never" then
@@ -87,7 +88,7 @@ local CMD = {
   bg_x_white   = "\027[107m",
 }
 
-local function exec_msg(commandline)
+local function exec_msg(commandline: string)
   if use_colors then
     io.stderr:write(CMD.fg_x_white, CMD.bg_red, "[EXEC]", CMD.reset, " ", CMD.fg_cyan, commandline, CMD.reset, "\n")
   else
@@ -95,7 +96,7 @@ local function exec_msg(commandline)
   end
 end
 
-local function error_msg(...)
+local function error_msg(...: string)
   local message = table.concat({...}, "")
   if use_colors then
     io.stderr:write(CMD.fg_x_white, CMD.bg_red, "[ERROR]", CMD.reset, " ", CMD.fg_red, message, CMD.reset, "\n")
@@ -104,7 +105,7 @@ local function error_msg(...)
   end
 end
 
-local function warn_msg(...)
+local function warn_msg(...: string)
   local message = table.concat({...}, "")
   if use_colors then
     io.stderr:write(CMD.fg_x_white, CMD.bg_red, "[WARN]", CMD.reset, " ", CMD.fg_blue, message, CMD.reset, "\n")
@@ -113,7 +114,7 @@ local function warn_msg(...)
   end
 end
 
-local function diag_msg(...)
+local function diag_msg(...: string)
   local message = table.concat({...}, "")
   if use_colors then
     io.stderr:write(CMD.fg_x_white, CMD.bg_red, "[DIAG]", CMD.reset, " ", CMD.fg_blue, message, CMD.reset, "\n")
@@ -122,7 +123,7 @@ local function diag_msg(...)
   end
 end
 
-local function info_msg(...)
+local function info_msg(...: string)
   local message = table.concat({...}, "")
   if use_colors then
     io.stderr:write(CMD.fg_x_white, CMD.bg_red, "[INFO]", CMD.reset, " ", CMD.fg_magenta, message, CMD.reset, "\n")

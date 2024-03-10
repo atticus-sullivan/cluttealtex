@@ -1,20 +1,21 @@
 --[[
   Copyright 2016,2019 ARATA Mizuki
+  Copyright 2024 Lukas Heindl
 
-  This file is part of ClutTeX.
+  This file is part of ClutTeX_teal.
 
-  ClutTeX is free software: you can redistribute it and/or modify
+  ClutTeX_teal is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
 
-  ClutTeX is distributed in the hope that it will be useful,
+  ClutTeX_teal is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with ClutTeX.  If not, see <http://www.gnu.org/licenses/>.
+  along with ClutTeX_teal.  If not, see <http://www.gnu.org/licenses/>.
 ]]
 
 local assert = assert
@@ -25,24 +26,27 @@ local table_concat = table.concat
 local os_execute = os.execute
 
 -- s: string
-local function escape(s)
+local function escape(s: string): string
   local len = #s
   local result = {}
-  local t,i = string_match(s, "^([^']*)()")
+  local t,_i = string_match(s, "^([^']*)()")
   assert(t)
+  local i = tonumber(_i) -- TODO teal issue regarding string.match
   if t ~= "" then
     table_insert(result, "'")
     table_insert(result, t)
     table_insert(result, "'")
   end
   while i < len do
-    t,i = string_match(s, "^('+)()", i)
+    t,_i = string_match(s, "^('+)()", i)
     assert(t)
+    i = tonumber(_i) -- TODO teal issue regarding string.match
     table_insert(result, '"')
     table_insert(result, t)
     table_insert(result, '"')
-    t,i = string_match(s, "^([^']*)()", i)
+    t,_i = string_match(s, "^([^']*)()", i)
     assert(t)
+    i = tonumber(_i) -- TODO teal issue regarding string.match
     if t ~= "" then
       table_insert(result, "'")
       table_insert(result, t)
@@ -58,10 +62,9 @@ assert(escape([[Hello' world!]]) == [['Hello'"'"' world!']])
 assert(escape([[Hello' world!"]]) == [['Hello'"'"' world!"']])
 -- END TEST CODE
 
-local function has_command(name)
+local function has_command(name: string): boolean
   local result = os_execute("which " .. escape(name) .. " > /dev/null")
-  -- Note that os.execute returns a number on Lua 5.1 or LuaTeX
-  return result == 0 or result == true
+  return result == true
 end
 
 return {
