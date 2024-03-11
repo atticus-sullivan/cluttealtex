@@ -1,5 +1,7 @@
 .PHONY: all checkAll doc install build
 
+FD ?= fd
+
 all: build doc install
 
 build: checkAll
@@ -16,4 +18,4 @@ install:
 	l3build install
 
 checkAll:
-	eval $$(luarocks path) && tl check $$(fd "\.tl" ./src_teal)
+	eval $$(luarocks path) && tl check $$($(FD) "\.tl" ./src_teal)

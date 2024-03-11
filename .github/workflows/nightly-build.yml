@@ -28,7 +28,7 @@ jobs:
         luarocks install tl
 
     - name: make
-      run: make build doc
+      run: make FD=fdfind build doc
 
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4.3.1
