@@ -1,4 +1,4 @@
-name: C/C++ CI
+name: nightly build
 
 on:
   push:
@@ -14,7 +14,7 @@ jobs:
 
     - name: install make deps
       run: |
-        apt install fd lua5.4
+        sudo apt install fd lua5.4
 
     - name: Install LuaRocks (latest)
       uses: jkl1337/gh-actions-luarocks@v5
