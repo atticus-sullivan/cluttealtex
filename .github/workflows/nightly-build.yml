@@ -14,8 +14,12 @@ jobs:
 
     - name: install make deps
       run: |
-        sudo apt install fd-find lua5.4
+        sudo apt install fd-find
 
+    - name: Install lua
+      uses: jkl1337/gh-actions-lua@v10
+      with:
+        luaVersion: "5.4.6"
     - name: Install LuaRocks (latest)
       uses: jkl1337/gh-actions-luarocks@v5
 
