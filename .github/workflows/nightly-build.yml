@@ -30,9 +30,15 @@ jobs:
     - name: make
       run: make FD=fdfind build doc
 
+    - name: move artifacts
+      run: |
+          mv build/doc/cluttex_teal.pdf ./
+          mv bin/cluttex_teal* ./
+
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4.3.1
       with:
         path: |
-          build/doc/cluttex_teal.pdf
-          bin/cluttex_teal*
+          cluttex_teal.pdf
+          cluttex_teal
+          cluttex_teal.bat
