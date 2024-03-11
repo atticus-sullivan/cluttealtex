@@ -38,7 +38,14 @@ jobs:
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4.3.1
       with:
+        name: doc
         path: |
           cluttex_teal.pdf
+
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4.3.1
+      with:
+        name: binaries
+        path: |
           cluttex_teal
           cluttex_teal.bat
