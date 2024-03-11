@@ -36,7 +36,16 @@ The unique feature of this program is that, auxiliary files such as \texttt{.aux
 
 \chapter{How to use \ClutTeX}
 \section{Installation}
-If you want to install \ClutTeX\ manually, fetch an archive from GitHub\footnote{\url{https://github.com/atticus-sullivan/cluttex_teal}}, extract it, and copy \texttt{bin/cluttex\_teal} or \texttt{bin/cluttex\_teal.bat} to somewhere in your \texttt{PATH}.
+If you want to install \ClutTeX\ manually, fetch an archive from
+GitHub\footnote{\url{https://github.com/atticus-sullivan/cluttex_teal}} (either
+release for stable builds or from github actions for nightly build), extract
+it, and copy \texttt{bin/cluttex\_teal} or \texttt{bin/cluttex\_teal.bat} to
+somewhere in your \texttt{PATH}.
+
+\subsection{Building}
+You might also clone the repository and run \texttt{make install} (note the
+required tools \texttt{fd}, \texttt{tl} (luarocks)) for installing to your
+\texttt{TEXMFHOME} tree.
 
 \section{Command-line usage}
 Usage:

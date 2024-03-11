@@ -14,7 +14,7 @@ build: checkAll
 doc:
 	l3build doc
 
-install:
+install: build
 	l3build install
 
 checkAll:
