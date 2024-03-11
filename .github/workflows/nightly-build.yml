@@ -14,7 +14,7 @@ jobs:
 
     - name: install make deps
       run: |
-        sudo apt install fd-find
+        sudo apt install fd-find texlive
 
     - name: Install lua
       uses: jkl1337/gh-actions-lua@v11
