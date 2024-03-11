@@ -39,3 +39,10 @@ luac.out
 *.x86_64
 *.hex
 
+# ignore hidden files
+.*
+
+# ignore build artifacts
+bin/
+build/
+src_lua/
