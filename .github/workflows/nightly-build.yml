@@ -25,7 +25,7 @@ jobs:
 
     - name: install luarocks deps
       run: |
-        luarocks install tl
+        luarocks install --dev tl
 
     - name: make
       run: make FD=fdfind build doc
