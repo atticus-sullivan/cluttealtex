@@ -1,0 +1,21 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: make
+      run: make build doc
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4.3.1
+      with:
+        path: |
+          build/doc/cluttex_teal.pdf
+          bin/cluttex_teal*
