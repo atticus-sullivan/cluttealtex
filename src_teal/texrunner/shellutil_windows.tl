@@ -33,7 +33,7 @@ assert(escape([[Hello\" world!"]]) == [["Hello\\\" world!\""]])
 
 local function has_command(name: string): boolean
   local result = os_execute("where " .. escape(name) .. " > NUL 2>&1")
-  return result == true
+  return result
 end
 
 return {

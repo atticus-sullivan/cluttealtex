@@ -82,7 +82,7 @@ int fileno(void *stream);
         return false
       end
       local result = os.execute(string.format("test -t %d", fd))
-      return result == 0
+      return result == 0 or result
     end,
   }
 

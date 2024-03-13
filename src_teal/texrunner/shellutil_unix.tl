@@ -18,8 +18,6 @@
   along with ClutTeX_teal.  If not, see <http://www.gnu.org/licenses/>.
 ]]
 
-local os = require"os_"
-
 local assert = assert
 local string_match = string.match
 local table = table
@@ -66,7 +64,7 @@ assert(escape([[Hello' world!"]]) == [['Hello'"'"' world!"']])
 
 local function has_command(name: string): boolean
   local result = os_execute("which " .. escape(name) .. " > /dev/null")
-  return result == 0
+  return result
 end
 
 return {
