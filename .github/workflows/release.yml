@@ -1,0 +1,38 @@
+name: Releases
+
+on: 
+  push:
+    tags:
+    - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: install make deps
+      run: |
+        sudo apt install fd-find texlive-latex-extra
+
+    - name: Install lua
+      uses: jkl1337/gh-actions-lua@v11
+      with:
+        luaVersion: "5.4.6"
+    - name: Install LuaRocks (latest)
+      uses: jkl1337/gh-actions-luarocks@v5
+
+    - name: install luarocks deps
+      run: |
+        luarocks install --dev tl
+
+    - name: make
+      run: make FD=fdfind build doc
+
+    - uses: ncipollo/release-action@v1
+      with:
+        artifacts: "build/doc/cluttex_teal.pdf,bin/cluttex_teal*"
+        artifactErrorsFailBuild: true
+        generateReleaseNotes: true
