@@ -586,7 +586,7 @@ end
 local function do_typeset(): boolean, string, integer
 	-- Execute the command string yielded by do_typeset_c
 	for command, recover in coroutine.wrap(do_typeset_c) do
-		if command is string and recover is function then
+		if command is string and (recover is function or recover is nil) then
 			message.exec(command)
 			local success, termination, status_or_signal = os.execute(command)
 			if not success and not (recover and recover()) then
@@ -600,7 +600,7 @@ local function do_typeset(): boolean, string, integer
 				return false, termination, status_or_signal
 			end
 		else
-			error("invalid type")
+			error(("invalid type. command: %s recover: %s"):format(type(command), type(recover)))
 		end
 	end
 	-- Successful

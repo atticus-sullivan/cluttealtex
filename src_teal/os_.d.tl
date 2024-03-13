@@ -11,7 +11,7 @@ local record os_
 	-- yday: integer
 	-- year: integer) and function(string, number): string)
 	difftime: function(number, number): number
-	execute: function(string): boolean, string, integer
+	execute: function(string): integer, string, integer
 	exit: function(number | boolean, boolean)
 	getenv: function(string): string
 	remove: function(string): boolean, string

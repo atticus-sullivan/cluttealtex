@@ -473,10 +473,10 @@ local function handle_cluttex_options(arg:{string}): string,TexEngine.Engine,opt
 
 		elseif name == "change-directory" then
 			assert(options.change_directory == nil, "multiple --change-directory options")
-			if param is string then
+			if param is boolean then
 				options.change_directory = param
 			else
-				assert(param is string, "invalid param type")
+				assert(param is boolean, "invalid param type")
 			end
 
 		elseif name == "includeonly" then

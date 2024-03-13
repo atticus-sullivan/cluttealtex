@@ -6,7 +6,7 @@ local record Module
 	record Options
 		biber: string
 		bibtex: string
-		change_directory: string
+		change_directory: boolean
 		check_driver: string
 		color: string
 		dvipdfmx_extraoptions: {string}
