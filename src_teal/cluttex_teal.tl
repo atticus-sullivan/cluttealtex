@@ -640,7 +640,7 @@ if options.watch then
 			watcher:close()
 			return true
 		end
-	elseif shellutil.has_command("fswatch") and (options.watch == "auto" or options.watch == "fswatch")  then
+	elseif (options.watch == "auto" or options.watch == "fswatch") and shellutil.has_command("fswatch") then
 		if CLUTTEX_VERBOSITY >= 2 then
 			message.info("Using `fswatch' command")
 		end
@@ -664,7 +664,7 @@ if options.watch then
 			end
 			return false
 		end
-	elseif shellutil.has_command("inotifywait") and (options.watch == "auto" or options.watch == "inotifywait") then
+	elseif (options.watch == "auto" or options.watch == "inotifywait") and shellutil.has_command("inotifywait") then
 		if CLUTTEX_VERBOSITY >= 2 then
 			message.info("Using `inotifywait' command")
 		end
