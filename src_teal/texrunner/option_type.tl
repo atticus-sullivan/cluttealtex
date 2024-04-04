@@ -20,7 +20,6 @@ local record Module
 		interaction: string
 		jobname: string
 		make_depends: string
-		makeglossaries: string
 		max_iterations: integer
 		output: string
 		output_directory: string
@@ -39,14 +38,14 @@ local record Module
 		extraoptions: {string}
 	end
 	record Glos
-		type: string
-		out: string
-		inp: string
-		log: string
-		path: string
-		ist: string
-		args: string
-		cmd: string
+		type: string -- only used for splitting and cmd building
+		out: string -- used during compilation
+		inp: string -- used during compilation
+		log: string -- only used for splitting and cmd building
+		path: string -- only used for splitting and cmd building
+		ist: string -- only used for splitting and cmd building
+		args: string -- only used for splitting and cmd building
+		cmd: string -- used during compilation
 	end
 
 end
