@@ -87,6 +87,7 @@ local function parse_glossaries_option(opt:string): options.Glos, string
 		ret.path = ret.type
 	end
 
+	-- yes the extension for the style file always is "ist"
 	ret.ist = pathutil.replaceext(ret.log, "ist")
 
 	if #s >= 6 then
@@ -95,7 +96,7 @@ local function parse_glossaries_option(opt:string): options.Glos, string
 		if ret.type == "makeindex" then
 			ret.args = ("-s %s -t %s -o %s %s"):format(shellutil.escape(ret.ist), shellutil.escape(ret.log), shellutil.escape(ret.out), shellutil.escape(ret.inp))
 		elseif ret.type == "xindy" then
-			ret.args = ("-t %s -o %s %s"):format(shellutil.escape(ret.log), shellutil.escape(ret.out), shellutil.escape(ret.inp))
+			ret.args = ("-M %s -t %s -o %s %s"):format(shellutil.escape(ret.ist), shellutil.escape(ret.log), shellutil.escape(ret.out), shellutil.escape(ret.inp))
 		else
 			return nil, "Error on parsing the glossaries parameter \""..opt.."\""
 		end
@@ -146,7 +147,6 @@ Options:
                                      `bibtex' or `pbibtex'.
       --biber[=COMMAND+OPTIONs]    Command for Biber.
       --sagetex[=COMMAND+OPTIONS]  Command for sagetex
-      --makeglossaries[=COMMAND+OPTIONs]  Command for makeglossaries.
       --glossaries=[CONFIGURATION]  Configuration can contain
                                     "type:outputFile:inputFile:logFile:pathToCommand:commandArgs" (":" can be escaped with "\").
                                     Only the outputFile and either type or pathToCommand
@@ -350,11 +350,6 @@ local option_spec = {
 		long = "sagetex",
 		param = true,
 		default = "sage",
-	},
-	{
-		long = "makeglossaries",
-		param = true,
-		default = "makeglossaries",
 	},
 	{
 		long = "glossaries",
@@ -657,17 +652,7 @@ local function handle_cluttex_options(arg:{string}): string,TexEngine.Engine,opt
 				assert(param is string, "invalid param type")
 			end
 
-		elseif name == "makeglossaries" then
-			assert(not options.glossaries, "'makeglossaries' cannot be used together with 'glossaries'\nUse e.g. --glossaries='makeindex:main.glo:main.gls:main.glg' instead of makeglossaries")
-			assert(options.makeglossaries == nil, "multiple --makeglossaries options")
-			if param is string then
-				options.makeglossaries = param
-			else
-				assert(param is string, "invalid param type")
-			end
-
 		elseif name == "glossaries" then
-			assert(not options.makeglossaries, "'glossaries' cannot be used together with 'makeglossaries'\nUse e.g. --glossaries='makeindex:main.glo:main.gls:main.glg' instead of makeglossaries")
 			assert(not options.makeindex, "'glossaries' cannot be used together with 'makeindex'\nUse e.g. --glossaries='makeindex:main.ind:main.idx:main.ilg' instead of makeindex")
 			if not options.glossaries then
 				options.glossaries = {}

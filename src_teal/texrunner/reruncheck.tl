@@ -114,8 +114,6 @@ filelist = filelist or {}
 					end
 				elseif ext == "bcf" then -- biber
 					kind = "auxiliary"
-				elseif ext == "glo" then -- makeglossaries
-					kind = "auxiliary"
 				elseif ext == "sage" then -- sagetex
 					kind = "auxiliary"
 				end
