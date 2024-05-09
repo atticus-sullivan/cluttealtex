@@ -116,6 +116,8 @@ filelist = filelist or {}
 					kind = "auxiliary"
 				elseif ext == "sage" then -- sagetex
 					kind = "auxiliary"
+				elseif ext == "mmz" or ext == "memo" then -- memoize
+					kind = "auxiliary"
 				end
 				fileinfo = {path = path, abspath = abspath, kind = kind}
 				table.insert(filelist, fileinfo)

@@ -35,6 +35,7 @@ local record Module
 		fmt: string
 		makeindex: string
 		sagetex: string
+		memoize: string
 		extraoptions: {string}
 	end
 	record Glos

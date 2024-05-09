@@ -122,6 +122,14 @@ Usage:
   Run sagetex. Experimental.
 \item[\texttt{--glossaries[=\metavar{OPTION\_STRING}]}]
   Setup a custom glossary. See \autoref{sec:glossaries} for the syntax of \metavar{OPTION\_STRING} and examples.
+\item[\texttt{--memoize[=\metavar{python|perl|extract-command}]}]
+  Enable the hook for running an extract script or for the memoize package. Set
+  either to \texttt{python} or \texttt{perl} (default) to select which
+  extraction script to run or directly specify the executable which shall be
+  run. This will also set the key \texttt{no memo dir} as cluttex\_teal itself
+  already provides the feature of avoiding to clutter the working directory. It
+  also sets the key \texttt{extract=no} since cluttex\_teal performs the
+  extraction on its own.
 \end{description}
 
 \subsection{\TeX-compatible options}

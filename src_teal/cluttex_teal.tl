@@ -255,6 +255,9 @@ local function single_run(auxstatus:{string:reruncheck.Status}, iteration:intege
 			message.diag("You may want to use --package-support=epstopdf option.")
 		end
 	end
+	if options.memoize then
+		tex_injection = string.format("%s\\PassOptionsToPackage{no memo dir,extract=no}{memoize}", tex_injection or "")
+	end
 
 	local inputline = tex_injection .. safename.safeinput(inputfile, engine)
 
@@ -442,6 +445,41 @@ local function single_run(auxstatus:{string:reruncheck.Status}, iteration:intege
 		-- Check log file
 		if string.find(execlog, "No file [^\n]+%.bbl%.") then
 			message.diag("You may want to use --bibtex or --biber option.")
+		end
+	end
+
+	if options.memoize then
+		for _,file in ipairs(filelist) do
+			-- usual compilation with memoize
+			-- tex      -> pdflatex tex    -> aux,pdf,mmz
+			-- mmz,pdf  -> memoize-extract -> pdf,pdf
+			-- tex      -> pdflatex tex    -> aux,pdf
+			if pathutil.ext(file.path) == "mmz" then
+				local memoizefileinfo = {path = file.path, abspath = file.abspath, kind = "auxiliary"}
+				local must_extract = false
+				for l in io.lines(file.abspath) do
+					local newExtern = l:match("^\\mmzNewExtern")
+					must_extract = must_extract or newExtern ~= nil
+				end
+				print(pathutil.basename(pathutil.replaceext(file.abspath, "tex")))
+				if must_extract then
+					local extract_command = {
+						options.memoize, -- Do not escape options.memoize to allow additional options
+						pathutil.basename(pathutil.replaceext(file.abspath, "tex"))
+					}
+					coroutine.yield(table.concat(extract_command, " "))
+					-- ensure document gets recompiled afterwards
+					local succ, err = filesys.touch(file.path)
+					if not succ then
+						message.warn("Failed to touch " .. file.path .. " (" .. err .. ")")
+					end
+				end
+			end
+		end
+	else
+		-- Check log file
+		if string.find(execlog, "Package memoize Warning") then
+			message.diag("You may want to use --memoize option.")
 		end
 	end
 

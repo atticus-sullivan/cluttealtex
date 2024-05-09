@@ -141,12 +141,13 @@ Options:
       --tex-option=OPTION      Pass OPTION to TeX as a single option.
       --tex-options=OPTIONs    Pass OPTIONs to TeX as multiple options.
       --dvipdfmx-option[s]=OPTION[s]  Same for dvipdfmx.
-      --makeindex=COMMAND+OPTIONs  Command to generate index, such as
+      --makeindex=COMMAND+OPTIONs   Command to generate index, such as
                                      `makeindex' or `mendex'.
-      --bibtex=COMMAND+OPTIONs     Command for BibTeX, such as
+      --bibtex=COMMAND+OPTIONs      Command for BibTeX, such as
                                      `bibtex' or `pbibtex'.
-      --biber[=COMMAND+OPTIONs]    Command for Biber.
-      --sagetex[=COMMAND+OPTIONS]  Command for sagetex
+      --biber[=COMMAND+OPTIONs]     Command for Biber.
+      --sagetex[=COMMAND+OPTIONS]   Command for sagetex
+      --memoize[=python/perl based] Command for memoize
       --glossaries=[CONFIGURATION]  Configuration can contain
                                     "type:outputFile:inputFile:logFile:pathToCommand:commandArgs" (":" can be escaped with "\").
                                     Only the outputFile and either type or pathToCommand
@@ -355,6 +356,11 @@ local option_spec = {
 		long = "glossaries",
 		param = true,
 		default = "makeindex:main.glo:main.gls:main.glg",
+	},
+	{
+		long = "memoize",
+		param = true,
+		default = "perl",
 	},
 }
 
@@ -668,6 +674,20 @@ local function handle_cluttex_options(arg:{string}): string,TexEngine.Engine,opt
 			assert(options.sagetex == nil, "multiple --sagetex options")
 			if param is string then
 				options.sagetex = param
+			else
+				assert(param is string, "invalid param type")
+			end
+
+		elseif name == "memoize" then
+			assert(options.memoize == nil, "multiple --memoize options")
+			if param is string then
+				if param == "python" then
+					options.memoize = "memoize-extract.py"
+				elseif param == "perl" then
+					options.memoize = "memoize-extract.pl"
+				else
+					options.memoize = param
+				end
 			else
 				assert(param is string, "invalid param type")
 			end
