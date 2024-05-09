@@ -142,7 +142,11 @@ end
 
 -- Set `max_print_line' environment variable if not already set.
 if os.getenv("max_print_line") == nil then
-	os.setenv("max_print_line", "65536")
+	if options.bibtex then
+		os.setenv("max_print_line", "19999")
+	else
+		os.setenv("max_print_line", "65536")
+	end
 end
 -- TODO: error_line, half_error_line
 --[[
@@ -380,6 +384,8 @@ local function single_run(auxstatus:{string:reruncheck.Status}, iteration:intege
 		local output_bbl = path_in_output_directory("bbl")
 		if bibtex_aux_hash ~= bibtex_aux_hash2 or reruncheck.comparefiletime(pathutil.abspath(mainauxfile), output_bbl, auxstatus) then
 			-- The input for BibTeX command has changed...
+			-- os.execute("pwd")
+			-- os.execute("echo $BIBINPUTS")
 			local bibtex_command = {
 				"cd", shellutil.escape(options.output_directory), "&&",
 				options.bibtex,
