@@ -337,10 +337,12 @@ local option_spec = {
 	{
 		long = "makeindex",
 		param = true,
+		default = "makeindex",
 	},
 	{
 		long = "bibtex",
 		param = true,
+		default = "bibtex",
 	},
 	{
 		long = "biber",
