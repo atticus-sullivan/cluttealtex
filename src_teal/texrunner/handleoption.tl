@@ -147,7 +147,8 @@ Options:
                                      `bibtex' or `pbibtex'.
       --biber[=COMMAND+OPTIONs]     Command for Biber.
       --sagetex[=COMMAND+OPTIONS]   Command for sagetex
-      --memoize[=python/perl based] Command for memoize
+      --memoize[=python/perl/path]  Command which shall be used for memoize
+      --memoize_opt=PACKAGE_OPT     Additional package option for memoize
       --glossaries=[CONFIGURATION]  Configuration can contain
                                     "type:outputFile:inputFile:logFile:pathToCommand:commandArgs" (":" can be escaped with "\").
                                     Only the outputFile and either type or pathToCommand
@@ -363,6 +364,10 @@ local option_spec = {
 		long = "memoize",
 		param = true,
 		default = "perl",
+	},
+	{
+		long = "memoize_opt",
+		param = true,
 	},
 }
 
@@ -690,6 +695,14 @@ local function handle_cluttex_options(arg:{string}): string,TexEngine.Engine,opt
 				else
 					options.memoize = param
 				end
+			else
+				assert(param is string, "invalid param type")
+			end
+
+		elseif name == "memoize_opt" then
+			if param is string then
+				options.memoize_opts = options.memoize_opts or {}
+				table.insert(options.memoize_opts, param)
 			else
 				assert(param is string, "invalid param type")
 			end

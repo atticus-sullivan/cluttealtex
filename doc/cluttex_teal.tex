@@ -130,6 +130,13 @@ Usage:
   already provides the feature of avoiding to clutter the working directory. It
   also sets the key \texttt{extract=no} since cluttex\_teal performs the
   extraction on its own.
+\item[\texttt{--memoize\_opts=\metavar{PACKAGE OPT}}]
+  Pass additional options like \texttt{readonly} to the memoize package. Pass
+  this option multiple times to add more than one option.
+  Especially \texttt{readonly} might be useful since this allows to build with
+  the current set of memoized pictures and then after finishing writing a new
+  picture memoize the new picture as well (compile once without
+  \texttt{readonly}).
 \end{description}
 
 \subsection{\TeX-compatible options}

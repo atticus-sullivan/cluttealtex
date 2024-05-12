@@ -262,6 +262,9 @@ local function single_run(auxstatus:{string:reruncheck.Status}, iteration:intege
 	if options.memoize then
 		tex_injection = string.format("%s\\PassOptionsToPackage{no memo dir,extract=no}{memoize}", tex_injection or "")
 	end
+	if options.memoize_opts then
+		tex_injection = string.format("%s\\PassOptionsToPackage{%s}{memoize}", tex_injection or "", table.concat(options.memoize_opts, ","))
+	end
 
 	local inputline = tex_injection .. safename.safeinput(inputfile, engine)
 
