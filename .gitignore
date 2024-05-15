@@ -45,4 +45,5 @@ luac.out
 # ignore build artifacts
 bin/
 build/
+doc/*.pdf
 src_lua/
