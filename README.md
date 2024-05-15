@@ -1,5 +1,5 @@
-*Note: This is a fork of [cluttex](https://github.com/minoki/cluttex) which is
-using teal to transpile typed lua to classic lua.*
+**Note: This is a fork of [cluttex](https://github.com/minoki/cluttex) which is
+using teal to transpile typed lua to classic lua.**
 
 # cluttex_teal
 
