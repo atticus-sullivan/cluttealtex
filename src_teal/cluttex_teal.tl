@@ -470,7 +470,6 @@ local function single_run(auxstatus:{string:reruncheck.Status}, iteration:intege
 					local newExtern = l:match("^\\mmzNewExtern")
 					must_extract = must_extract or newExtern ~= nil
 				end
-				print(pathutil.basename(pathutil.replaceext(file.abspath, "tex")))
 				if must_extract then
 					local extract_command = {
 						options.memoize, -- Do not escape options.memoize to allow additional options
@@ -617,7 +616,7 @@ local function do_typeset(): boolean, string, integer
 		if command is string and (recover is function or recover is nil) then
 			message.exec(command)
 			local success, termination, status_or_signal = os.execute(command)
-			if not success and not (recover and recover()) then
+			if success ~= 0 and not (recover and recover()) then
 				if termination == "exit" then
 					message.error("Command exited abnormally: exit status ", tostring(status_or_signal))
 				elseif termination == "signal" then
