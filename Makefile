@@ -15,7 +15,7 @@ doc:
 	l3build doc
 
 install: build
-	l3build install
+	l3build install --full
 
 checkAll:
 	eval $$(luarocks path) && tl check $$($(FD) "\.tl" ./src_teal)
