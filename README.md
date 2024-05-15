@@ -1,3 +1,6 @@
+*Note: This is a fork of [cluttex](https://github.com/minoki/cluttex) which is
+using teal to transpile typed lua to classic lua.*
+
 # cluttex_teal
 
 See `-h` and/or the documentation in `pdf` format.
@@ -7,6 +10,8 @@ See `-h` and/or the documentation in `pdf` format.
   included in texlive.
 - avoid cluttering your project directory with aux files
 - watch input files and automatically rebuild on change
-- run makindex, BibTeX, biber if requested
+- run `makindex`, BibTeX, `biber` if requested
 - configure manual glossaries with the `--glossaries` option
-- can work together with `memoize` and allows to pass arbitrary arguments to `memoize` (useful for e.g. `readonly` key)
+- also supports the `memoize` package. You only need to pass `--memoize` to
+  `cluttex_teal` and put `\usepackage{memoize}` in your LaTeX file. Also you can
+  pass arbitrary additional parameters to `memoize` (useful for e.g. `readonly` key)
