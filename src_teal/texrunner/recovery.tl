@@ -39,7 +39,7 @@ local function create_missing_directories(args:Args): boolean
 		-- Directories for sub-auxfiles are not created automatically, so we need to provide them.
 		local report = parse_aux_file(args.auxfile, args.options.output_directory)
 		if report.made_new_directory then
-			if CLUTTEX_VERBOSITY >= 1 then
+			if CLUTTEALTEX_VERBOSITY >= 1 then
 				message.info("Created missing directories.")
 			end
 			return true
@@ -55,7 +55,7 @@ local function run_epstopdf(args:Args): boolean
 			local infile_abs = pathutil.abspath(infile, args.original_wd)
 			if fsutil.isfile(infile_abs) then -- input file exists
 				local outfile_abs = pathutil.abspath(outfile, args.options.output_directory)
-				if CLUTTEX_VERBOSITY >= 1 then
+				if CLUTTEALTEX_VERBOSITY >= 1 then
 					message.info("Running epstopdf on ", infile, ".")
 				end
 				local outdir = pathutil.dirname(outfile_abs)

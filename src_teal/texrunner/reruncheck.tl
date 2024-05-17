@@ -244,7 +244,7 @@ local should_rerun = false
 							message.info("File '", fileinfo.path, "' was modified (", modified_because, ").")
 							should_rerun = true
 						else
-							if CLUTTEX_VERBOSITY >= 1 then
+							if CLUTTEALTEX_VERBOSITY >= 1 then
 								message.info("File '", fileinfo.path, "' unmodified (size and md5sum).")
 							end
 						end
@@ -279,7 +279,7 @@ local should_rerun = false
 					if should_rerun then
 						message.info("New auxiliary file '", fileinfo.path, "'.")
 					else
-						if CLUTTEX_VERBOSITY >= 1 then
+						if CLUTTEALTEX_VERBOSITY >= 1 then
 							message.info("Ignoring almost-empty auxiliary file '", fileinfo.path, "'.")
 						end
 					end

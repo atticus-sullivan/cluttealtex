@@ -18,7 +18,7 @@
   along with CluttealTeX.  If not, see <http://www.gnu.org/licenses/>.
 ]]
 
-global CLUTTEX_VERBOSITY: integer
+global CLUTTEALTEX_VERBOSITY: integer
 local use_colors = false
 
 local function set_colors(mode: string)
@@ -27,7 +27,7 @@ local function set_colors(mode: string)
     use_colors = true
     if use_colors and isatty.enable_virtual_terminal then
       local succ = isatty.enable_virtual_terminal(io.stderr)
-      if not succ and CLUTTEX_VERBOSITY >= 2 then
+      if not succ and CLUTTEALTEX_VERBOSITY >= 2 then
         io.stderr:write("CluttealTeX: Failed to enable virtual terminal\n")
       end
     end
@@ -36,7 +36,7 @@ local function set_colors(mode: string)
     use_colors = isatty.isatty(io.stderr)
     if use_colors and isatty.enable_virtual_terminal then
       use_colors = isatty.enable_virtual_terminal(io.stderr)
-      if not use_colors and CLUTTEX_VERBOSITY >= 2 then
+      if not use_colors and CLUTTEALTEX_VERBOSITY >= 2 then
         io.stderr:write("CluttealTeX: Failed to enable virtual terminal\n")
       end
     end

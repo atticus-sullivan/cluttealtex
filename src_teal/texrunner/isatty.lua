@@ -37,12 +37,12 @@ int fileno(void *stream);
       }
   end)
   if succ then
-    if CLUTTEX_VERBOSITY >= 3 then
+    if CLUTTEALTEX_VERBOSITY >= 3 then
       io.stderr:write("CluttealTeX: isatty found via FFI (Unix)\n")
     end
     return M
   else
-    if CLUTTEX_VERBOSITY >= 3 then
+    if CLUTTEALTEX_VERBOSITY >= 3 then
       io.stderr:write("CluttealTeX: FFI (Unix) not found: ", M, "\n")
     end
   end
@@ -58,12 +58,12 @@ int fileno(void *stream);
       }
   end)
   if succ then
-    if CLUTTEX_VERBOSITY >= 3 then
+    if CLUTTEALTEX_VERBOSITY >= 3 then
       io.stderr:write("CluttealTeX: isatty found via luaposix\n")
     end
     return M
   else
-    if CLUTTEX_VERBOSITY >= 3 then
+    if CLUTTEALTEX_VERBOSITY >= 3 then
       io.stderr:write("CluttealTeX: luaposix not found: ", M, "\n")
     end
   end
@@ -128,7 +128,7 @@ DWORD GetLastError();
         local filetype = GetFileType(handle)
         if filetype ~= 0x0003 then -- not FILE_TYPE_PIPE (0x0003)
           -- mintty must be a pipe
-          if CLUTTEX_VERBOSITY >= 4 then
+          if CLUTTEALTEX_VERBOSITY >= 4 then
             io.stderr:write("CluttealTeX: is_mintty: not a pipe\n")
           end
           return false
@@ -138,13 +138,13 @@ DWORD GetLastError();
         if GetFileInformationByHandleEx(handle, FileNameInfo, nameinfo, ffi.sizeof("FILE_NAME_INFO", 32768)) ~= 0 then
           local filename = wide_to_narrow(nameinfo.FileName, math.floor(nameinfo.FileNameLength / 2))
           -- \(cygwin|msys)-<hex digits>-pty<N>-(from|to)-master
-          if CLUTTEX_VERBOSITY >= 4 then
+          if CLUTTEALTEX_VERBOSITY >= 4 then
             io.stderr:write("CluttealTeX: is_mintty: GetFileInformationByHandleEx returned ", filename, "\n")
           end
           local a, b = string.match(filename, "^\\(%w+)%-%x+%-pty%d+%-(%w+)%-master$")
           return (a == "cygwin" or a == "msys") and (b == "from" or b == "to")
         else
-          if CLUTTEX_VERBOSITY >= 4 then
+          if CLUTTEALTEX_VERBOSITY >= 4 then
             io.stderr:write("CluttealTeX: is_mintty: GetFileInformationByHandleEx failed\n")
           end
           return false
@@ -160,14 +160,14 @@ DWORD GetLastError();
           local fd = fileno(file)
           if is_mintty(fd) then
             -- MinTTY
-            if CLUTTEX_VERBOSITY >= 4 then
+            if CLUTTEALTEX_VERBOSITY >= 4 then
               io.stderr:write("CluttealTeX: Detected MinTTY\n")
             end
             return true
           elseif isatty(fd) ~= 0 then
             -- Check for ConEmu or ansicon
             if os.getenv("ConEmuANSI") == "ON" or os.getenv("ANSICON") then
-              if CLUTTEX_VERBOSITY >= 4 then
+              if CLUTTEALTEX_VERBOSITY >= 4 then
                 io.stderr:write("CluttealTeX: Detected ConEmu or ansicon\n")
               end
               return true
@@ -177,7 +177,7 @@ DWORD GetLastError();
               local modePtr = ffi.new("DWORD[1]")
               local result = GetConsoleMode(handle, modePtr)
               if result == 0 then
-                if CLUTTEX_VERBOSITY >= 3 then
+                if CLUTTEALTEX_VERBOSITY >= 3 then
                   local err = GetLastError()
                   io.stderr:write(string.format("CluttealTeX: GetConsoleMode failed (0x%08X)\n", err))
                 end
@@ -187,14 +187,14 @@ DWORD GetLastError();
               result = SetConsoleMode(handle, bitlib.bor(modePtr[0], ENABLE_VIRTUAL_TERMINAL_PROCESSING))
               if result == 0 then
                 -- SetConsoleMode failed: Command Prompt on older Windows
-                if CLUTTEX_VERBOSITY >= 3 then
+                if CLUTTEALTEX_VERBOSITY >= 3 then
                   local err = GetLastError()
                   -- Typical error code: ERROR_INVALID_PARAMETER (0x57)
                   io.stderr:write(string.format("CluttealTeX: SetConsoleMode failed (0x%08X)\n", err))
                 end
                 return false
               end
-              if CLUTTEX_VERBOSITY >= 4 then
+              if CLUTTEALTEX_VERBOSITY >= 4 then
                 io.stderr:write("CluttealTeX: Detected recent Command Prompt\n")
               end
               return true
@@ -207,12 +207,12 @@ DWORD GetLastError();
       }
   end)
   if succ then
-    if CLUTTEX_VERBOSITY >= 3 then
+    if CLUTTEALTEX_VERBOSITY >= 3 then
       io.stderr:write("CluttealTeX: isatty found via FFI (Windows)\n")
     end
     return M
   else
-    if CLUTTEX_VERBOSITY >= 3 then
+    if CLUTTEALTEX_VERBOSITY >= 3 then
       io.stderr:write("CluttealTeX: FFI (Windows) not found: ", M, "\n")
     end
   end

@@ -57,7 +57,7 @@ local function extract_bibtex_from_aux_file(auxfile:string, outdir:string, bibli
 		local name = string_match(l, "\\([%a@]+)")
 		if name == "citation" or name == "bibdata" or name == "bibstyle" then
 			table.insert(biblines, l)
-			if CLUTTEX_VERBOSITY >= 2 then
+			if CLUTTEALTEX_VERBOSITY >= 2 then
 				message.info("BibTeX line: ", l)
 			end
 			elseif name == "@input" then

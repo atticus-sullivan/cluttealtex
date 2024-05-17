@@ -91,7 +91,7 @@ local right_values:{string:Values} = {
 
 -- expected_driver: one of "dvips", "dvipdfmx", "dvisvgm", "pdftex", "xetex", "luatex"
 local function checkdriver(expected_driver:string, filelist:{reruncheck.Filemap_ele})
-	if CLUTTEX_VERBOSITY >= 1 then
+	if CLUTTEALTEX_VERBOSITY >= 1 then
 		message.info("checkdriver: expects ", expected_driver)
 	end
 
@@ -176,7 +176,7 @@ local function checkdriver(expected_driver:string, filelist:{reruncheck.Filemap_
 		-- TODO: dvisvgm?
 	end
 
-	if CLUTTEX_VERBOSITY >= 1 then
+	if CLUTTEALTEX_VERBOSITY >= 1 then
 		message.info("checkdriver: graphics=", tostring(graphics_driver))
 		message.info("checkdriver: expl3=", tostring(expl3_driver))
 		message.info("checkdriver: hyperref=", tostring(hyperref_driver))
