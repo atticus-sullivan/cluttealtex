@@ -1,4 +1,4 @@
-module = "cluttex_teal"
+module = "cluttealtex"
 typesetexe = "lualatex"
 typesetfiles = {"*.tex"}
 
@@ -6,7 +6,7 @@ unpackexe  = "luatex"
 unpackfiles = {}
 docfiledir = "./doc"
 
-scriptfiles = {"cluttex_teal", "cluttex_teal.bat"}
-sourcefiles = {"bin/cluttex_teal", "bin/cluttex_teal.bat"}
+scriptfiles = {"cluttealtex", "cluttealtex.bat"}
+sourcefiles = {"bin/cluttealtex", "bin/cluttealtex.bat"}
 
 excludefiles = {".link.md", "*~", "build.lua"}

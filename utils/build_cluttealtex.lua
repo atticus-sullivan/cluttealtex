@@ -1,20 +1,21 @@
 --[[
   Copyright 2016, 2018 ARATA Mizuki
+  Copyright 2024 Lukas Heindl
 
-  This file is part of ClutTeX.
+  This file is part of CluttealTeX.
 
-  ClutTeX is free software: you can redistribute it and/or modify
+  CluttealTeX is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
 
-  ClutTeX is distributed in the hope that it will be useful,
+  CluttealTeX is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with ClutTeX.  If not, see <http://www.gnu.org/licenses/>.
+  along with CluttealTeX.  If not, see <http://www.gnu.org/licenses/>.
 ]]
 
 local srcdir = "src_lua/"
@@ -141,10 +142,10 @@ local function load_module_code(path)
 	return strip_test_code(assert(io.open(srcdir .. path, "r")):read("*a"))
 end
 
-assert(loadfile(srcdir .. "cluttex_teal.lua")) -- Check syntax
+assert(loadfile(srcdir .. "cluttealtex.lua")) -- Check syntax
 
 local shebang = nil
-local main = assert(io.open(srcdir .. "cluttex_teal.lua", "r")):read("*a")
+local main = assert(io.open(srcdir .. "cluttealtex.lua", "r")):read("*a")
 if main:sub(1,2) == "#!" then
 	-- shebang
 	shebang,main = main:match("^([^\n]+\n)(.*)$")
@@ -166,7 +167,7 @@ end
 
 if not preserve_location_info then
 	table.insert(lines, string.format("local %s = %s\n", table.concat(imported_globals, ", "), table.concat(imported_globals, ", ")))
-	table.insert(lines, "local CLUTTEX_VERBOSITY, CLUTTEX_VERSION\n")
+	table.insert(lines, "local CLUTTEALTEX_VERBOSITY, CLUTTEALTEX_VERSION\n")
 end
 
 if default_os then
@@ -188,7 +189,7 @@ if preserve_location_info then
 			table.insert(lines, string.format("package.preload[%q] = assert(loadstring(%q, %q))\n", m.name, load_module_code(m.path), "=" .. m.path))
 		end
 	end
-	table.insert(lines, string.format("assert(loadstring(%q, %q))(...)\n", main, "=cluttex_teal.lua"))
+	table.insert(lines, string.format("assert(loadstring(%q, %q))(...)\n", main, "=cluttealtex.lua"))
 else  
 	for _,m in ipairs(modules) do
 		if m.path_windows or m.path_unix then

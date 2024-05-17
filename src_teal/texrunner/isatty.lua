@@ -2,20 +2,20 @@
   Copyright 2018 ARATA Mizuki
   Copyright 2024 Lukas Heindl
 
-  This file is part of ClutTeX_teal.
+  This file is part of CluttealTeX.
 
-  ClutTeX_teal is free software: you can redistribute it and/or modify
+  CluttealTeX is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
 
-  ClutTeX_teal is distributed in the hope that it will be useful,
+  CluttealTeX is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with ClutTeX_teal.  If not, see <http://www.gnu.org/licenses/>.
+  along with CluttealTeX.  If not, see <http://www.gnu.org/licenses/>.
 ]]
 
 if os.type == "unix" then
@@ -38,12 +38,12 @@ int fileno(void *stream);
   end)
   if succ then
     if CLUTTEX_VERBOSITY >= 3 then
-      io.stderr:write("ClutTeX_teal: isatty found via FFI (Unix)\n")
+      io.stderr:write("CluttealTeX: isatty found via FFI (Unix)\n")
     end
     return M
   else
     if CLUTTEX_VERBOSITY >= 3 then
-      io.stderr:write("ClutTeX_teal: FFI (Unix) not found: ", M, "\n")
+      io.stderr:write("CluttealTeX: FFI (Unix) not found: ", M, "\n")
     end
   end
 
@@ -59,12 +59,12 @@ int fileno(void *stream);
   end)
   if succ then
     if CLUTTEX_VERBOSITY >= 3 then
-      io.stderr:write("ClutTeX_teal: isatty found via luaposix\n")
+      io.stderr:write("CluttealTeX: isatty found via luaposix\n")
     end
     return M
   else
     if CLUTTEX_VERBOSITY >= 3 then
-      io.stderr:write("ClutTeX_teal: luaposix not found: ", M, "\n")
+      io.stderr:write("CluttealTeX: luaposix not found: ", M, "\n")
     end
   end
 
@@ -129,7 +129,7 @@ DWORD GetLastError();
         if filetype ~= 0x0003 then -- not FILE_TYPE_PIPE (0x0003)
           -- mintty must be a pipe
           if CLUTTEX_VERBOSITY >= 4 then
-            io.stderr:write("ClutTeX_teal: is_mintty: not a pipe\n")
+            io.stderr:write("CluttealTeX: is_mintty: not a pipe\n")
           end
           return false
         end
@@ -139,13 +139,13 @@ DWORD GetLastError();
           local filename = wide_to_narrow(nameinfo.FileName, math.floor(nameinfo.FileNameLength / 2))
           -- \(cygwin|msys)-<hex digits>-pty<N>-(from|to)-master
           if CLUTTEX_VERBOSITY >= 4 then
-            io.stderr:write("ClutTeX_teal: is_mintty: GetFileInformationByHandleEx returned ", filename, "\n")
+            io.stderr:write("CluttealTeX: is_mintty: GetFileInformationByHandleEx returned ", filename, "\n")
           end
           local a, b = string.match(filename, "^\\(%w+)%-%x+%-pty%d+%-(%w+)%-master$")
           return (a == "cygwin" or a == "msys") and (b == "from" or b == "to")
         else
           if CLUTTEX_VERBOSITY >= 4 then
-            io.stderr:write("ClutTeX_teal: is_mintty: GetFileInformationByHandleEx failed\n")
+            io.stderr:write("CluttealTeX: is_mintty: GetFileInformationByHandleEx failed\n")
           end
           return false
         end
@@ -161,14 +161,14 @@ DWORD GetLastError();
           if is_mintty(fd) then
             -- MinTTY
             if CLUTTEX_VERBOSITY >= 4 then
-              io.stderr:write("ClutTeX_teal: Detected MinTTY\n")
+              io.stderr:write("CluttealTeX: Detected MinTTY\n")
             end
             return true
           elseif isatty(fd) ~= 0 then
             -- Check for ConEmu or ansicon
             if os.getenv("ConEmuANSI") == "ON" or os.getenv("ANSICON") then
               if CLUTTEX_VERBOSITY >= 4 then
-                io.stderr:write("ClutTeX_teal: Detected ConEmu or ansicon\n")
+                io.stderr:write("CluttealTeX: Detected ConEmu or ansicon\n")
               end
               return true
             else
@@ -179,7 +179,7 @@ DWORD GetLastError();
               if result == 0 then
                 if CLUTTEX_VERBOSITY >= 3 then
                   local err = GetLastError()
-                  io.stderr:write(string.format("ClutTeX_teal: GetConsoleMode failed (0x%08X)\n", err))
+                  io.stderr:write(string.format("CluttealTeX: GetConsoleMode failed (0x%08X)\n", err))
                 end
                 return false
               end
@@ -190,12 +190,12 @@ DWORD GetLastError();
                 if CLUTTEX_VERBOSITY >= 3 then
                   local err = GetLastError()
                   -- Typical error code: ERROR_INVALID_PARAMETER (0x57)
-                  io.stderr:write(string.format("ClutTeX_teal: SetConsoleMode failed (0x%08X)\n", err))
+                  io.stderr:write(string.format("CluttealTeX: SetConsoleMode failed (0x%08X)\n", err))
                 end
                 return false
               end
               if CLUTTEX_VERBOSITY >= 4 then
-                io.stderr:write("ClutTeX_teal: Detected recent Command Prompt\n")
+                io.stderr:write("CluttealTeX: Detected recent Command Prompt\n")
               end
               return true
             end
@@ -208,12 +208,12 @@ DWORD GetLastError();
   end)
   if succ then
     if CLUTTEX_VERBOSITY >= 3 then
-      io.stderr:write("ClutTeX_teal: isatty found via FFI (Windows)\n")
+      io.stderr:write("CluttealTeX: isatty found via FFI (Windows)\n")
     end
     return M
   else
     if CLUTTEX_VERBOSITY >= 3 then
-      io.stderr:write("ClutTeX_teal: FFI (Windows) not found: ", M, "\n")
+      io.stderr:write("CluttealTeX: FFI (Windows) not found: ", M, "\n")
     end
   end
 end

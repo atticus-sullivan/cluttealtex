@@ -1,4 +1,4 @@
-all: bin/cluttex_teal bin/cluttex_teal.bat
+all: bin/cluttealtex bin/cluttealtex.bat
 
 .PHONY: all archive check-version
 
@@ -22,24 +22,24 @@ sources= \
 		 src_lua/texrunner/fswatcher_windows.lua \
 		 src_lua/texrunner/safename.lua \
 		 src_lua/texrunner/checkdriver.lua \
-		 src_lua/cluttex_teal.lua
+		 src_lua/cluttealtex.lua
 
-bin/cluttex_teal: $(sources) utils/build_cluttex_teal.lua
+bin/cluttealtex: $(sources) utils/build_cluttealtex.lua
 	@mkdir -p bin
-	lua utils/build_cluttex_teal.lua --unix-shellscript $@
+	lua utils/build_cluttealtex.lua --unix-shellscript $@
 	lua utils/checkglobal.lua $@
 	chmod +x $@
 
-bin/cluttex_teal.bat: $(sources) utils/build_cluttex_teal.lua
+bin/cluttealtex.bat: $(sources) utils/build_cluttealtex.lua
 	@mkdir -p bin
-	lua utils/build_cluttex_teal.lua --windows-batchfile $@
+	lua utils/build_cluttealtex.lua --windows-batchfile $@
 	lua utils/checkglobal.lua $@
 
-version_file=$(shell bin/cluttex_teal --version 2>&1 | grep --only-matching -E 'v\d+(\.\d+)*' | sed 's/^v/VERSION_/;s/\./_/g')
+version_file=$(shell bin/cluttealtex --version 2>&1 | grep --only-matching -E 'v\d+(\.\d+)*' | sed 's/^v/VERSION_/;s/\./_/g')
 
 check-version: all
-	@bin/cluttex_teal --version
-	grep VERSION src_lua/cluttex_teal.lua
-	grep VERSION bin/cluttex_teal
-	grep VERSION bin/cluttex_teal.bat
-	grep -i VERSION doc/cluttex_teal.tex
+	@bin/cluttealtex --version
+	grep VERSION src_lua/cluttealtex.lua
+	grep VERSION bin/cluttealtex
+	grep VERSION bin/cluttealtex.bat
+	grep -i VERSION doc/cluttealtex.tex
