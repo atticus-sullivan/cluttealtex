@@ -19,7 +19,7 @@
   along with CluttealTeX.  If not, see <http://www.gnu.org/licenses/>.
 ]]
 
-global CLUTTEALTEX_VERSION: string = "v0.7.1"
+global CLUTTEALTEX_VERSION: string = "v0.8.0"
 
 -- Standard libraries
 local table = table
