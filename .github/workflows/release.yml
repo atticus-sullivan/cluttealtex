@@ -33,6 +33,6 @@ jobs:
 
     - uses: ncipollo/release-action@v1
       with:
-        artifacts: "build/doc/cluttex_teal.pdf,bin/cluttex_teal*"
+        artifacts: "build/doc/cluttealtex.pdf,bin/cluttealtex*"
         artifactErrorsFailBuild: true
         generateReleaseNotes: true

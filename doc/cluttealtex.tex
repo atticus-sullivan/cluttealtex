@@ -2,23 +2,25 @@
 \usepackage[unicode]{hyperref}
 \usepackage{amsmath}
 \usepackage{tabularx}
-\newcommand\ClutTeX{Clut\TeX\_teal}
-\providecommand\BibTeX{\textsc{Bib}\TeX}
+\usepackage{xspace}
+\usepackage{csquotes}
+\newcommand\CluttealTeX{ClutTeal\TeX\xspace}
+\providecommand\BibTeX{\textsc{Bib}\TeX\xspace}
 \newcommand\texcmd[1]{\texttt{\textbackslash #1}}
 \newcommand\texenv[1]{\texttt{#1}}
 \newcommand\texpkg[1]{\texttt{#1}}
 \newcommand\metavar[1]{\textnormal{\textsf{#1}}}
 
-\title{\ClutTeX\ manual\\(Version 0.7.1)}
-\author{Lukas Heindl\thanks{thanks to ARATA Mizuki for writing cluttex of which \ClutTeX{} is a fork}}
+\title{\CluttealTeX manual\\(Version 0.7.1)}
+\author{Lukas Heindl\thanks{thanks to ARATA Mizuki for writing cluttex of which \CluttealTeX is a fork}}
 \date{2024-03-11}
 
 \begin{document}
 \maketitle
 \tableofcontents
 
-\chapter{About \ClutTeX}
-\ClutTeX\ is an automation tool for \LaTeX\ document processing.
+\chapter{About \CluttealTeX}
+\CluttealTeX is an automation tool for \LaTeX\ document processing.
 Basic features are,
 \begin{itemize}
 \item Does not clutter your working directory with ``extra'' files, like \texttt{.aux} or \texttt{.log}.
@@ -27,19 +29,19 @@ Basic features are,
 \item Run MakeIndex, \BibTeX, Biber, if requested.
 \item Produces a PDF, even if the engine (e.g.\ p\TeX) does not suport direct PDF generation.
   If you want a DVI file, use \texttt{--output-format=dvi} option.
-\item No external dependencies, \ClutTeX only uses texlua which should come with TeXLive
+\item No external dependencies, \CluttealTeX only uses texlua which should come with TeXLive
 \end{itemize}
 
 The unique feature of this program is that, auxiliary files such as \texttt{.aux} or \texttt{.toc} are created in an isolated location, so you will not be annoyed with these extra files.
 
 % A competitor: \href{http://www.personal.psu.edu/jcc8/latexmk/}{Latexmk}
 
-\chapter{How to use \ClutTeX}
+\chapter{How to use \CluttealTeX}
 \section{Installation}
-If you want to install \ClutTeX\ manually, fetch an archive from
-GitHub\footnote{\url{https://github.com/atticus-sullivan/cluttex_teal}} (either
+If you want to install \CluttealTeX manually, fetch an archive from
+GitHub\footnote{\url{https://github.com/atticus-sullivan/cluttealtex}} (either
 release for stable builds or from github actions for nightly build), extract
-it, and copy \texttt{bin/cluttex\_teal} or \texttt{bin/cluttex\_teal.bat} to
+it, and copy \texttt{bin/cluttealtex} or \texttt{bin/cluttealtex.bat} to
 somewhere in your \texttt{PATH}.
 
 \subsection{Building}
@@ -50,7 +52,7 @@ required tools \texttt{fd}, \texttt{tl} (luarocks)) for installing to your
 \section{Command-line usage}
 Usage:
 \begin{center}
-  \texttt{cluttex\_teal -e \metavar{ENGINE} \metavar{OPTIONs} [--] \metavar{INPUT}.tex}
+  \texttt{cluttealtex -e \metavar{ENGINE} \metavar{OPTIONs} [--] \metavar{INPUT}.tex}
 \end{center}
 
 \subsection{Basic options}
@@ -126,9 +128,9 @@ Usage:
   Enable the hook for running an extract script or for the memoize package. Set
   either to \texttt{python} or \texttt{perl} (default) to select which
   extraction script to run or directly specify the executable which shall be
-  run. This will also set the key \texttt{no memo dir} as cluttex\_teal itself
+  run. This will also set the key \texttt{no memo dir} as cluttealtex itself
   already provides the feature of avoiding to clutter the working directory. It
-  also sets the key \texttt{extract=no} since cluttex\_teal performs the
+  also sets the key \texttt{extract=no} since cluttealtex performs the
   extraction on its own.
 \item[\texttt{--memoize\_opts=\metavar{PACKAGE OPT}}]
   Pass additional options like \texttt{readonly} to the memoize package. Pass
@@ -172,11 +174,11 @@ Combining multiple short options, like \texttt{-Ve pdflatex}, is not supported.
 \section{Sync\TeX}\label{sec:synctex}
 You can generate Sync\TeX\ data with \texttt{--synctex=1} option.
 
-Although \ClutTeX\ has ``Don't clutter your working directory'' as its motto, the \texttt{.synctex.gz} file is always produced alongside the PDF file.
+Although \CluttealTeX\ has \enquote{Don't clutter your working directory} as its motto, the \texttt{.synctex.gz} file is always produced alongside the PDF file.
 This is because Sync\TeX\ cannot find its data file if it's not in the same directory as the PDF.
 
 \section{Watch mode}\label{sec:watch-mode}
-If \texttt{--watch} option is given, \ClutTeX\ enters \emph{watch mode} after processing the document.
+If \texttt{--watch} option is given, \CluttealTeX\ enters \emph{watch mode} after processing the document.
 
 On Windows, a built-in filesystem watcher is implemented.
 
@@ -248,37 +250,37 @@ When doing so, \texcmd{includeonly} can be used to eliminate processing time.
 But writing \texcmd{includeonly} in the \TeX\ source file is somewhat inconvenient.
 After all, \texcmd{includeonly} is about \emph{how} to process the document, not about its content.
 
-Therefore, \ClutTeX\ provides an command-line option to use \texcmd{includeonly}.
+Therefore, \CluttealTeX\ provides an command-line option to use \texcmd{includeonly}.
 See \autoref{sec:makefile-example} for example.
 
 Tips: When using \texttt{includeonly}, avoid using \texttt{--makeindex} or \texttt{--biber}.
 
 Another technique for eliminating time is, setting \texttt{--max-iterations=1}.
-It stops \ClutTeX\ from processing the document multiple times, which may take several extra minutes.
+It stops \CluttealTeX\ from processing the document multiple times, which may take several extra minutes.
 
 \section{Using Makefile}\label{sec:makefile-example}
-You can create Makefile to avoid writing \ClutTeX\ options each time.
+You can create Makefile to avoid writing \CluttealTeX\ options each time.
 Example:
 \begin{verbatim}
 main.pdf: main.tex chap1.tex chap2.tex
-    cluttex_teal -e lualatex -o $@ --makeindex=mendex $<
+    cluttealtex -e lualatex -o $@ --makeindex=mendex $<
 
 main-preview.pdf: main.tex chap1.tex chap2.tex
-    cluttex_teal -e lualatex -o $@ --makeindex=mendex --max-iterations=1 $<
+    cluttealtex -e lualatex -o $@ --makeindex=mendex --max-iterations=1 $<
 
 chap1-preview.pdf: main.tex chap1.tex
-    cluttex_teal -e lualatex -o $@ --max-iterations=1 --includeonly=chap1 $<
+    cluttealtex -e lualatex -o $@ --max-iterations=1 --includeonly=chap1 $<
 
 chap2-preview.pdf: main.tex chap2.tex
-    cluttex_teal -e lualatex -o $@ --max-iterations=1 --includeonly=chap2 $<
+    cluttealtex -e lualatex -o $@ --max-iterations=1 --includeonly=chap2 $<
 \end{verbatim}
 
-With \texttt{--make-depends} option, you can let \ClutTeX\ infer sub-files and omit them from Makefile.
+With \texttt{--make-depends} option, you can let \CluttealTeX\ infer sub-files and omit them from Makefile.
 Example:
 
 \begin{verbatim}
 main.pdf: main.tex
-    cluttex_teal -e lualatex -o $@ --make-depends=main.pdf.dep $<
+    cluttealtex -e lualatex -o $@ --make-depends=main.pdf.dep $<
 
 -include main.pdf.dep
 \end{verbatim}
@@ -304,34 +306,34 @@ On the other hand, the following parameters doesn't affect the directory name:
 \item \texttt{--makeindex}, \texttt{--bibtex}, \texttt{--biber}, \texttt{--glossaries}
 \end{itemize}
 
-If you need to know the exact location of the automatically-generated output directory, you can invoke \ClutTeX\ with \texttt{--print-output-directory}.
+If you need to know the exact location of the automatically-generated output directory, you can invoke \CluttealTeX with \texttt{--print-output-directory}.
 For example, \texttt{clean} target of your Makefile could be written as:
 \begin{verbatim}
 clean:
-    -rm -rf $(shell cluttex_teal -e pdflatex --print-output-directory main.tex)
+    -rm -rf $(shell cluttealtex -e pdflatex --print-output-directory main.tex)
 \end{verbatim}
 
-\ClutTeX\ itself doesn't erase the auxiliary files, unless \texttt{--fresh} option is set.
+\CluttealTeX itself doesn't erase the auxiliary files, unless \texttt{--fresh} option is set.
 Note that, the use of a temporary directory means, the auxiliary files may be cleared when the computer is rebooted.
 
 \section{Support for \texpkg{minted} and \texpkg{epstopdf}}
 In general, packages that execute external commands (shell-escape) don't work well with \texttt{-output-directory}.
-Therefore, they don't work well with \ClutTeX.
+Therefore, they don't work well with \CluttealTeX.
 
 However, some packages provide a package option to let them know the location of \texttt{-output-directory}.
 For example, \texpkg{minted} provides \texttt{outputdir}, and \texpkg{epstopdf} provides \texttt{outdir}.
 
-\ClutTeX\ can supply them the appropriate options, but only if it knows that the package is going to be used.
-To let \ClutTeX\ what packages are going to be used, use \texttt{--package-support} option.
+\CluttealTeX\ can supply them the appropriate options, but only if it knows that the package is going to be used.
+To let \CluttealTeX\ what packages are going to be used, use \texttt{--package-support} option.
 
 For example, if you want to typeset a document that uses \texpkg{minted}, run the following:
 \begin{verbatim}
-cluttex_teal -e pdflatex --shell-escape --package-support=minted document.tex
+cluttealtex -e pdflatex --shell-escape --package-support=minted document.tex
 \end{verbatim}
 
 \section{Check for driver file}
 
-\ClutTeX\ can check that the correct driver file is loaded when certain packages are loaded.
+\CluttealTeX\ can check that the correct driver file is loaded when certain packages are loaded.
 Currently, the list of supported packages are \texpkg{graphics}, \texpkg{color}, \texpkg{expl3}, \texpkg{hyperref}, and \texpkg{xy}.
 
 The check is always done with PDF mode.

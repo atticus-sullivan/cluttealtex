@@ -25,7 +25,7 @@ local texio_write_nl = texio.write_nl
 local luawritelog
 local function openluawritelog()
   if not luawritelog then
-    luawritelog = assert(io_open(output_directory .. "/" .. jobname .. ".cluttex-fls", "w"))
+    luawritelog = assert(io_open(output_directory .. "/" .. jobname .. ".cluttealtex-fls", "w"))
   end
   return luawritelog
 end
@@ -41,7 +41,7 @@ io.open = function(fname, mode)
   return io_open(fname, mode)
 end
 os.execute = function(...)
-  texio_write_nl("log", string.format("CLUTTEX_EXEC %s", ...), "")
+  texio_write_nl("log", string.format("CLUTTEALTEX_EXEC %s", ...), "")
   return os_execute(...)
 end
 ]==])

@@ -2,20 +2,20 @@
   Copyright 2018 ARATA Mizuki
   Copyright 2024 Lukas Heindl
 
-  This file is part of ClutTeX_teal.
+  This file is part of CluttealTeX.
 
-  ClutTeX_teal is free software: you can redistribute it and/or modify
+  CluttealTeX is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
 
-  ClutTeX_teal is distributed in the hope that it will be useful,
+  CluttealTeX is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with ClutTeX_teal.  If not, see <http://www.gnu.org/licenses/>.
+  along with CluttealTeX.  If not, see <http://www.gnu.org/licenses/>.
 ]]
 
 local string = string
@@ -39,7 +39,7 @@ local function create_missing_directories(args:Args): boolean
 		-- Directories for sub-auxfiles are not created automatically, so we need to provide them.
 		local report = parse_aux_file(args.auxfile, args.options.output_directory)
 		if report.made_new_directory then
-			if CLUTTEX_VERBOSITY >= 1 then
+			if CLUTTEALTEX_VERBOSITY >= 1 then
 				message.info("Created missing directories.")
 			end
 			return true
@@ -55,7 +55,7 @@ local function run_epstopdf(args:Args): boolean
 			local infile_abs = pathutil.abspath(infile, args.original_wd)
 			if fsutil.isfile(infile_abs) then -- input file exists
 				local outfile_abs = pathutil.abspath(outfile, args.options.output_directory)
-				if CLUTTEX_VERBOSITY >= 1 then
+				if CLUTTEALTEX_VERBOSITY >= 1 then
 					message.info("Running epstopdf on ", infile, ".")
 				end
 				local outdir = pathutil.dirname(outfile_abs)

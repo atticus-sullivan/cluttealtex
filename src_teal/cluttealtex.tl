@@ -3,23 +3,23 @@
   Copyright 2016-2021 ARATA Mizuki
   Copyright 2024 Lukas Heindl
 
-  This file is part of ClutTeX_teal.
+  This file is part of CluttealTeX.
 
-  ClutTeX_teal is free software: you can redistribute it and/or modify
+  CluttealTeX is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
 
-  ClutTeX_teal is distributed in the hope that it will be useful,
+  CluttealTeX is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with ClutTeX_teal.  If not, see <http://www.gnu.org/licenses/>.
+  along with CluttealTeX.  If not, see <http://www.gnu.org/licenses/>.
 ]]
 
-global CLUTTEX_VERSION: string = "v0.7.1"
+global CLUTTEALTEX_VERSION: string = "v0.7.1"
 
 -- Standard libraries
 local table = table
@@ -45,7 +45,7 @@ local recoverylib = require "texrunner.recovery"
 local message     = require "texrunner.message"
 local safename    = require "texrunner.safename"
 local extract_bibtex_from_aux_file = require "texrunner.auxfile".extract_bibtex_from_aux_file
-local handle_cluttex_options = require "texrunner.handleoption".handle_cluttex_options
+local handle_cluttealtex_options = require "texrunner.handleoption".handle_cluttealtex_options
 local checkdriver = require "texrunner.checkdriver".checkdriver
 local engine_t = require "texrunner.tex_engine"
 local fswatcherlib_t = require"texrunner.fswatcher"
@@ -65,7 +65,7 @@ local function genOutputDirectory(...: string): string
 	return pathutil.join(tmpdir, 'latex-build-' .. hash)
 end
 
-local inputfile, engine, options = handle_cluttex_options(arg)
+local inputfile, engine, options = handle_cluttealtex_options(arg)
 
 local jobname_for_output: string
 if options.jobname == nil then
@@ -100,7 +100,7 @@ if options.output_directory == nil then
 	elseif options.fresh then
 		-- The output directory exists and --fresh is given:
 		-- Remove all files in the output directory
-		if CLUTTEX_VERBOSITY >= 1 then
+		if CLUTTEALTEX_VERBOSITY >= 1 then
 			message.info("Cleaning '", options.output_directory, "'...")
 		end
 		assert(fsutil.remove_rec(options.output_directory))
@@ -161,7 +161,7 @@ local function path_in_output_directory(ext:string): string
 end
 
 local recorderfile = path_in_output_directory("fls")
-local recorderfile2 = path_in_output_directory("cluttex-fls")
+local recorderfile2 = path_in_output_directory("cluttealtex-fls")
 
 local tex_options:engine_t.Option = {
 	engine_executable = options.engine_executable,
@@ -182,7 +182,7 @@ end
 
 -- Setup LuaTeX initialization script
 if engine.is_luatex then
-	local initscriptfile = path_in_output_directory("cluttexinit.lua")
+	local initscriptfile = path_in_output_directory("cluttealtexinit.lua")
 	luatexinit.create_initialization_script(initscriptfile, tex_options)
 	tex_options.lua_initialization_script = initscriptfile
 end
@@ -396,7 +396,7 @@ local function single_run(auxstatus:{string:reruncheck.Status}, iteration:intege
 			}
 			coroutine.yield(table.concat(bibtex_command, " "))
 		else
-			if CLUTTEX_VERBOSITY >= 1 then
+			if CLUTTEALTEX_VERBOSITY >= 1 then
 				message.info("No need to run BibTeX.")
 			end
 			local succ, err = filesys.touch(output_bbl)
@@ -631,7 +631,7 @@ local function do_typeset(): boolean, string, integer
 		end
 	end
 	-- Successful
-	if CLUTTEX_VERBOSITY >= 1 then
+	if CLUTTEALTEX_VERBOSITY >= 1 then
 		message.info("Command exited successfully")
 	end
 	return true
@@ -644,7 +644,7 @@ if options.watch then
 	if os.type == "windows" then
 		-- Windows: Try built-in filesystem watcher
 		local succ, result = pcall(require, "texrunner.fswatcher_windows")
-		if not succ and CLUTTEX_VERBOSITY >= 1 then
+		if not succ and CLUTTEALTEX_VERBOSITY >= 1 then
 			message.warn("Failed to load texrunner.fswatcher_windows: " .. result as string)
 		end
 		fswatcherlib = result
@@ -652,7 +652,7 @@ if options.watch then
 
 	local do_watch: function({string}):boolean
 	if fswatcherlib then
-		if CLUTTEX_VERBOSITY >= 2 then
+		if CLUTTEALTEX_VERBOSITY >= 2 then
 			message.info("Using built-in filesystem watcher for Windows")
 		end
 		do_watch = function(files:{string}): boolean
@@ -661,14 +661,14 @@ if options.watch then
 				assert(watcher:add_file(path))
 			end
 			local result = assert(watcher:next())
-			if CLUTTEX_VERBOSITY >= 2 then
+			if CLUTTEALTEX_VERBOSITY >= 2 then
 				message.info(string.format("%s %s", result.action, result.path))
 			end
 			watcher:close()
 			return true
 		end
 	elseif (options.watch == "auto" or options.watch == "fswatch") and shellutil.has_command("fswatch") then
-		if CLUTTEX_VERBOSITY >= 2 then
+		if CLUTTEALTEX_VERBOSITY >= 2 then
 			message.info("Using `fswatch' command")
 		end
 		do_watch = function(files:{string}): boolean
@@ -677,7 +677,7 @@ if options.watch then
 				table.insert(fswatch_command, shellutil.escape(path))
 			end
 			local fswatch_command_str = table.concat(fswatch_command, " ")
-			if CLUTTEX_VERBOSITY >= 1 then
+			if CLUTTEALTEX_VERBOSITY >= 1 then
 				message.exec(fswatch_command_str)
 			end
 			local fswatch = assert(io.popen(fswatch_command_str, "r"))
@@ -692,7 +692,7 @@ if options.watch then
 			return false
 		end
 	elseif (options.watch == "auto" or options.watch == "inotifywait") and shellutil.has_command("inotifywait") then
-		if CLUTTEX_VERBOSITY >= 2 then
+		if CLUTTEALTEX_VERBOSITY >= 2 then
 			message.info("Using `inotifywait' command")
 		end
 		do_watch = function(files:{string}): boolean
@@ -701,7 +701,7 @@ if options.watch then
 				table.insert(inotifywait_command, shellutil.escape(path))
 			end
 			local inotifywait_command_str = table.concat(inotifywait_command, " ")
-			if CLUTTEX_VERBOSITY >= 1 then
+			if CLUTTEALTEX_VERBOSITY >= 1 then
 				message.exec(inotifywait_command_str)
 			end
 			local inotifywait = assert(io.popen(inotifywait_command_str, "r"))
@@ -723,7 +723,7 @@ if options.watch then
 		elseif options.watch == "inotifywait" then
 			message.error("Could not watch files because your selected engine `inotifywait' was not installed.")
 		end
-		message.info("See ClutTeX_teal's manual for details.")
+		message.info("See CluttealTeX's manual for details.")
 		os.exit(1)
 	end
 

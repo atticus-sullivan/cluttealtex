@@ -2,20 +2,20 @@
 Copyright 2016 ARATA Mizuki
 Copyright 2024 Lukas Heindl
 
-This file is part of ClutTeX_teal.
+This file is part of CluttealTeX.
 
-ClutTeX_teal is free software: you can redistribute it and/or modify
+CluttealTeX is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-ClutTeX_teal is distributed in the hope that it will be useful,
+CluttealTeX is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with ClutTeX_teal.  If not, see <http://www.gnu.org/licenses/>.
+along with CluttealTeX.  If not, see <http://www.gnu.org/licenses/>.
 ]]
 
 local string_match = string.match
@@ -57,7 +57,7 @@ local function extract_bibtex_from_aux_file(auxfile:string, outdir:string, bibli
 		local name = string_match(l, "\\([%a@]+)")
 		if name == "citation" or name == "bibdata" or name == "bibstyle" then
 			table.insert(biblines, l)
-			if CLUTTEX_VERBOSITY >= 2 then
+			if CLUTTEALTEX_VERBOSITY >= 2 then
 				message.info("BibTeX line: ", l)
 			end
 			elseif name == "@input" then

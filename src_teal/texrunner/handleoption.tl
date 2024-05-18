@@ -25,11 +25,11 @@ local options = require"texrunner.option_type"
 
 local record Module
 	usage: function({string})
-	handle_cluttex_options: function({string}): string,TexEngine.Engine,options.Options
+	handle_cluttealtex_options: function({string}): string,TexEngine.Engine,options.Options
 end
 
 local KnownEngines = TexEngine.KnownEngines
-global CLUTTEX_VERSION:string
+global CLUTTEALTEX_VERSION:string
 
 local function split(opt:string): {string}
 	local ret,builder,state = {},{},0
@@ -111,7 +111,7 @@ end
 
 local function usage(arg:{string})
 	io.write(string.format([[
-ClutTeX_teal: Process TeX files without cluttering your working directory
+ClutteakTeX: Process TeX files without cluttering your working directory
 
 Usage:
   %s [options] [--] FILE.tex
@@ -168,7 +168,7 @@ Options:
   -h, --help                   Print this message and exit.
   -v, --version                Print version information and exit.
   -V, --verbose                Be more verbose.
-      --color[=WHEN]           Make ClutTeX_teal's message colorful. WHEN is one of
+      --color[=WHEN]           Make CluttealTeX's message colorful. WHEN is one of
                                  `always', `auto', or `never'.
                                  [default: `auto' if --color is omitted,
                                            `always' if WHEN is omitted]
@@ -194,11 +194,11 @@ Options:
       --output-format=FORMAT   FORMAT is `pdf' or `dvi'.  [default: pdf]
 
 %s
-]], arg[0] or 'texlua cluttex_teal.lua', COPYRIGHT_NOTICE))
+]], arg[0] or 'texlua cluttealtex.lua', COPYRIGHT_NOTICE))
 end
 
 local option_spec = {
-	-- Options for ClutTeX_teal
+	-- Options for CluttealTeX
 	{
 		short = "e",
 		long = "engine",
@@ -394,8 +394,8 @@ local function set_default_values(options:options.Options)
 	end
 end
 
--- inputfile, engine, options = handle_cluttex_options(arg)
-local function handle_cluttex_options(arg:{string}): string,TexEngine.Engine,options.Options
+-- inputfile, engine, options = handle_cluttealtex_options(arg)
+local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine,options.Options
 	-- Parse options
 	local option_and_params, non_option_index = parseoption(arg, option_spec)
 
@@ -405,7 +405,7 @@ local function handle_cluttex_options(arg:{string}): string,TexEngine.Engine,opt
 		dvipdfmx_extraoptions = {},
 		package_support = {},
 	}
-	CLUTTEX_VERBOSITY = 0
+	CLUTTEALTEX_VERBOSITY = 0
 	for _,option in ipairs(option_and_params) do
 		local name:string = option[1]
 		local param:string|boolean = option[2]
@@ -464,11 +464,11 @@ local function handle_cluttex_options(arg:{string}): string,TexEngine.Engine,opt
 			os.exit(0)
 
 		elseif name == "version" then
-			io.stderr:write("cluttex_teal ",CLUTTEX_VERSION,"\n")
+			io.stderr:write("cluttealtex ",CLUTTEALTEX_VERSION,"\n")
 			os.exit(0)
 
 		elseif name == "verbose" then
-			CLUTTEX_VERBOSITY = CLUTTEX_VERBOSITY + 1
+			CLUTTEALTEX_VERBOSITY = CLUTTEALTEX_VERBOSITY + 1
 
 		elseif name == "color" then
 			assert(options.color == nil, "multiple --color options")
@@ -516,8 +516,8 @@ local function handle_cluttex_options(arg:{string}): string,TexEngine.Engine,opt
 			if param is string then
 				for pkg in string.gmatch(param, "[^,%s]+") do
 					options.package_support[pkg] = true
-					if not known_packages[pkg] and CLUTTEX_VERBOSITY >= 1 then
-						message.warn("ClutTeX_teal provides no special support for '"..pkg.."'.")
+					if not known_packages[pkg] and CLUTTEALTEX_VERBOSITY >= 1 then
+						message.warn("CluttealTeX provides no special support for '"..pkg.."'.")
 					end
 				end
 			else
@@ -772,7 +772,7 @@ local function handle_cluttex_options(arg:{string}): string,TexEngine.Engine,opt
 				message.warn("Driver check will not work.")
 			end
 		else
-			-- ClutTeX_teal uses dvipdfmx to generate PDF from DVI output.
+			-- CluttealTeX uses dvipdfmx to generate PDF from DVI output.
 			options.check_driver = "dvipdfmx"
 		end
 	end
@@ -782,6 +782,6 @@ end
 
 local _M:Module = {
 	usage = usage,
-	handle_cluttex_options = handle_cluttex_options,
+	handle_cluttealtex_options = handle_cluttealtex_options,
 }
 return _M
