@@ -93,6 +93,7 @@ local function parse_glossaries_option(opt:string): options.Glos, string
 		local foo = "%s.%s"
 		if ret.type == "makeindex" then
 			ret.cmd = function(i:string):string
+				i = pathutil.basename(i)
 				return ret.path.." "..("-s %s -t %s -o %s %s"):format(
 					shellutil.escape(pathutil.replaceext(i,"ist")),
 					shellutil.escape(pathutil.replaceext(i,ret.log)),
@@ -102,6 +103,7 @@ local function parse_glossaries_option(opt:string): options.Glos, string
 			end
 		elseif ret.type == "xindy" then
 			ret.cmd = function(i:string):string
+				i = pathutil.basename(i)
 				return ret.path.." "..("-M %s -t %s -o %s %s"):format(
 					shellutil.escape(pathutil.replaceext(i,"ist")),
 					shellutil.escape(pathutil.replaceext(i,ret.log)),
