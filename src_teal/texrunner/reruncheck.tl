@@ -106,18 +106,19 @@ filelist = filelist or {}
 					-- Treat .idx files (to be processed by MakeIndex) as auxiliary
 					kind = "auxiliary"
 					-- ...and .ind files
-				elseif options.glossaries then
-					for _,i in ipairs(options.glossaries) do
-						if pathutil.basename(abspath) == i.inp then
-							kind = "auxiliary"
-						end
-					end
 				elseif ext == "bcf" then -- biber
 					kind = "auxiliary"
 				elseif ext == "sage" then -- sagetex
 					kind = "auxiliary"
 				elseif ext == "mmz" or ext == "memo" then -- memoize
 					kind = "auxiliary"
+				-- check for glossaries must be at the end if using elseif all the way down
+				elseif options.glossaries then
+					for _,i in ipairs(options.glossaries) do
+						if pathutil.basename(abspath) == i.inp then
+							kind = "auxiliary"
+						end
+					end
 				end
 				fileinfo = {path = path, abspath = abspath, kind = kind}
 				table.insert(filelist, fileinfo)
