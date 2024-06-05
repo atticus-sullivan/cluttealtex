@@ -172,10 +172,9 @@ Options:
                                     Specify this option multiple times to register multiple
                                     glossaries. The default value works for a
                                     configuration with the usual glossary (glo,gls,glg)
-                                    with a tex-file named "main.tex".
                                     A typical example is
-                                    "makeindex:main.acr:main.acn:main.alg" or
-                                    "makeindex:main.glo:main.gls:main.glg" (default)
+                                    "makeindex:acr:acn:alg" or
+                                    "makeindex:glo:gls:glg" (default)
   -h, --help                   Print this message and exit.
   -v, --version                Print version information and exit.
   -V, --verbose                Be more verbose.
