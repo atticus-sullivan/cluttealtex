@@ -364,7 +364,7 @@ local function single_run(auxstatus:{string:reruncheck.Status}, iteration:intege
 					-- Run xindy/makeindex if the specified input-file is new or updated
 					local inputfileinfo = {path = file.path, abspath = file.abspath, kind = "auxiliary"}
 					local outputfile = cfg.out
-					if reruncheck.comparefileinfo({inputfileinfo}, auxstatus) or reruncheck.comparefiletime(file.abspath, cfg.inp, auxstatus) then
+					if reruncheck.comparefileinfo({inputfileinfo}, auxstatus) or reruncheck.comparefiletime(file.abspath, outputfile, auxstatus) then
 						coroutine.yield(cfg.cmd)
 						table.insert(filelist, {path = outputfile, abspath = outputfile, kind = "auxiliary"})
 					else
