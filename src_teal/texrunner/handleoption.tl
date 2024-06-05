@@ -87,23 +87,32 @@ local function parse_glossaries_option(opt:string): options.Glos, string
 		ret.path = ret.type
 	end
 
-	-- yes the extension for the style file always is "ist"
-	ret.ist = pathutil.replaceext(ret.log, "ist")
-
 	if #s >= 6 then
-		ret.args = s[6]
+		ret.cmd = function(x:string):string return ret.path.." "..s[6] end
 	else
+		local foo = "%s.%s"
 		if ret.type == "makeindex" then
-			ret.args = ("-s %s -t %s -o %s %s"):format(shellutil.escape(ret.ist), shellutil.escape(ret.log), shellutil.escape(ret.out), shellutil.escape(ret.inp))
+			ret.cmd = function(i:string):string
+				return ret.path.." "..("-s %s -t %s -o %s %s"):format(
+					shellutil.escape(pathutil.replaceext(i,"ist")),
+					shellutil.escape(pathutil.replaceext(i,ret.log)),
+					shellutil.escape(pathutil.replaceext(i,ret.out)),
+					shellutil.escape(pathutil.replaceext(i,ret.inp))
+				)
+			end
 		elseif ret.type == "xindy" then
-			ret.args = ("-M %s -t %s -o %s %s"):format(shellutil.escape(ret.ist), shellutil.escape(ret.log), shellutil.escape(ret.out), shellutil.escape(ret.inp))
+			ret.cmd = function(i:string):string
+				return ret.path.." "..("-M %s -t %s -o %s %s"):format(
+					shellutil.escape(pathutil.replaceext(i,"ist")),
+					shellutil.escape(pathutil.replaceext(i,ret.log)),
+					shellutil.escape(pathutil.replaceext(i,ret.out)),
+					shellutil.escape(pathutil.replaceext(i,ret.inp))
+				)
+			end
 		else
 			return nil, "Error on parsing the glossaries parameter \""..opt.."\""
 		end
 	end
-
-	-- build command
-	ret.cmd = ret.path.." "..ret.args
 
 	return ret
 end

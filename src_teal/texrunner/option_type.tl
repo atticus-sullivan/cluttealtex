@@ -45,9 +45,11 @@ local record Module
 		inp: string -- used during compilation
 		log: string -- only used for splitting and cmd building
 		path: string -- only used for splitting and cmd building
-		ist: string -- only used for splitting and cmd building
-		args: string -- only used for splitting and cmd building
-		cmd: string -- used during compilation
+
+		-- used during compilation
+		-- takes the name of the inputfile as an argument and returns the
+		-- formatted command
+		cmd: function(string): string
 	end
 
 end
