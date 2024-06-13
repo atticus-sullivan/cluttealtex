@@ -652,7 +652,9 @@ if options.watch then
 	end
 
 	local do_watch: function({string}):boolean
+	local max_watches: integer
 	if fswatcherlib then
+		max_watches = -1 -- no limit known to me
 		if CLUTTEALTEX_VERBOSITY >= 2 then
 			message.info("Using built-in filesystem watcher for Windows")
 		end
@@ -669,6 +671,7 @@ if options.watch then
 			return true
 		end
 	elseif (options.watch == "auto" or options.watch == "fswatch") and shellutil.has_command("fswatch") then
+		max_watches = -1 -- no limit known to me
 		if CLUTTEALTEX_VERBOSITY >= 2 then
 			message.info("Using `fswatch' command")
 		end
@@ -693,6 +696,7 @@ if options.watch then
 			return false
 		end
 	elseif (options.watch == "auto" or options.watch == "inotifywait") and shellutil.has_command("inotifywait") then
+		max_watches = 1024 -- see https://github.com/inotify-tools/inotify-tools/blob/210b019fb621d32fd6986b512508fc845f6c9fcb/src/common.cpp#L18C20-L18C24
 		if CLUTTEALTEX_VERBOSITY >= 2 then
 			message.info("Using `inotifywait' command")
 		end
@@ -734,13 +738,55 @@ if options.watch then
 	if engine.is_luatex and fsutil.isfile(recorderfile2) then
 		filelist, filemap = reruncheck.parse_recorder_file(recorderfile2, options, filelist, filemap)
 	end
-	local input_files_to_watch = {}
-	for _,fileinfo in ipairs(filelist) do
-		if fileinfo.kind == "input" then
-			table.insert(input_files_to_watch, fileinfo.abspath)
+
+	local function gather_input_files_to_watch(filelist: {reruncheck.Filemap_ele}): {string}
+		local input_files_to_watch = {}
+		for _,fileinfo in ipairs(filelist) do
+			if fileinfo.kind == "input" then
+				local watch = false
+				if options.watch_inc_exc then
+					watch = false
+					for _,v in ipairs(options.watch_inc_exc) do
+						if v.type == "only_path" then
+							if fileinfo.abspath:sub(1, #v.param) == v.param then
+								watch = true
+							end
+						elseif v.type == "only_ext" then
+							if pathutil.ext(fileinfo.abspath) == v.param then
+								watch = true
+							end
+						elseif v.type == "not_path" then
+							if fileinfo.abspath:sub(1, #v.param) == v.param then
+								watch = false
+							end
+						elseif v.type == "not_ext" then
+							if pathutil.ext(fileinfo.abspath) == v.param then
+								watch = false
+							end
+						end
+					end
+				else
+					watch = true
+				end
+
+				if watch then
+					table.insert(input_files_to_watch, fileinfo.abspath)
+				end
+			end
 		end
+		if max_watches >= 0 and #input_files_to_watch > max_watches then
+			message.warn((
+			"Collected %d input files to watch on. Typically only %d hooks are created." ..
+			"The hooks exceeding this limit typically will simply not being installed." ..
+			"Consider either to increase this limit (how/if possible depends on the watcher engine) or" ..
+			"make use of the --watch-{only,no}-{ext,path} options to restrict the files which CluttealTeX should watch."):format(
+				#input_files_to_watch, max_watches
+			))
+		end
+		return input_files_to_watch
 	end
 
+	local input_files_to_watch = gather_input_files_to_watch(filelist)
 	while do_watch(input_files_to_watch) do
 		local success, _ = do_typeset()
 		if not success then
@@ -750,12 +796,7 @@ if options.watch then
 			if engine.is_luatex and fsutil.isfile(recorderfile2) then
 				filelist, filemap = reruncheck.parse_recorder_file(recorderfile2, options, filelist, filemap)
 			end
-			input_files_to_watch = {}
-			for _,fileinfo in ipairs(filelist) do
-				if fileinfo.kind == "input" then
-					table.insert(input_files_to_watch, fileinfo.abspath)
-				end
-			end
+			input_files_to_watch = gather_input_files_to_watch(filelist)
 		end
 	end
 

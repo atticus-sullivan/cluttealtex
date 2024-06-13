@@ -147,6 +147,20 @@ Options:
       --watch[=ENGINE]         Watch input files for change.  Requires fswatch
                                  or inotifywait to be installed. ENGINE is one of
                                  `fswatch', `inotifywait' or `auto' [default: `auto']
+      --watch-only-path=PATH   Only watch input files that reside beneath the specified path
+                                 predecence follows the order of specified arguments
+                                 using this option automatically makes NOT watching files the default
+      --watch-not-path=PATH    Don't watch input files that reside beneath the specified path
+                                 predecence follows the order of specified arguments
+                                 using this option automatically makes NOT watching files the default
+                                 (consider using --watch-only-path=/ first if you don't want this)
+      --watch-only-ext=EXT     Only watch input files with the specified extension
+                                 predecence follows the order of specified arguments
+                                 using this option automatically makes NOT watching files the default
+      --watch-not-ext=EXT      Don't watch input files with the specified extension
+                                 predecence follows the order of specified arguments
+                                 using this option automatically makes NOT watching files the default
+                                 (consider using --watch-only-path=/ first if you don't want this)
       --tex-option=OPTION      Pass OPTION to TeX as a single option.
       --tex-options=OPTIONs    Pass OPTIONs to TeX as multiple options.
       --dvipdfmx-option[s]=OPTION[s]  Same for dvipdfmx.
@@ -239,6 +253,22 @@ local option_spec = {
 		long = "watch",
 		param = true,
 		default = "auto",
+	},
+	{
+		long = "watch-only-path",
+		param = true,
+	},
+	{
+		long = "watch-not-path",
+		param = true,
+	},
+	{
+		long = "watch-only-ext",
+		param = true,
+	},
+	{
+		long = "watch-not-ext",
+		param = true,
 	},
 	{
 		short = "h",
@@ -463,6 +493,35 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 			assert(options.watch == nil, "multiple --watch options")
 			if param is string then
 				options.watch = param
+			else
+				assert(param is string, "invalid param type")
+			end
+
+		elseif name == "watch-only-path" then
+			if param is string then
+				if not options.watch_inc_exc then options.watch_inc_exc = {} end
+				table.insert(options.watch_inc_exc, {param=pathutil.abspath(param),type='only_path'})
+			else
+				assert(param is string, "invalid param type")
+			end
+		elseif name == "watch-not-path" then
+			if param is string then
+				if not options.watch_inc_exc then options.watch_inc_exc = {} end
+				table.insert(options.watch_inc_exc, {param=pathutil.abspath(param),type='not_path'})
+			else
+				assert(param is string, "invalid param type")
+			end
+		elseif name == "watch-only-ext" then
+			if param is string then
+				if not options.watch_inc_exc then options.watch_inc_exc = {} end
+				table.insert(options.watch_inc_exc, {param=param,type='only_ext'})
+			else
+				assert(param is string, "invalid param type")
+			end
+		elseif name == "watch-not-ext" then
+			if param is string then
+				if not options.watch_inc_exc then options.watch_inc_exc = {} end
+				table.insert(options.watch_inc_exc, {param=param,type='not_ext'})
 			else
 				assert(param is string, "invalid param type")
 			end
