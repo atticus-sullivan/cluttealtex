@@ -73,7 +73,7 @@ filelist = filelist or {}
 					end
 					if options.glossaries then
 						for _,i in ipairs(options.glossaries) do
-							if pathutil.basename(abspath) == i.out then
+							if pathutil.ext(abspath) == i.out then
 								kind = "auxiliary"
 							end
 						end
@@ -115,7 +115,7 @@ filelist = filelist or {}
 				-- check for glossaries must be at the end if using elseif all the way down
 				elseif options.glossaries then
 					for _,i in ipairs(options.glossaries) do
-						if pathutil.basename(abspath) == i.inp then
+						if pathutil.ext(abspath) == i.inp then
 							kind = "auxiliary"
 						end
 					end

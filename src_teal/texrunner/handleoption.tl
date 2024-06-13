@@ -87,23 +87,32 @@ local function parse_glossaries_option(opt:string): options.Glos, string
 		ret.path = ret.type
 	end
 
-	-- yes the extension for the style file always is "ist"
-	ret.ist = pathutil.replaceext(ret.log, "ist")
-
 	if #s >= 6 then
-		ret.args = s[6]
+		ret.cmd = function(path_in_output_directory: function(ext:string):string):string return ret.path.." "..s[6] end
 	else
+		local foo = "%s.%s"
 		if ret.type == "makeindex" then
-			ret.args = ("-s %s -t %s -o %s %s"):format(shellutil.escape(ret.ist), shellutil.escape(ret.log), shellutil.escape(ret.out), shellutil.escape(ret.inp))
+			ret.cmd = function(path_in_output_directory: function(ext:string):string):string
+				return ret.path.." "..("-s %s -t %s -o %s %s"):format(
+					shellutil.escape(path_in_output_directory("ist")),
+					shellutil.escape(path_in_output_directory(ret.log)),
+					shellutil.escape(path_in_output_directory(ret.out)),
+					shellutil.escape(path_in_output_directory(ret.inp))
+				)
+			end
 		elseif ret.type == "xindy" then
-			ret.args = ("-M %s -t %s -o %s %s"):format(shellutil.escape(ret.ist), shellutil.escape(ret.log), shellutil.escape(ret.out), shellutil.escape(ret.inp))
+			ret.cmd = function(path_in_output_directory: function(ext:string):string):string
+				return ret.path.." "..("-M %s -t %s -o %s %s"):format(
+					shellutil.escape(path_in_output_directory("ist")),
+					shellutil.escape(path_in_output_directory(ret.log)),
+					shellutil.escape(path_in_output_directory(ret.out)),
+					shellutil.escape(path_in_output_directory(ret.inp))
+				)
+			end
 		else
 			return nil, "Error on parsing the glossaries parameter \""..opt.."\""
 		end
 	end
-
-	-- build command
-	ret.cmd = ret.path.." "..ret.args
 
 	return ret
 end
@@ -161,10 +170,9 @@ Options:
                                     Specify this option multiple times to register multiple
                                     glossaries. The default value works for a
                                     configuration with the usual glossary (glo,gls,glg)
-                                    with a tex-file named "main.tex".
                                     A typical example is
-                                    "makeindex:main.acr:main.acn:main.alg" or
-                                    "makeindex:main.glo:main.gls:main.glg" (default)
+                                    "makeindex:acr:acn:alg" or
+                                    "makeindex:glo:gls:glg" (default)
   -h, --help                   Print this message and exit.
   -v, --version                Print version information and exit.
   -V, --verbose                Be more verbose.
