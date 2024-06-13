@@ -88,27 +88,25 @@ local function parse_glossaries_option(opt:string): options.Glos, string
 	end
 
 	if #s >= 6 then
-		ret.cmd = function(x:string):string return ret.path.." "..s[6] end
+		ret.cmd = function(path_in_output_directory: function(ext:string):string):string return ret.path.." "..s[6] end
 	else
 		local foo = "%s.%s"
 		if ret.type == "makeindex" then
-			ret.cmd = function(i:string):string
-				i = pathutil.basename(i)
+			ret.cmd = function(path_in_output_directory: function(ext:string):string):string
 				return ret.path.." "..("-s %s -t %s -o %s %s"):format(
-					shellutil.escape(pathutil.replaceext(i,"ist")),
-					shellutil.escape(pathutil.replaceext(i,ret.log)),
-					shellutil.escape(pathutil.replaceext(i,ret.out)),
-					shellutil.escape(pathutil.replaceext(i,ret.inp))
+					shellutil.escape(path_in_output_directory("ist")),
+					shellutil.escape(path_in_output_directory(ret.log)),
+					shellutil.escape(path_in_output_directory(ret.out)),
+					shellutil.escape(path_in_output_directory(ret.inp))
 				)
 			end
 		elseif ret.type == "xindy" then
-			ret.cmd = function(i:string):string
-				i = pathutil.basename(i)
+			ret.cmd = function(path_in_output_directory: function(ext:string):string):string
 				return ret.path.." "..("-M %s -t %s -o %s %s"):format(
-					shellutil.escape(pathutil.replaceext(i,"ist")),
-					shellutil.escape(pathutil.replaceext(i,ret.log)),
-					shellutil.escape(pathutil.replaceext(i,ret.out)),
-					shellutil.escape(pathutil.replaceext(i,ret.inp))
+					shellutil.escape(path_in_output_directory("ist")),
+					shellutil.escape(path_in_output_directory(ret.log)),
+					shellutil.escape(path_in_output_directory(ret.out)),
+					shellutil.escape(path_in_output_directory(ret.inp))
 				)
 			end
 		else

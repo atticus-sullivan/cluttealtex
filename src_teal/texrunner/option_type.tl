@@ -49,7 +49,7 @@ local record Module
 		-- used during compilation
 		-- takes the name of the inputfile as an argument and returns the
 		-- formatted command
-		cmd: function(string): string
+		cmd: function(function(string):string): string
 	end
 
 end
