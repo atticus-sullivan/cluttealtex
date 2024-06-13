@@ -148,17 +148,17 @@ Options:
                                  or inotifywait to be installed. ENGINE is one of
                                  `fswatch', `inotifywait' or `auto' [default: `auto']
       --watch-only-path=PATH   Only watch input files that reside beneath the specified path
-                                 predecence follows the order of specified arguments
+                                 precedence follows the order of specified arguments
                                  using this option automatically makes NOT watching files the default
       --watch-not-path=PATH    Don't watch input files that reside beneath the specified path
-                                 predecence follows the order of specified arguments
+                                 precedence follows the order of specified arguments
                                  using this option automatically makes NOT watching files the default
                                  (consider using --watch-only-path=/ first if you don't want this)
       --watch-only-ext=EXT     Only watch input files with the specified extension
-                                 predecence follows the order of specified arguments
+                                 precedence follows the order of specified arguments
                                  using this option automatically makes NOT watching files the default
       --watch-not-ext=EXT      Don't watch input files with the specified extension
-                                 predecence follows the order of specified arguments
+                                 precedence follows the order of specified arguments
                                  using this option automatically makes NOT watching files the default
                                  (consider using --watch-only-path=/ first if you don't want this)
       --tex-option=OPTION      Pass OPTION to TeX as a single option.
