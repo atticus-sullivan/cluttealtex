@@ -80,6 +80,19 @@ Usage:
   Watch input files for change.
   May need an external program to be available.
   See \autoref{sec:watch-mode} for details.
+\item[\texttt{--watch-only-path=\metavar{PATH}}]
+\item[\texttt{--watch-not-path=\metavar{PATH}}]
+\item[\texttt{--watch-only-ext=\metavar{EXT}}]
+\item[\texttt{--watch-not-ext=\metavar{EXT}}]
+  Watching engines often have an upper limit of how many files can be watched at once
+  (inotifywait for instance seems to only be able to watch at most 1024\footnote{\url{https://github.com/inotify-tools/inotify-tools/blob/210b019fb621d32fd6986b512508fc845f6c9fcb/src/common.cpp\#L18C20-L18C24}} files). Thus, these options provide means to filter the files that shall be watched so that this limit is not exceeded.
+
+  Note: You can use all of these options more than once.
+  They will always be processed in the order you specified them (meaning the last option will always take precedence)
+
+  Note: No matter which of these options you use, the default is always to not watch a file.
+  So by only using \texttt{--watch-not-path=./aux/} you will end up by not watching any path.
+  You can of course change this by specifying \texttt{--watch-only-path=/} before.
 \item[\texttt{--color[=\metavar{WHEN}]}]
   Colorize messages.
   \metavar{WHEN} is one of \texttt{always}, \texttt{auto}, or \texttt{never}.

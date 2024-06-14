@@ -32,12 +32,17 @@ local record Module
 		synctex: string
 		tex_extraoptions: {string}
 		watch: string
+		watch_inc_exc: {WatchIncExc}
 		fmt: string
 		makeindex: string
 		sagetex: string
 		memoize: string
 		memoize_opts: {string}
 		extraoptions: {string}
+	end
+	record WatchIncExc
+		type: string
+		param: string
 	end
 	record Glos
 		type: string -- only used for splitting and cmd building
