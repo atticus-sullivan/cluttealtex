@@ -461,7 +461,7 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 			if param is string then
 				options.engine = param
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 
 		elseif name == "engine-executable" then
@@ -469,7 +469,7 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 			if param is string then
 				options.engine_executable = param
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 
 		elseif name == "output" then
@@ -477,7 +477,7 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 			if param is string then
 				options.output = param
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 
 		elseif name == "fresh" then
@@ -485,7 +485,7 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 			if param is string then
 				options.fresh = true
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 
 		elseif name == "max-iterations" then
@@ -507,7 +507,7 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 			if param is string then
 				options.watch = param
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 
 		elseif name == "watch-only-path" then
@@ -515,28 +515,28 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 				if not options.watch_inc_exc then options.watch_inc_exc = {} end
 				table.insert(options.watch_inc_exc, {param=pathutil.abspath(param),type='only_path'})
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 		elseif name == "watch-not-path" then
 			if param is string then
 				if not options.watch_inc_exc then options.watch_inc_exc = {} end
 				table.insert(options.watch_inc_exc, {param=pathutil.abspath(param),type='not_path'})
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 		elseif name == "watch-only-ext" then
 			if param is string then
 				if not options.watch_inc_exc then options.watch_inc_exc = {} end
 				table.insert(options.watch_inc_exc, {param=param,type='only_ext'})
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 		elseif name == "watch-not-ext" then
 			if param is string then
 				if not options.watch_inc_exc then options.watch_inc_exc = {} end
 				table.insert(options.watch_inc_exc, {param=param,type='not_ext'})
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 
 		elseif name == "help" then
@@ -555,7 +555,7 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 			if param is string then
 				options.color = param
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 			message.set_colors(options.color)
 
@@ -564,7 +564,7 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 			if param is boolean then
 				options.change_directory = param
 			else
-				assert(param is boolean, "invalid param type")
+				error("invalid param type")
 			end
 
 		elseif name == "includeonly" then
@@ -572,7 +572,7 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 			if param is string then
 				options.includeonly = param
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 
 		elseif name == "make-depends" then
@@ -580,7 +580,7 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 			if param is string then
 				options.make_depends = param
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 
 		elseif name == "print-output-directory" then
@@ -588,7 +588,7 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 			if param is string then
 				options.print_output_directory = true
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 
 		elseif name == "package-support" then
@@ -601,7 +601,7 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 					end
 				end
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 
 		elseif name == "check-driver" then
@@ -619,7 +619,7 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 			if param is string then
 				options.synctex = param
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 
 		elseif name == "file-line-error" then
@@ -635,7 +635,7 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 				assert(param == "batchmode" or param == "nonstopmode" or param == "scrollmode" or param == "errorstopmode", "invalid argument for --interaction")
 				options.interaction = param
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 
 		elseif name == "halt-on-error" then
@@ -662,7 +662,7 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 			if param is string then
 				options.jobname = param
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 
 		elseif name == "fmt" then
@@ -670,7 +670,7 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 			if param is string then
 				options.fmt = param
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 
 		elseif name == "output-directory" then
@@ -678,7 +678,7 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 			if param is string then
 				options.output_directory = param
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 
 		elseif name == "output-format" then
@@ -694,28 +694,28 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 			if param is string then
 				table.insert(options.tex_extraoptions, shellutil.escape(param))
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 
 		elseif name == "tex-options" then
 			if param is string then
 				table.insert(options.tex_extraoptions, param)
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 
 		elseif name == "dvipdfmx-option" then
 			if param is string then
 				table.insert(options.dvipdfmx_extraoptions, shellutil.escape(param))
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 
 		elseif name == "dvipdfmx-options" then
 			if param is string then
 				table.insert(options.dvipdfmx_extraoptions, param)
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 
 		elseif name == "makeindex" then
@@ -724,7 +724,7 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 			if param is string then
 				options.makeindex = param
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 
 		elseif name == "bibtex" then
@@ -733,7 +733,7 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 			if param is string then
 				options.bibtex = param
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 
 		elseif name == "biber" then
@@ -742,7 +742,7 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 			if param is string then
 				options.biber = param
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 
 		elseif name == "glossaries" then
@@ -754,7 +754,7 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 				local cfg = assert(parse_glossaries_option(param))
 				table.insert(options.glossaries, cfg)
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 
 		elseif name == "sagetex" then
@@ -762,7 +762,7 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 			if param is string then
 				options.sagetex = param
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 
 		elseif name == "memoize" then
@@ -776,7 +776,7 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 					options.memoize = param
 				end
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 
 		elseif name == "memoize_opt" then
@@ -784,7 +784,7 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 				options.memoize_opts = options.memoize_opts or {}
 				table.insert(options.memoize_opts, param)
 			else
-				assert(param is string, "invalid param type")
+				error("invalid param type")
 			end
 
 		end
