@@ -142,6 +142,7 @@ Options:
                                  Cannot be used with --output-directory.
       --max-iterations=N       Maximum number of running TeX to resolve
                                  cross-references.  [default: 3]
+      --skip-first             Skip first run if possible [default: false]
       --start-with-draft       Start with draft mode.
       --[no-]change-directory  Change directory before running TeX.
       --watch[=ENGINE]         Watch input files for change.  Requires fswatch
@@ -241,6 +242,9 @@ local option_spec = {
 	{
 		long = "max-iterations",
 		param = true,
+	},
+	{
+		long = "skip-first",
 	},
 	{
 		long = "start-with-draft",
@@ -415,6 +419,10 @@ local function set_default_values(options:options.Options)
 		options.max_iterations = 3
 	end
 
+	if options.skip_first == nil then
+		options.skip_first = false
+	end
+
 	if options.interaction == nil then
 		options.interaction = "nonstopmode"
 	end
@@ -484,6 +492,11 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 			assert(options.max_iterations == nil, "multiple --max-iterations options")
 			options.max_iterations = assert(tonumber(param), "invalid value for --max-iterations option")
 			assert(options.max_iterations >= 1, "invalid value for --max-iterations option")
+
+		elseif name == "skip-first" then
+			-- assert(options.skip_first == nil, "multiple --skip-first options")
+			-- options.skip_first = param == "true"
+			options.skip_first = true
 
 		elseif name == "start-with-draft" then
 			assert(options.start_with_draft == nil, "multiple --start-with-draft options")

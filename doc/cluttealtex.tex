@@ -76,6 +76,10 @@ Usage:
 \item[\texttt{--max-iterations=\metavar{N}}]
   Set maximum number of run, for resolving cross-references and etc.
   Default: 3
+\item[\texttt{--skip-first}]
+  Skips the first iteration by using the aux files of previous runs if the
+  output is still newer than all other files. If the aux files are not found,
+  this obviously will have no effect.
 \item[\texttt{--watch[=\metavar{ENGINE}]}]
   Watch input files for change.
   May need an external program to be available.

@@ -220,6 +220,12 @@ local function single_run(auxstatus:{string:reruncheck.Status}, iteration:intege
 				bibtex_aux_hash = md5.sum(table.concat(biblines, "\n"))
 			end
 		end
+		if iteration == 1 then
+			local outfile = path_in_output_directory(output_extension)
+			if not reruncheck.anyNonOutputNewerThan(filelist, outfile) then
+				return false, auxstatus
+			end
+		end
 	else
 		-- This is the first execution
 		if auxstatus ~= nil then
