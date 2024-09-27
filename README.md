@@ -5,6 +5,14 @@ using teal to transpile typed lua to classic lua.**
 
 See `-h` and/or the documentation in `pdf` format.
 
+## How to install
+You can either
+- download the executable form the current release (`cluttealtex` or `cluttealtex.bat`)
+- clone the repository and make use of the `Makefile`. Running `make install`
+will use `l3build` to install the script to your `TEXMFHOME`.
+- eventually I'll also publish this on ctan.org, but currently I feel this is
+mostly a duplicate of `cluttex` which is already published there.
+
 ## Features
 - written in / generated with teal/tl => no external dependencies, (tex)lua should
   be included in texlive.
