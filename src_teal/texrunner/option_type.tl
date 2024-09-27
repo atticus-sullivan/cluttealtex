@@ -29,6 +29,7 @@ local record Module
 		shell_escape: boolean
 		shell_restricted: boolean
 		start_with_draft: boolean
+		skip_first: boolean
 		synctex: string
 		tex_extraoptions: {string}
 		watch: string

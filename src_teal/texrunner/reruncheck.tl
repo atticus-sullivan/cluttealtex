@@ -50,6 +50,7 @@ local record Module
 	collectfileinfo: function({Module.Filemap_ele}, {string:Module.Status}): {string:Module.Status}
 	comparefileinfo: function({Module.Filemap_ele}, {string:Module.Status}): boolean, {string:Module.Status}
 	comparefiletime: function(string, string, {string:Module.Status}): boolean
+	anyNonOutputNewerThan: function(filelist:{Module.Filemap_ele}, reference: string): boolean
 end
 
 -- filelist, filemap = parse_recorder_file("jobname.fls", options [, filelist, filemap])
@@ -316,10 +317,36 @@ local function comparefiletime(srcpath:string, dstpath:string, auxstatus:{string
 		return false
 end
 
+-- true if any of the aux/input files in filelist is newer than the reference file
+local function anyNonOutputNewerThan(filelist:{Module.Filemap_ele}, reference: string): boolean
+	if not filesys.isfile(reference) then
+		return true
+	end
+	local ref_mtime = filesys.attributes(reference, "modification")
+	if not ref_mtime is number then
+		error(("query lfs for 'modification' returned type %s for %s"):format(type(ref_mtime), reference))
+	else
+		for _,f in ipairs(filelist) do
+			if f.kind ~= "output" and filesys.isfile(f.abspath) then
+				local f_mtime = filesys.attributes(f.abspath, "modification")
+				if not f_mtime is number then
+					error(("query lfs for 'modification' returned type %s for %s"):format(type(f_mtime), f.path))
+				else
+					if f_mtime > ref_mtime then
+						return true
+					end
+				end
+			end
+		end
+	end
+	return false
+end
+
 local _M:Module = {
 	parse_recorder_file = parse_recorder_file,
 	collectfileinfo = collectfileinfo,
 	comparefileinfo = comparefileinfo,
 	comparefiletime = comparefiletime,
+	anyNonOutputNewerThan = anyNonOutputNewerThan
 }
 return _M
