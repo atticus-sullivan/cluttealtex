@@ -19,7 +19,7 @@ jobs:
     - name: Install lua
       uses: jkl1337/gh-actions-lua@v11
       with:
-        luaVersion: "5.4.6"
+        luaVersion: "5.4.7"
     - name: Install LuaRocks (latest)
       uses: jkl1337/gh-actions-luarocks@v5
 
