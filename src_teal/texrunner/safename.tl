@@ -26,7 +26,7 @@ local function dounsafechar(c:string):string
 	if c == " " then
 		return "_"
 	else
-		return string.format("_%02x", c:byte(1))
+		return string.format("_%02x", string.byte(c, 1))
 	end
 end
 

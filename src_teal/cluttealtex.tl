@@ -424,7 +424,7 @@ local function single_run(auxstatus:{string:reruncheck.Status}, iteration:intege
 				local updated_dot_bib = false
 				-- get the .bib files, the bcf uses as input
 				for l in io.lines(file.abspath) do
-					local bib = l:match("<bcf:datasource .*>(.*)</bcf:datasource>") -- might be unstable if biblatex adds e.g. a linebreak
+					local bib = string.match(l, "<bcf:datasource .*>(.*)</bcf:datasource>") -- might be unstable if biblatex adds e.g. a linebreak
 					if bib then
 						local bibfile = pathutil.join(original_wd, bib)
 						local succ, err = io.open(bibfile, "r") -- check if file is present, don't use touch to avoid triggering a rerun
@@ -474,7 +474,7 @@ local function single_run(auxstatus:{string:reruncheck.Status}, iteration:intege
 				local memoizefileinfo = {path = file.path, abspath = file.abspath, kind = "auxiliary"}
 				local must_extract = false
 				for l in io.lines(file.abspath) do
-					local newExtern = l:match("^\\mmzNewExtern")
+					local newExtern = string.match(l, "^\\mmzNewExtern")
 					must_extract = must_extract or newExtern ~= nil
 				end
 				if must_extract then
@@ -540,7 +540,7 @@ end
 
 -- Run (La)TeX (possibly multiple times) and produce a PDF file.
 -- This function should be run in a coroutine.
-local function do_typeset_c()
+local function do_typeset_c(): string, function
 	local iteration = 0
 	local should_rerun, auxstatus: boolean|string, {string:reruncheck.Status}
 	repeat
@@ -623,7 +623,7 @@ local function do_typeset(): boolean, string, integer
 		if command is string and (recover is function or recover is nil) then
 			message.exec(command)
 			local success, termination, status_or_signal = os.execute(command)
-			if success ~= 0 and not (recover and recover()) then
+			if success ~= 0 and not (recover and (recover as function)()) then
 				if termination == "exit" then
 					message.error("Command exited abnormally: exit status ", tostring(status_or_signal))
 				elseif termination == "signal" then
@@ -634,7 +634,7 @@ local function do_typeset(): boolean, string, integer
 				return false, termination, status_or_signal
 			end
 		else
-			error(("invalid type. command: %s recover: %s"):format(type(command), type(recover)))
+			error(string.format("invalid type. command: %s recover: %s", type(command), type(recover)))
 		end
 	end
 	-- Successful
@@ -754,7 +754,7 @@ if options.watch then
 					watch = false
 					for _,v in ipairs(options.watch_inc_exc) do
 						if v.type == "only_path" then
-							if fileinfo.abspath:sub(1, #v.param) == v.param then
+							if string.sub(fileinfo.abspath, 1, #v.param) == v.param then
 								watch = true
 							end
 						elseif v.type == "only_ext" then
@@ -762,7 +762,7 @@ if options.watch then
 								watch = true
 							end
 						elseif v.type == "not_path" then
-							if fileinfo.abspath:sub(1, #v.param) == v.param then
+							if string.sub(fileinfo.abspath, 1, #v.param) == v.param then
 								watch = false
 							end
 						elseif v.type == "not_ext" then
@@ -781,11 +781,11 @@ if options.watch then
 			end
 		end
 		if max_watches >= 0 and #input_files_to_watch > max_watches then
-			message.warn((
+			message.warn(string.format(
 			"Collected %d input files to watch on. Typically only %d hooks are created." ..
 			"The hooks exceeding this limit typically will simply not being installed." ..
 			"Consider either to increase this limit (how/if possible depends on the watcher engine) or" ..
-			"make use of the --watch-{only,no}-{ext,path} options to restrict the files which CluttealTeX should watch."):format(
+			"make use of the --watch-{only,no}-{ext,path} options to restrict the files which CluttealTeX should watch.",
 				#input_files_to_watch, max_watches
 			))
 		end

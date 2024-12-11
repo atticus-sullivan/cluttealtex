@@ -141,7 +141,7 @@ function meta:build_command(inputline:string, options:Module.Option): string
 end
 
 -- constructor
-local function engine(name:string, supports_pdf_generation:boolean, handle_additional_options:function(self:Module.Engine, args:{string}, options:Module.Option)): Module.Engine
+local function engine(name:string, supports_pdf_generation:boolean, handle_additional_options?:function(self:Module.Engine, args:{string}, options:Module.Option)): Module.Engine
 	return setmetatable({
 		name = name,
 		executable = name,

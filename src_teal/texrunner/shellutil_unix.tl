@@ -29,24 +29,21 @@ local os_execute = os.execute
 local function escape(s: string): string
   local len = #s
   local result = {}
-  local t,_i = string_match(s, "^([^']*)()")
+  local t, i = string_match(s, "^([^']*)()") as (string, integer)
   assert(t)
-  local i = tonumber(_i) -- TODO teal issue regarding string.match
   if t ~= "" then
     table_insert(result, "'")
     table_insert(result, t)
     table_insert(result, "'")
   end
   while i < len do
-    t,_i = string_match(s, "^('+)()", i)
+    t, i = string_match(s, "^('+)()", i) as (string, integer)
     assert(t)
-    i = tonumber(_i) -- TODO teal issue regarding string.match
     table_insert(result, '"')
     table_insert(result, t)
     table_insert(result, '"')
-    t,_i = string_match(s, "^([^']*)()", i)
+    t, i = string_match(s, "^([^']*)()", i) as (string, integer)
     assert(t)
-    i = tonumber(_i) -- TODO teal issue regarding string.match
     if t ~= "" then
       table_insert(result, "'")
       table_insert(result, t)

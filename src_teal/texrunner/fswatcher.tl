@@ -8,7 +8,7 @@ local record Module
 		path: string
 	end
 	record Watcher
-		add_file: function(Watcher, string)
+		add_file: function(Watcher, string): boolean, string
 		next: function(Watcher): Watcher_ele
 		close: function(Watcher)
 		-- TODO function definition

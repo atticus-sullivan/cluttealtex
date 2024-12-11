@@ -189,7 +189,7 @@ assert(joinpath("/path/", "to", "somewhere", "..", "elsewhere") == "/path/to/els
 assert(joinpath("/path/", "to", "./somewhere.txt") == "/path/to/somewhere.txt")
 -- END TEST CODE
 
-local function abspath(path: string, cwd: string): string
+local function abspath(path: string, cwd?: string): string
   if string_sub(path, 1, 1) == "/" then
     -- absolute path
     return path

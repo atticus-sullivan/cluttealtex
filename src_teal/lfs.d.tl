@@ -67,7 +67,7 @@ local record lfs
    symlinkattributes: function(string, string): string|number -- |FileMode
    symlinkattributes: function(string, Attributes): Attributes
 
-   touch: function(string, number, number): boolean, string
+   touch: function(string, ?number, ?number): boolean, string
 
    -- TODO: FILE needs to be renamed to io.FILE in tl itself
    lock: function(FILE, LockMode, number, number): boolean, string

@@ -26,6 +26,7 @@ jobs:
     - name: install luarocks deps
       run: |
         luarocks install --dev tl
+        luarocks install cyan
 
     - name: make
       run: make FD=fdfind build doc

@@ -201,7 +201,7 @@ local function isabspath(path: string): boolean
   return init == "\\" or init == "/" or string_match(path, "^%a:[/\\]") ~= nil
 end
 
-local function abspath(path: string, cwd: string): string
+local function abspath(path: string, cwd?: string): string
   if isabspath(path) then
     -- absolute path
     return path
