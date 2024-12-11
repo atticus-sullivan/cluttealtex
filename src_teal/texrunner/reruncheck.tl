@@ -46,7 +46,7 @@ local record Module
 		md5sum: string
 	end
 
-	parse_recorder_file: function(string, options.Options, {Module.Filemap_ele}, {string:Module.Filemap_ele}): {Module.Filemap_ele}, {string:Module.Filemap_ele}
+	parse_recorder_file: function(string, options.Options, ?{Module.Filemap_ele}, ?{string:Module.Filemap_ele}): {Module.Filemap_ele}, {string:Module.Filemap_ele}
 	collectfileinfo: function({Module.Filemap_ele}, {string:Module.Status}): {string:Module.Status}
 	comparefileinfo: function({Module.Filemap_ele}, {string:Module.Status}): boolean, {string:Module.Status}
 	comparefiletime: function(string, string, {string:Module.Status}): boolean
@@ -55,7 +55,7 @@ end
 
 -- filelist, filemap = parse_recorder_file("jobname.fls", options [, filelist, filemap])
 -- filelist[i] = {path = "...", abspath = "...", kind = "input" or "output" or "auxiliary"}
-local function parse_recorder_file(file:string, options:options.Options, filelist:{Module.Filemap_ele}, filemap:{string:Module.Filemap_ele}): {Module.Filemap_ele}, {string:Module.Filemap_ele}
+local function parse_recorder_file(file:string, options:options.Options, filelist?:{Module.Filemap_ele}, filemap?:{string:Module.Filemap_ele}): {Module.Filemap_ele}, {string:Module.Filemap_ele}
 filelist = filelist or {}
 	filemap = filemap or {}
 	for l in io.lines(file) do

@@ -490,7 +490,7 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 
 		elseif name == "max-iterations" then
 			assert(options.max_iterations == nil, "multiple --max-iterations options")
-			options.max_iterations = assert(tonumber(param), "invalid value for --max-iterations option")
+			options.max_iterations = assert(tonumber(param) as integer, "invalid value for --max-iterations option")
 			assert(options.max_iterations >= 1, "invalid value for --max-iterations option")
 
 		elseif name == "skip-first" then

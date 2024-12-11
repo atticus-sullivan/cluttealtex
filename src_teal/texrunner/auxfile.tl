@@ -28,7 +28,7 @@ made_new_directory: boolean
 end
 
 -- for LaTeX
-local function parse_aux_file(auxfile:string, outdir:string, report:Report, seen:{string:boolean}): Report
+local function parse_aux_file(auxfile:string, outdir:string, report?:Report, seen?:{string:boolean}): Report
 	report = report or {}
 	seen = seen or {}
 	seen[auxfile] = true
@@ -51,7 +51,7 @@ local function parse_aux_file(auxfile:string, outdir:string, report:Report, seen
 end
 
 -- \citation, \bibdata, \bibstyle and \@input
-local function extract_bibtex_from_aux_file(auxfile:string, outdir:string, biblines:{string}): {string}
+local function extract_bibtex_from_aux_file(auxfile:string, outdir:string, biblines?:{string}): {string}
 	biblines = biblines or {}
 	for l in io.lines(auxfile) do
 		local name = string_match(l, "\\([%a@]+)")
