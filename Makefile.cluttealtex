@@ -17,6 +17,7 @@ sources= \
 		 src_lua/texrunner/luatexinit.lua \
 		 src_lua/texrunner/recovery.lua \
 		 src_lua/texrunner/handleoption.lua \
+		 src_lua/texrunner/option_spec.lua \
 		 src_lua/texrunner/isatty.lua \
 		 src_lua/texrunner/message.lua \
 		 src_lua/texrunner/fswatcher_windows.lua \
