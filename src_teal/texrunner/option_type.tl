@@ -40,6 +40,7 @@ local record Module
 		memoize: string
 		memoize_opts: {string}
 		extraoptions: {string}
+		quiet: integer
 	end
 	record WatchIncExc
 		type: string

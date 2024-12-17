@@ -70,6 +70,14 @@ Usage:
 \item[\texttt{-o}, \texttt{--output=\metavar{FILE}}]
   Set output file name.
   Default: \texttt{\metavar{JOBNAME}.\metavar{FORMAT}}
+\item[\texttt{-q}, \texttt{--quiet[=\metavar{LEVEL}]}]
+  Supress some output of the issued TeX command.\\
+  Level 0: show all\\
+  Level 1: avoid over-/underfull boxes (to some extend)\\
+  Level 2: only show output generated inside document environment\\
+  Default: \texttt{1}
+
+  It is recomended to disable quiet output eventually to really make sure no warning goes unnoticed.
 \item[\texttt{--fresh}]
   Clean auxiliary files before run.
   Cannot be used in conjunction with \texttt{--output-directory}.
