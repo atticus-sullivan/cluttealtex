@@ -128,6 +128,11 @@ Options:
       --engine-executable=COMMAND+OPTIONs
                                The actual TeX command to use.
                                  [default: ENGINE]
+  -q, --quiet[=LEVEL]          Reduce output from TeX command.
+                                 Level 0: show all
+                                 Level 1: avoid over-/underfull boxes (to some extend)
+                                 Level 2: only show output generated inside document environment
+                                 [default: 1]
   -o, --output=FILE            The name of output file.
                                  [default: JOBNAME.pdf or JOBNAME.dvi]
       --fresh                  Clean intermediate files before running TeX.
@@ -731,6 +736,19 @@ local option_spec:{string:Option} = {
 			if param is string then
 				options.memoize_opts = options.memoize_opts or {}
 				table.insert(options.memoize_opts, param)
+			else
+				error("invalid param type")
+			end
+		end
+	},
+	quiet = {
+		long = "quiet",
+		param = true,
+		default = "1",
+		handle_cli = function(options:options.Options, param:string|boolean)
+			assert(options.quiet == nil, "multiple --quiet options")
+			if param is string then
+				options.quiet = assert(tonumber(param) as integer, "parameter must be an integer")
 			else
 				error("invalid param type")
 			end

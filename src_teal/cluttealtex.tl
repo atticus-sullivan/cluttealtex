@@ -271,6 +271,15 @@ local function single_run(auxstatus:{string:reruncheck.Status}, iteration:intege
 	if options.memoize_opts then
 		tex_injection = string.format("%s\\PassOptionsToPackage{%s}{memoize}", tex_injection or "", table.concat(options.memoize_opts, ","))
 	end
+	if options.quiet then
+		if options.quiet >= 1 then
+			tex_injection = string.format("%s\\AddToHook{begindocument/end}[quietX]{\\hbadness=99999 \\hfuzz=9999pt}", tex_injection or "")
+		end
+		if options.quiet >= 2 then
+			tex_options.interaction = "batchmode"
+			tex_injection = string.format("%s\\AddToHook{begindocument/end}[quiet]{\\nonstopmode}\\AddToHook{enddocument/info}[quiet]{\\batchmode}", tex_injection or "")
+		end
+	end
 
 	local inputline = tex_injection .. safename.safeinput(inputfile, engine)
 
