@@ -77,6 +77,10 @@ local modules = {
 		path = "texrunner/handleoption.lua",
 	},
 	{
+		name = "texrunner.option_spec",
+		path = "texrunner/option_spec.lua",
+	},
+	{
 		name = "texrunner.isatty",
 		path = "texrunner/isatty.lua",
 	},
