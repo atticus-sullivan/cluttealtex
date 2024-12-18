@@ -160,10 +160,6 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 				}
 		end)()
 
-		-- print(cfg.options)
-		-- print(cfg.defaults)
-		-- print(cfg.add_cli_options) -- of course the handle_cli function is not type checked this way
-
 		for optname, opt in pairs(cfg.options or {}) do
 			if optname == "file" then
 				assert(inputfile is nil, "multiple input files given")
@@ -284,7 +280,6 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 	end
 
 	-- Handle non-options (i.e. input file)
-	print(inputfile, non_option_index, #arg)
 	if (inputfile and non_option_index <= #arg) or (not inputfile and non_option_index < #arg) then
 		message.error("Multiple input files are not supported.")
 		os.exit(1)
