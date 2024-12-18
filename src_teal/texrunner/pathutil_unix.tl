@@ -168,18 +168,20 @@ local function joinpath2(x: string, y: string): string
   end
 end
 
-local function joinpath(...: string): string
-  local args = {...}
+local function joinpath(a?:string, b?:string, ...: string): string
   local n = select("#", ...)
-  if n == 2 then
-    return joinpath2(args[1], args[2])
-  elseif n == 0 then
+  if not a then
+    -- 0 argument
     return "."
-  elseif n == 1 then
-    return ...
+  elseif not b then
+    -- 1 argument
+    return a
+  elseif n == 0 then
+    -- 2 arguments
+    return joinpath2(a, b)
   else
-    -- n is >= 3
-    return joinpath(joinpath2(args[1], args[2]), select(3, ...))
+    -- >= 3 arguments
+    return joinpath(joinpath2(a, b), ...)
   end
 end
 
