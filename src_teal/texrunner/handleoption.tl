@@ -198,12 +198,30 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 					end
 					for _, opt in ipairs(opt as {any}) do
 						if type(opt) == "string" then
-							option_spec[optname].handle_cli(options, opt as string)
+							local o = option_spec[optname]
+							if o.handle_cli then
+								o.handle_cli(options, opt as string)
+							else
+								message.error(("%s needs to be set via a table in the config file"):format(optname))
+								os.exit(1)
+							end
 						elseif type(opt) == "boolean" then
 							if not option_spec[optname].boolean and option_spec[optname].default and (opt as boolean) then
-								option_spec[optname].handle_cli(options, option_spec[optname].default)
+								local o = assert(option_spec[optname])
+								if o.handle_cli then
+									o.handle_cli(options, option_spec[optname].default)
+								else
+									message.error(("%s needs to be set via a table in the config file"):format(optname))
+									os.exit(1)
+								end
 							elseif option_spec[optname].boolean then
-								option_spec[optname].handle_cli(options, opt as boolean)
+								local o = assert(option_spec[optname])
+								if o.handle_cli then
+									o.handle_cli(options, opt as boolean)
+								else
+									message.error(("%s needs to be set via a table in the config file"):format(optname))
+									os.exit(1)
+								end
 							else
 								message.error(("option %s does not take a boolean"):format(optname))
 							end
@@ -211,7 +229,13 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 							if not option_spec[optname].handle_cfg then
 								message.error(("config for '%s' must not be a table"):format(optname))
 							else
-								option_spec[optname].handle_cfg(options, opt as table)
+								local o = assert(option_spec[optname])
+								if o.handle_cli then
+									o.handle_cfg(options, opt as table)
+								else
+									message.error(("%s needs to be set either as boolean/string in the config or as cli argument"):format(optname))
+									os.exit(1)
+								end
 							end
 						else
 							message.error(("config for '%s' must be either string, boolean or table in .cluttealtexrc.lua"):format(optname))
@@ -256,7 +280,13 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 		for _,option in ipairs(option_and_params) do
 			local optname:string = option[1]
 			local param:string|boolean = option[2]
-			assert(option_spec[optname], "invalid optname found").handle_cli(options, param)
+			local o = assert(option_spec[optname], "invalid optname found")
+			if o.handle_cli then
+				o.handle_cli(options, param)
+			else
+				message.error(("%s can only be set as a table via the config file"):format(optname))
+				os.exit(1)
+			end
 		end
 		table.insert(var_options, options)
 	end
