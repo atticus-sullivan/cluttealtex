@@ -25,7 +25,9 @@ local record Option
 	allow_single_hyphen: boolean
 	default: string
 	boolean: boolean
+	accumulate: boolean
 	handle_cli: function({string:any}, string|boolean)
+	handle_cfg: function({string:any}, table)
 end
 
 -- options_and_params, i = parseoption(arg, options)

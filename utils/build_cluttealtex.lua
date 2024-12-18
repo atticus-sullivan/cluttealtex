@@ -81,6 +81,10 @@ local modules = {
 		path = "texrunner/option_spec.lua",
 	},
 	{
+		name = "texrunner.read_cfg",
+		path = "texrunner/read_cfg.lua",
+	},
+	{
 		name = "texrunner.isatty",
 		path = "texrunner/isatty.lua",
 	},

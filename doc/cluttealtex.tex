@@ -368,4 +368,31 @@ Currently, the list of supported packages are \texpkg{graphics}, \texpkg{color},
 The check is always done with PDF mode.
 To check the driver with DVI mode, use \texttt{--check-driver} option.
 
+\section{Configuration file}
+When calling \CluttealTeX, it will search for a file named \verb|.cluttealtexrc.lua| in the current working directory. If it finds such a file, \CluttealTeX will load that lua file and use the tables defined there as configuration options. Options set via the cli will always have a higher priority and overwrite anything that was set via the configuration file.
+
+Note: The configuration file must return the table used to configure \CluttealTeX
+
+An example looks like this:
+\begin{verbatim}
+return {
+	options = {
+		file = "main.tex",
+		output_directory = "tex-aux",
+		change_directory = true,
+		engine = "pdflatex",
+		biber = true, -- uses the default value of biber
+		glossaries = {type="makeindex", out="acr", inp="acn", log="alg"}, -- could also be an array of these tables to configure multiple glossaries
+		max_iterations = "50",
+		quiet = "0",
+	},
+	defaults = {
+		watch = "inotify", -- changes the default value of this option. Only has an effect on cli arguments 
+	}
+}
+\end{verbatim}
+
+For now refer to \url{https://github.com/atticus-sullivan/cluttealtex/pull/22} for further details.
+The docs will be rewritten soon and this option described in more detail.
+
 \end{document}

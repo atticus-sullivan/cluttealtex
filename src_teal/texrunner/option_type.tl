@@ -1,8 +1,4 @@
 local record Module
-	record Options_glos
-		out:string
-		inp: string
-	end
 	record Options
 		biber: string
 		bibtex: string
