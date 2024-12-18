@@ -27,6 +27,7 @@ local message     = require "texrunner.message"
 local fsutil      = require "texrunner.fsutil"
 local option_spec = require "texrunner.option_spec".spec
 local usage = require "texrunner.option_spec".usage
+local read_cfg = require "texrunner.read_cfg".read_cfg
 
 local record Module
 	handle_cluttealtex_options: function({string}): string,TexEngine.Engine,options.Options
@@ -121,28 +122,13 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 		-- Parse options from config file
 	if fsutil.isfile(".cluttealtexrc.lua") then
 		local options:options.Options = {}
-		-- see https://ref.coddy.tech/lua/lua-sandboxing
-		-- for us the main purpose is to avoid the config modifies the
-		-- environment we're working in.
-		-- Apart from that restriction, the config is allowed to execute
-		-- anything.
-		-- local sandbox = {
-		-- 	print   = print,
-		-- 	-- Add other functions here
-		-- }
-		-- setmetatable(sandbox, {__index = function(t:table, k:any)
-		-- 	return error("Forbidden function/variable", 2) -- TODO(cfg) deep-copy from _G on demand instead
-		-- end})
-		-- TODO(cfg) move to a lua file to make use of _G (dynamically copy over/return on __index)
-		local cfgChunk, err = loadfile(".cluttealtexrc.lua")
-		if err then
-			message.error("Error loading the config file '.cluttealtexrc.lua'")
-			error(err)
-		end
 		local cfg = (function(): CfgOption
 			-- use a function for checking types of the config table
-			local cfg: any
-			cfg = cfgChunk()
+			local cfg, err = read_cfg(".cluttealtexrc.lua")
+			if err or not cfg then
+				message.error("Error during reading the .cluttealtexrc.lua file: "..(err or ""))
+					os.exit(1)
+			end
 			if not (cfg is table) or cfg is nil then
 				message.error(".cluttealtexrc.lua needs to return a table with the configured options")
 				os.exit(1)
