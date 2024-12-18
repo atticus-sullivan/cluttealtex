@@ -200,7 +200,7 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 						if type(opt) == "string" then
 							option_spec[optname].handle_cli(options, opt as string)
 						elseif type(opt) == "boolean" then
-							if not option_spec[optname].boolean and option_spec[optname].default then
+							if not option_spec[optname].boolean and option_spec[optname].default and (opt as boolean) then
 								option_spec[optname].handle_cli(options, option_spec[optname].default)
 							elseif option_spec[optname].boolean then
 								option_spec[optname].handle_cli(options, opt as boolean)
