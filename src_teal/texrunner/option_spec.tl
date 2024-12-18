@@ -47,41 +47,36 @@ local function split(opt:string): {string}
 	return ret
 end
 
-local function parse_glossaries_option(opt:string): options.Glos, string
-	local s = split(opt)
-	if #s < 2 or #s > 6 then
-		return nil, "Error on splitting the glossaries parameter \""..opt.."\""
-	end
-
+local function parse_glossaries_option_from_table(opt:{string:string|nil}): options.Glos, string
 	local ret:options.Glos = {}
 
-	ret.type = s[1]
-	if ret.type ~= "makeindex" and ret.type ~= "xindy" and (#s ~= 7 or s[5] == "") then
+	ret.type = opt.type
+	if not (ret.type == "makeindex" or ret.type == "xindy" or (opt.path and opt.path ~= "")) then
 		return nil, "Invalid glossaries parameter. \""..ret.type.."\" is unsupported"
 	end
 
-	ret.out = s[2]
+	ret.out = opt.out
 
-	if #s >= 3 and s[3] ~= "" then
-		ret.inp = s[3]
+	if opt.inp and opt.inp ~= "" then
+		ret.inp = opt.inp
 	else
 		ret.inp = ret.out:sub(1,-2).."o"
 	end
 
-	if #s >= 4 and s[4] ~= "" then
-		ret.log = s[4]
+	if opt.log and opt.log ~= "" then
+		ret.log = opt.log
 	else
 		ret.log = ret.out:sub(1,-2).."g"
 	end
 
-	if #s >= 5 and s[5] ~= "" then
-		ret.path = s[5]
+	if opt.path and opt.path ~= "" then
+		ret.path = opt.path
 	else
 		ret.path = ret.type
 	end
 
-	if #s >= 6 then
-		ret.cmd = function(path_in_output_directory: function(ext:string):string):string return ret.path.." "..s[6] end
+	if opt.cmd_args then
+		ret.cmd = function(path_in_output_directory: function(ext:string):string):string return ret.path.." "..opt.cmd_args end
 	else
 		local foo = "%s.%s"
 		if ret.type == "makeindex" then
@@ -103,11 +98,19 @@ local function parse_glossaries_option(opt:string): options.Glos, string
 				)
 			end
 		else
-			return nil, "Error on parsing the glossaries parameter \""..opt.."\""
+			return nil, "Error on parsing the glossaries parameter"
 		end
 	end
 
 	return ret
+end
+
+local function parse_glossaries_option_from_string(opt:string): options.Glos, string
+	local s = split(opt)
+	if #s < 2 or #s > 6 then
+		return nil, "Error on splitting the glossaries parameter \""..opt.."\""
+	end
+	return parse_glossaries_option_from_table{type=s[1], out=s[2], inp=s[3], log=s[4], path=s[5], cmd_args=s[6]}
 end
 
 local function usage(arg:{string})
@@ -231,7 +234,7 @@ local option_spec:{string:Option} = {
 			else
 				error("invalid param type")
 			end
-		end
+		end,
 	},
 	engine_executable = {
 		long = "engine-executable",
@@ -243,7 +246,7 @@ local option_spec:{string:Option} = {
 			else
 				error("invalid param type")
 			end
-		end
+		end,
 	},
 	output = {
 		short = "o",
@@ -256,7 +259,7 @@ local option_spec:{string:Option} = {
 			else
 				error("invalid param type")
 			end
-		end
+		end,
 	},
 	fresh = {
 		long = "fresh",
@@ -267,7 +270,7 @@ local option_spec:{string:Option} = {
 			else
 				error("invalid param type")
 			end
-		end
+		end,
 	},
 	max_iterations = {
 		long = "max-iterations",
@@ -276,21 +279,21 @@ local option_spec:{string:Option} = {
 			assert(options.max_iterations == nil, "multiple --max-iterations options")
 			options.max_iterations = assert(tonumber(param) as integer, "invalid value for --max-iterations option")
 			assert(options.max_iterations >= 1, "invalid value for --max-iterations option")
-		end
+		end,
 	},
 	skip_first = {
 		long = "skip-first",
 		handle_cli = function(options:options.Options, param:string|boolean)
 			assert(options.skip_first == nil, "multiple --skip-first options")
 			options.skip_first = true
-		end
+		end,
 	},
 	start_with_draft = {
 		long = "start-with-draft",
 		handle_cli = function(options:options.Options, param:string|boolean)
 			assert(options.start_with_draft == nil, "multiple --start-with-draft options")
 			options.start_with_draft = true
-		end
+		end,
 	},
 	change_directory = {
 		long = "change-directory",
@@ -302,7 +305,7 @@ local option_spec:{string:Option} = {
 					else
 					error("invalid param type")
 				end
-			end
+			end,
 	},
 	watch = {
 		long = "watch",
@@ -315,55 +318,55 @@ local option_spec:{string:Option} = {
 			else
 				error("invalid param type")
 			end
-		end
+		end,
 	},
 	watch_only_path = {
 		long = "watch-only-path",
 		param = true,
 		handle_cli = function(options:options.Options, param:string|boolean)
 			if param is string then
-				if not options.watch_inc_exc then options.watch_inc_exc = {} end
+				options.watch_inc_exc = options.watch_inc_exc or {}
 				table.insert(options.watch_inc_exc, {param=pathutil.abspath(param),type='only_path'})
 			else
 				error("invalid param type")
 			end
-		end
+		end,
 	},
 	watch_not_path = {
 		long = "watch-not-path",
 		param = true,
 		handle_cli = function(options:options.Options, param:string|boolean)
 			if param is string then
-				if not options.watch_inc_exc then options.watch_inc_exc = {} end
+				options.watch_inc_exc = options.watch_inc_exc or {}
 				table.insert(options.watch_inc_exc, {param=pathutil.abspath(param),type='not_path'})
 			else
 				error("invalid param type")
 			end
-		end
+		end,
 	},
 	watch_only_ext = {
 		long = "watch-only-ext",
 		param = true,
 		handle_cli = function(options:options.Options, param:string|boolean)
 			if param is string then
-				if not options.watch_inc_exc then options.watch_inc_exc = {} end
+				options.watch_inc_exc = options.watch_inc_exc or {}
 				table.insert(options.watch_inc_exc, {param=param,type='only_ext'})
 			else
 				error("invalid param type")
 			end
-		end
+		end,
 	},
 	watch_not_ext = {
 		long = "watch-not-ext",
 		param = true,
 		handle_cli = function(options:options.Options, param:string|boolean)
 			if param is string then
-				if not options.watch_inc_exc then options.watch_inc_exc = {} end
+				options.watch_inc_exc = options.watch_inc_exc or {}
 				table.insert(options.watch_inc_exc, {param=param,type='not_ext'})
 			else
 				error("invalid param type")
 			end
-		end
+		end,
 	},
 	help = {
 		short = "h",
@@ -372,7 +375,7 @@ local option_spec:{string:Option} = {
 		handle_cli = function(options:options.Options, param:string|boolean)
 			usage(arg)
 			os.exit(0)
-		end
+		end,
 	},
 	version = {
 		short = "v",
@@ -380,14 +383,14 @@ local option_spec:{string:Option} = {
 		handle_cli = function(options:options.Options, param:string|boolean)
 			io.stderr:write("cluttealtex ",CLUTTEALTEX_VERSION,"\n")
 			os.exit(0)
-		end
+		end,
 	},
 	verbose = {
 		short = "V",
 		long = "verbose",
 		handle_cli = function(options:options.Options, param:string|boolean)
 			CLUTTEALTEX_VERBOSITY = CLUTTEALTEX_VERBOSITY + 1
-		end
+		end,
 	},
 	color = {
 		long = "color",
@@ -401,7 +404,7 @@ local option_spec:{string:Option} = {
 				error("invalid param type")
 			end
 			message.set_colors(options.color)
-		end
+		end,
 	},
 	includeonly = {
 		long = "includeonly",
@@ -413,7 +416,7 @@ local option_spec:{string:Option} = {
 			else
 				error("invalid param type")
 			end
-		end
+		end,
 	},
 	make_depends = {
 		long = "make-depends",
@@ -425,7 +428,7 @@ local option_spec:{string:Option} = {
 			else
 				error("invalid param type")
 			end
-		end
+		end,
 	},
 	print_output_directory = {
 		long = "print-output-directory",
@@ -436,7 +439,7 @@ local option_spec:{string:Option} = {
 			else
 				error("invalid param type")
 			end
-		end
+		end,
 	},
 	package_support = {
 		long = "package-support",
@@ -453,7 +456,7 @@ local option_spec:{string:Option} = {
 			else
 				error("invalid param type")
 			end
-		end
+		end,
 	},
 	check_driver = {
 		long = "check-driver",
@@ -466,177 +469,7 @@ local option_spec:{string:Option} = {
 			else
 				assert(param is string, "invalid param type")
 			end
-		end
-	},
-	-- Options for TeX
-	synctex = {
-		long = "synctex",
-		param = true,
-		allow_single_hyphen = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
-			assert(options.synctex == nil, "multiple --synctex options")
-			if param is string then
-				options.synctex = param
-			else
-				error("invalid param type")
-			end
-		end
-	},
-	file_line_error = {
-		long = "file-line-error",
-		boolean = true,
-		allow_single_hyphen = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
-			if param is boolean then
-				options.file_line_error = param
-			else
-				assert(param is string, "invalid param type")
-			end
-		end
-	},
-	interaction = {
-		long = "interaction",
-		param = true,
-		allow_single_hyphen = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
-			assert(options.interaction == nil, "multiple --interaction options")
-			if param is string then
-				assert(param == "batchmode" or param == "nonstopmode" or param == "scrollmode" or param == "errorstopmode", "invalid argument for --interaction")
-				options.interaction = param
-			else
-				error("invalid param type")
-			end
-		end
-	},
-	halt_on_error = {
-		long = "halt-on-error",
-		boolean = true,
-		allow_single_hyphen = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
-			if param is boolean then
-				options.halt_on_error = param
-			else
-				assert(param is string, "invalid param type")
-			end
-		end
-	},
-	shell_escape = {
-		long = "shell-escape",
-		boolean = true,
-		allow_single_hyphen = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
-			assert(options.shell_escape == nil and options.shell_restricted == nil, "multiple --(no-)shell-escape or --shell-restricted options")
-			if param is boolean then
-				options.shell_escape = param
-			else
-				assert(param is string, "invalid param type")
-			end
-		end
-	},
-	shell_restricted = {
-		long = "shell-restricted",
-		allow_single_hyphen = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
-			assert(options.shell_escape == nil and options.shell_restricted == nil, "multiple --(no-)shell-escape or --shell-restricted options")
-			options.shell_restricted = true
-		end
-	},
-	jobname = {
-		long = "jobname",
-		param = true,
-		allow_single_hyphen = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
-			assert(options.jobname == nil, "multiple --jobname options")
-			if param is string then
-				options.jobname = param
-			else
-				error("invalid param type")
-			end
-		end
-	},
-	fmt = {
-		long = "fmt",
-		param = true,
-		allow_single_hyphen = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
-			assert(options.fmt == nil, "multiple --fmt options")
-			if param is string then
-				options.fmt = param
-			else
-				error("invalid param type")
-			end
-		end
-	},
-	output_directory = {
-		long = "output-directory",
-		param = true,
-		allow_single_hyphen = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
-			assert(options.output_directory == nil, "multiple --output-directory options")
-			if param is string then
-				options.output_directory = param
-			else
-				error("invalid param type")
-			end
-		end
-	},
-	output_format = {
-		long = "output-format",
-		param = true,
-		allow_single_hyphen = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
-			assert(options.output_format == nil, "multiple --output-format options")
-			assert(param == "pdf" or param == "dvi", "invalid argument for --output-format")
-			if param is string then
-				options.output_format = param
-			else
-				assert(param is string, "invalid param type")
-			end
-		end
-	},
-	tex_option = {
-		long = "tex-option",
-		param = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
-			if param is string then
-				table.insert(options.tex_extraoptions, shellutil.escape(param))
-			else
-				error("invalid param type")
-			end
-		end
-	},
-	tex_options = {
-		long = "tex-options",
-		param = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
-			if param is string then
-				table.insert(options.tex_extraoptions, param)
-			else
-				error("invalid param type")
-			end
-		end
-	},
-	dvipdfmx_option = {
-		long = "dvipdfmx-option",
-		param = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
-			if param is string then
-				table.insert(options.dvipdfmx_extraoptions, shellutil.escape(param))
-			else
-				error("invalid param type")
-			end
-		end
-	},
-	dvipdfmx_options = {
-		long = "dvipdfmx-options",
-		param = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
-			if param is string then
-				table.insert(options.dvipdfmx_extraoptions, param)
-			else
-				error("invalid param type")
-			end
-		end
+		end,
 	},
 	makeindex = {
 		long = "makeindex",
@@ -650,7 +483,7 @@ local option_spec:{string:Option} = {
 			else
 				error("invalid param type")
 			end
-		end
+		end,
 	},
 	bibtex = {
 		long = "bibtex",
@@ -664,7 +497,7 @@ local option_spec:{string:Option} = {
 			else
 				error("invalid param type")
 			end
-		end
+		end,
 	},
 	biber = {
 		long = "biber",
@@ -678,7 +511,7 @@ local option_spec:{string:Option} = {
 			else
 				error("invalid param type")
 			end
-		end
+		end,
 	},
 	sagetex = {
 		long = "sagetex",
@@ -691,7 +524,7 @@ local option_spec:{string:Option} = {
 			else
 				error("invalid param type")
 			end
-		end
+		end,
 	},
 	glossaries = {
 		long = "glossaries",
@@ -703,12 +536,49 @@ local option_spec:{string:Option} = {
 				options.glossaries = {}
 			end
 			if param is string then
-				local cfg = assert(parse_glossaries_option(param))
-				table.insert(options.glossaries, cfg)
+				options.glossaries = options.glossaries or {}
+				table.insert(options.glossaries, assert(parse_glossaries_option_from_string(param)))
 			else
 				error("invalid param type")
 			end
-		end
+		end,
+		handle_cfg = function(options:options.Options, param: table)
+			local param = (function(): {string:string|nil}
+				local inp = param.inp
+				if not inp is string and not inp is nil then
+					return
+				end
+
+				local t = param.type
+				if not t is string and not t is nil then
+					return
+				end
+
+				local out = param.out
+				if not out is string and not out is nil then
+					return
+				end
+
+				local path = param.path
+				if not path is string and not path is nil then
+					return
+				end
+
+				local cmd = param.cmd
+				if not cmd is string and not cmd is nil then
+					return
+				end
+
+				local log = param.log
+				if not log is string and not log is nil then
+					return
+				end
+				return {type=t, out=out, inp=inp, log=log, path=path, cmd=cmd}
+			end)()
+
+			options.glossaries = options.glossaries or {}
+			table.insert(options.glossaries, assert(parse_glossaries_option_from_table(param)))
+		end,
 	},
 	memoize = {
 		long = "memoize",
@@ -727,7 +597,7 @@ local option_spec:{string:Option} = {
 			else
 				error("invalid param type")
 			end
-		end
+		end,
 	},
 	memoize_opt = {
 		long = "memoize_opt", -- TODO should be memoize-opt on commandline probably, but is breaking
@@ -739,7 +609,7 @@ local option_spec:{string:Option} = {
 			else
 				error("invalid param type")
 			end
-		end
+		end,
 	},
 	quiet = {
 		long = "quiet",
@@ -752,7 +622,181 @@ local option_spec:{string:Option} = {
 			else
 				error("invalid param type")
 			end
-		end
+		end,
+	},
+	-- Options for TeX
+	synctex = {
+		long = "synctex",
+		param = true,
+		allow_single_hyphen = true,
+		handle_cli = function(options:options.Options, param:string|boolean)
+			assert(options.synctex == nil, "multiple --synctex options")
+			if param is string then
+				options.synctex = param
+			else
+				error("invalid param type")
+			end
+		end,
+	},
+	file_line_error = {
+		long = "file-line-error",
+		boolean = true,
+		allow_single_hyphen = true,
+		handle_cli = function(options:options.Options, param:string|boolean)
+			if param is boolean then
+				options.file_line_error = param
+			else
+				assert(param is string, "invalid param type")
+			end
+		end,
+	},
+	interaction = {
+		long = "interaction",
+		param = true,
+		allow_single_hyphen = true,
+		handle_cli = function(options:options.Options, param:string|boolean)
+			assert(options.interaction == nil, "multiple --interaction options")
+			if param is string then
+				assert(param == "batchmode" or param == "nonstopmode" or param == "scrollmode" or param == "errorstopmode", "invalid argument for --interaction")
+				options.interaction = param
+			else
+				error("invalid param type")
+			end
+		end,
+	},
+	halt_on_error = {
+		long = "halt-on-error",
+		boolean = true,
+		allow_single_hyphen = true,
+		handle_cli = function(options:options.Options, param:string|boolean)
+			if param is boolean then
+				options.halt_on_error = param
+			else
+				assert(param is string, "invalid param type")
+			end
+		end,
+	},
+	shell_escape = {
+		long = "shell-escape",
+		boolean = true,
+		allow_single_hyphen = true,
+		handle_cli = function(options:options.Options, param:string|boolean)
+			assert(options.shell_escape == nil and options.shell_restricted == nil, "multiple --(no-)shell-escape or --shell-restricted options")
+			if param is boolean then
+				options.shell_escape = param
+			else
+				assert(param is string, "invalid param type")
+			end
+		end,
+	},
+	shell_restricted = {
+		long = "shell-restricted",
+		allow_single_hyphen = true,
+		handle_cli = function(options:options.Options, param:string|boolean)
+			assert(options.shell_escape == nil and options.shell_restricted == nil, "multiple --(no-)shell-escape or --shell-restricted options")
+			options.shell_restricted = true
+		end,
+	},
+	jobname = {
+		long = "jobname",
+		param = true,
+		allow_single_hyphen = true,
+		handle_cli = function(options:options.Options, param:string|boolean)
+			assert(options.jobname == nil, "multiple --jobname options")
+			if param is string then
+				options.jobname = param
+			else
+				error("invalid param type")
+			end
+		end,
+	},
+	fmt = {
+		long = "fmt",
+		param = true,
+		allow_single_hyphen = true,
+		handle_cli = function(options:options.Options, param:string|boolean)
+			assert(options.fmt == nil, "multiple --fmt options")
+			if param is string then
+				options.fmt = param
+			else
+				error("invalid param type")
+			end
+		end,
+	},
+	output_directory = {
+		long = "output-directory",
+		param = true,
+		allow_single_hyphen = true,
+		handle_cli = function(options:options.Options, param:string|boolean)
+			assert(options.output_directory == nil, "multiple --output-directory options")
+			if param is string then
+				options.output_directory = param
+			else
+				error("invalid param type")
+			end
+		end,
+	},
+	output_format = {
+		long = "output-format",
+		param = true,
+		allow_single_hyphen = true,
+		handle_cli = function(options:options.Options, param:string|boolean)
+			assert(options.output_format == nil, "multiple --output-format options")
+			assert(param == "pdf" or param == "dvi", "invalid argument for --output-format")
+			if param is string then
+				options.output_format = param
+			else
+				assert(param is string, "invalid param type")
+			end
+		end,
+	},
+	tex_option = {
+		long = "tex-option",
+		param = true,
+		handle_cli = function(options:options.Options, param:string|boolean)
+			if param is string then
+				options.tex_extraoptions = options.tex_extraoptions or {}
+				table.insert(options.tex_extraoptions, shellutil.escape(param))
+			else
+				error("invalid param type")
+			end
+		end,
+	},
+	tex_options = {
+		long = "tex-options",
+		param = true,
+		handle_cli = function(options:options.Options, param:string|boolean)
+			if param is string then
+				options.tex_extraoptions = options.tex_extraoptions or {}
+				table.insert(options.tex_extraoptions, param)
+			else
+				error("invalid param type")
+			end
+		end,
+	},
+	dvipdfmx_option = {
+		long = "dvipdfmx-option",
+		param = true,
+		handle_cli = function(options:options.Options, param:string|boolean)
+			if param is string then
+				options.dvipdfmx_extraoptions = options.dvipdfmx_extraoptions or {}
+				table.insert(options.dvipdfmx_extraoptions, shellutil.escape(param))
+			else
+				error("invalid param type")
+			end
+		end,
+	},
+	dvipdfmx_options = {
+		long = "dvipdfmx-options",
+		param = true,
+		handle_cli = function(options:options.Options, param:string|boolean)
+			if param is string then
+				options.dvipdfmx_extraoptions = options.dvipdfmx_extraoptions or {}
+				table.insert(options.dvipdfmx_extraoptions, param)
+			else
+				error("invalid param type")
+			end
+		end,
 	},
 }
 
