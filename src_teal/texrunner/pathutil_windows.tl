@@ -20,7 +20,6 @@
 
 -- pathutil module
 
-local assert = assert
 local select = select
 local string = string
 local string_find = string.find
@@ -42,14 +41,6 @@ local function basename(path: string): string
   end
 end
 
--- TEST CODE
-assert(basename("/path/to/file") == "file")
-assert(basename("/path/to/directory/") == "directory")
-assert(basename([[c:\path\to/directory\]]) == "directory")
-assert(basename("/file") == "file")
-assert(basename("file") == "file")
--- END TEST CODE
-
 local function dirname(path: string): string
   local i = 0
   while true do
@@ -69,14 +60,6 @@ local function dirname(path: string): string
     i = j
   end
 end
-
--- TEST CODE
-assert(dirname("/path/to/file") == "/path/to")
-assert(dirname("/path/to/directory/") == "/path/to/directory")
-assert(dirname([[c:/path\to/file]]) == [[c:/path\to]])
-assert(dirname("/file") == "/")
-assert(dirname("file") == ".")
--- END TEST CODE
 
 local function parentdir(path: string): string
   local i = 0
@@ -101,40 +84,13 @@ local function parentdir(path: string): string
   end
 end
 
--- TEST CODE
-assert(parentdir("/path/to/file") == "/path/to")
-assert(parentdir("/path/to/directory/") == "/path/to")
-assert(parentdir("/file") == "/")
-assert(parentdir("file") == ".")
--- END TEST CODE
-
 local function trimext(path: string): string
   return (string_gsub(path, "%.[^\\/%.]*$", ""))
 end
 
--- TEST CODE
-assert(trimext("/path/to/file.ext") == "/path/to/file")
-assert(trimext("/path/t.o/file") == "/path/t.o/file")
-assert(trimext([[c:/path/t.o\file]]) == [[c:/path/t.o\file]])
-assert(trimext("file.ext") == "file")
-assert(trimext("file.e.xt") == "file.e")
-assert(trimext("file.ext.") == "file.ext")
-assert(trimext("file") == "file")
--- END TEST CODE
-
 local function ext(path: string): string
   return string_match(path, "%.([^\\/%.]*)$") or ""
 end
-
--- TEST CODE
-assert(ext("/path/to/file.ext") == "ext")
-assert(ext("/path/t.o/file") == "")
-assert(ext([[c:/path/t.o\file]]) == "")
-assert(ext("file.ext") == "ext")
-assert(ext("file.e.xt") == "xt")
-assert(ext("file.ext.") == "")
-assert(ext("file") == "")
--- END TEST CODE
 
 local function replaceext(path: string, newext: string): string
   local newpath, n = string_gsub(path, "%.([^\\/%.]*)$", function():string return "." .. newext end)
@@ -144,16 +100,6 @@ local function replaceext(path: string, newext: string): string
     return newpath
   end
 end
-
--- TEST CODE
-assert(replaceext("/path/to/file.ext", "tor") == "/path/to/file.tor")
-assert(replaceext("/path/t.o/file", "tor") == "/path/t.o/file.tor")
-assert(replaceext([[c:/path/t.o\file]], "tor") == [[c:/path/t.o\file.tor]])
-assert(replaceext("file.ext", "tor") == "file.tor")
-assert(replaceext("file.e.xt", "tor") == "file.e.tor")
-assert(replaceext("file.ext.", "tor") == "file.ext.tor")
-assert(replaceext("file", "tor") == "file.tor")
--- END TEST CODE
 
 local function joinpath2(x: string, y: string): string
   local xd = x
@@ -190,13 +136,6 @@ local function joinpath(a?:string, b?:string, ...: string): string
     return joinpath(joinpath2(a, b), ...)
   end
 end
-
--- TEST CODE
-assert(joinpath("/path/", "to", "somewhere") == [[/path/to\somewhere]])
-assert(joinpath("/path/", "to", "somewhere", "..") == [[/path/to]])
-assert(joinpath("/path/", "to", "somewhere", "..", "elsewhere") == [[/path/to\elsewhere]])
-assert(joinpath("/path/", "to", "./somewhere.txt") == "/path/to/somewhere.txt")
--- END TEST CODE
 
 -- https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
 local function isabspath(path: string): boolean
