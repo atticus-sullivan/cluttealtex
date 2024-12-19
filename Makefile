@@ -22,7 +22,7 @@ doc:
 	l3build doc
 
 test: build
-	LUA_PATH="./src_lua/?.lua;$$LUA_PATH" lua specs/dummy.lua
+	LUA_PATH="./src_lua/?.lua;$$LUA_PATH" lua specs/init.lua
 
 install: build
 	l3build install --full
