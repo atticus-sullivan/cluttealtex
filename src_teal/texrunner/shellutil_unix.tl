@@ -53,12 +53,6 @@ local function escape(s: string): string
   return table_concat(result, "")
 end
 
--- TEST CODE
-assert(escape([[Hello world!]]) == [['Hello world!']])
-assert(escape([[Hello' world!]]) == [['Hello'"'"' world!']])
-assert(escape([[Hello' world!"]]) == [['Hello'"'"' world!"']])
--- END TEST CODE
-
 local function has_command(name: string): boolean
   local result = os_execute("which " .. escape(name) .. " > /dev/null")
   return result
