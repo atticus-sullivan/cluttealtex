@@ -1,4 +1,4 @@
-.PHONY: all checkAll doc install build clean genArgs
+.PHONY: all checkAll doc install build clean genArgs release
 
 FD ?= fd
 
@@ -20,6 +20,7 @@ genArgs: build
 
 clean:
 	$(RM) -r src_lua
+	l3build clean
 
 doc: genArgs
 	l3build doc
@@ -32,3 +33,13 @@ install: build
 
 checkAll:
 	eval $$(luarocks path) && cyan check $$($(FD) "\.tl" ./src_teal)
+
+release: clean checkAll build doc
+	# check if git is in a clean state
+	git update-index --refresh
+	git diff-index --quiet HEAD --
+	# check if on main branch
+	test $(shell git rev-parse --abbrev-ref HEAD) == "main"
+	# list all TODOs related to a new release
+	grep --exclude-dir '.git' --exclude 'Makefile' --color=always -r "TODO(release)" .
+	$$(read -p "Enter release number (last was $$(git describe --tags --abbre)): ") tag && git tag "$$(tag)" && git push "$$(tag)"
