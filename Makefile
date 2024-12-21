@@ -1,10 +1,10 @@
-.PHONY: all checkAll doc install build clean
+.PHONY: all checkAll doc install build clean genArgs
 
 FD ?= fd
 
-all: build test doc install
+all: build test doc install genArgs
 
-build: checkAll
+build: clean checkAll
 	@cyan version
 	mkdir -p src_lua/texrunner
 	cd src_teal && $(FD) "\.lua" . --exec cp {} ../src_lua/{}
@@ -15,10 +15,13 @@ build: checkAll
 	cp src_teal/os_.lua src_lua/
 	make -f Makefile.cluttealtex
 
+genArgs: build
+	LUA_PATH="./src_lua/?.lua;$$LUA_PATH" lua utils/print_args.lua > args.md 2> doc/args.tex
+
 clean:
 	$(RM) -r src_lua
 
-doc:
+doc: genArgs
 	l3build doc
 
 test: build
