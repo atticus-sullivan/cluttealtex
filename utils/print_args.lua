@@ -44,4 +44,10 @@ table.sort(out)
 
 print(table.concat(out, "\n"))
 
+io.stderr:write[[\begin{longtable}{llcX}
+	\toprule
+	optname & long & short & default \\\midrule
+]]
 io.stderr:write(table.concat(out, "\n"):gsub(" | ", " & "):gsub("| ", ""):gsub(" |", [[ \\]]):gsub("_", "\\_"), "\n")
+io.stderr:write[[\bottomrule
+\end{longtable}]]
