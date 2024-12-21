@@ -23,17 +23,19 @@ local pathutil = require "texrunner.pathutil"
 local message = require "texrunner.message"
 local reruncheck = require"texrunner.reruncheck"
 
+-- Record definition for expected driver values
 local record Values
-	graphics: string
-	expl3: EXPL3
+	graphics: string -- Expected graphics driver (e.g., "dvips", "pdftex")
+	expl3: EXPL3     -- Expected expl3 backend driver (old and new values supported)
 	record EXPL3
-		old: string
-		new: string
+		old: string  -- Old driver format
+		new: string  -- New driver format
 	end
-	hyperref: string
-	xypic: string
+	hyperref: string -- Expected hyperref driver
+	xypic: string    -- Expected Xy-pic driver
 end
 
+-- Mapping of supported drivers and their corresponding expected values
 local right_values:{string:Values} = {
 	dvips = {
 		graphics = "dvips",
@@ -89,93 +91,109 @@ local right_values:{string:Values} = {
 	},
 }
 
--- expected_driver: one of "dvips", "dvipdfmx", "dvisvgm", "pdftex", "xetex", "luatex"
-local function checkdriver(expected_driver:string, filelist:{reruncheck.Filemap_ele})
-	if CLUTTEALTEX_VERBOSITY >= 1 then
-		message.info("checkdriver: expects ", expected_driver)
+-- Generic function to detect a driver by matching loaded files with a mapping
+local function detect_driver(loaded:{string:boolean}, mapping:{string:string}): string
+	for file, driver in pairs(mapping) do
+		if loaded[file] then return driver end
 	end
+	return "unknown" -- Return "unknown" if no match is found
+end
 
-	local loaded = {}
-	for _,t in ipairs(filelist) do
-		if t.kind == "input" then
-			local basename = pathutil.basename(t.path)
-			loaded[basename] = true
-		end
+-- Detect drivers for a specific subsystem
+local function detect_graphics_driver(loaded: {string:boolean}): string
+	if not (loaded["graphics.sty"] or loaded["color.sty"]) then
+		-- Graphics subsystem not used
+		return nil
 	end
+	return detect_driver(loaded, {
+		["dvipdfmx.def"] = "dvipdfmx",
+		["dvips.def"] = "dvips",
+		["dvisvgm.def"] = "dvisvgm",
+		["pdftex.def"] = "pdftex",
+		["luatex.def"] = "luatex",
+		["xetex.def"] = "xetex",
+		-- Not supported: dvipdf, dvipsone, emtex, textures, pctexps, pctexwin, pctexhp, pctex32, truetex, tcidvi, vtex
+	})
+end
 
-	local graphics_driver:string = nil -- "dvipdfmx" | "dvips" | "dvisvgm" | "pdftex" | "luatex" | "xetex" | "unknown"
-	if loaded["graphics.sty"] or loaded["color.sty"] then
-		if loaded["dvipdfmx.def"] then
-			graphics_driver = "dvipdfmx"
-		elseif loaded["dvips.def"] then
-			graphics_driver = "dvips"
-		elseif loaded["dvisvgm.def"] then
-			graphics_driver = "dvisvgm"
-		elseif loaded["pdftex.def"] then
-			graphics_driver = "pdftex"
-		elseif loaded["luatex.def"] then
-			graphics_driver = "luatex"
-		elseif loaded["xetex.def"] then
-			graphics_driver = "xetex"
-		else
-			-- Not supported: dvipdf, dvipsone, emtex, textures, pctexps, pctexwin, pctexhp, pctex32, truetex, tcidvi, vtex
-			graphics_driver = "unknown"
-		end
+-- Detect drivers for the expl3 subsystem
+local function detect_expl3_driver(loaded: {string:boolean}): string
+	if not (loaded["expl3-code.tex"] or loaded["expl3.sty"] or loaded["l3backend-dvips.def"] or loaded["l3backend-dvipdfmx.def"] or loaded["l3backend-xdvipdfmx.def"] or loaded["l3backend-pdfmode.def"] or loaded["l3backend-pdftex.def"] or loaded["l3backend-luatex.def"] or loaded["l3backend-xetex.def"]) then
+		-- expl3 subsystem not used
+		return nil
 	end
-	local expl3_driver:string = nil -- "pdfmode" | "dvisvgm" | "xdvipdfmx" | "dvipdfmx" | "dvips" | "pdftex" | "luatex" | "xetex" | "unknown"
-	if loaded["expl3-code.tex"] or loaded["expl3.sty"] or loaded["l3backend-dvips.def"] or loaded["l3backend-dvipdfmx.def"] or loaded["l3backend-xdvipdfmx.def"] or loaded["l3backend-pdfmode.def"] or loaded["l3backend-pdftex.def"] or loaded["l3backend-luatex.def"] or loaded["l3backend-xetex.def"] then
-		if loaded["l3backend-pdfmode.def"] then
-			expl3_driver = "pdfmode" -- pdftex, luatex in older l3backend
-		elseif loaded["l3backend-dvisvgm.def"] then
-			expl3_driver = "dvisvgm"
-		elseif loaded["l3backend-xdvipdfmx.def"] then
-			expl3_driver = "xdvipdfmx" -- xetex in older l3backend
-		elseif loaded["l3backend-dvipdfmx.def"] then
-			expl3_driver = "dvipdfmx"
-		elseif loaded["l3backend-dvips.def"] then
-			expl3_driver = "dvips"
-		elseif loaded["l3backend-pdftex.def"] then
-			expl3_driver = "pdftex"
-		elseif loaded["l3backend-luatex.def"] then
-			expl3_driver = "luatex"
-		elseif loaded["l3backend-xetex.def"] then
-			expl3_driver = "xetex"
-		else
-			-- TODO: driver=latex2e?
-			expl3_driver = "unknown"
-		end
+	return detect_driver(loaded, {
+		["l3backend-pdfmode.def"] = "pdfmode",
+		["l3backend-dvisvgm.def"] = "dvisvgm",
+		["l3backend-xdvipdfmx.def"] = "xdvipdfmx",
+		["l3backend-dvipdfmx.def"] = "dvipdfmx",
+		["l3backend-dvips.def"] = "dvips",
+		["l3backend-pdftex.def"] = "pdftex",
+		["l3backend-luatex.def"] = "luatex",
+		["l3backend-xetex.def"] = "xetex",
+		-- TODO: driver=latex2e?
+	})
+end
+
+-- Detect drivers for the hyperref package
+local function detect_hyperref_driver(loaded: {string:boolean}): string
+	if not (loaded["hyperref.sty"]) then
+		-- Hyperref package not used
+		return nil
 	end
-	local hyperref_driver:string = nil -- "luatex" | "pdftex" | "xetex" | "dvipdfmx" | "dvips" | "unknown"
-	if loaded["hyperref.sty"] then
-		if loaded["hluatex.def"] then
-			hyperref_driver = "luatex"
-		elseif loaded["hpdftex.def"] then
-			hyperref_driver = "pdftex"
-		elseif loaded["hxetex.def"] then
-			hyperref_driver = "xetex"
-		elseif loaded["hdvipdfm.def"] then
-			hyperref_driver = "dvipdfmx"
-		elseif loaded["hdvips.def"] then
-			hyperref_driver = "dvips"
-		else
-			-- Not supported: dvipson, dviwind, tex4ht, texture, vtex, vtexhtm, xtexmrk, hypertex
-			hyperref_driver = "unknown"
-		end
+	return detect_driver(loaded, {
+		["hluatex.def"] = "luatex",
+		["hpdftex.def"] = "pdftex",
+		["hxetex.def"] = "xetex",
+		["hdvipdfm.def"] = "dvipdfmx",
+		["hdvips.def"] = "dvips",
+		-- Not supported: dvipson, dviwind, tex4ht, texture, vtex, vtexhtm, xtexmrk, hypertex
 		-- TODO: dvisvgm?
+	})
+end
+
+-- Detect drivers for the xy-pic package
+local function detect_xypic_driver(loaded: {string:boolean}): string
+	if not (loaded["xy.tex"]) then
+		-- xy-pic package not used
+		return nil
 	end
-	local xypic_driver:string = nil -- "pdf" | "dvips" | "unknown"
-	if loaded["xy.tex"] then
-		if loaded["xypdf.tex"] then
-			xypic_driver = "pdf" -- pdftex, luatex, xetex, dvipdfmx
-		elseif loaded["xydvips.tex"] then
-			xypic_driver = "dvips"
-		else
-			-- Not supported: dvidrv, dvitops, oztex, 17oztex, textures, 16textures, xdvi
-			xypic_driver = "unknown"
-		end
+	return detect_driver(loaded, {
+		["xypdf.tex"] = "pdf", -- pdftex, luatex, xetex, dvipdfmx
+		["xydvips.tex"] = "dvips",
+		["hxetex.def"] = "xetex",
+		["hdvipdfm.def"] = "dvipdfmx",
+		["hdvips.def"] = "dvips",
+		-- Not supported: dvidrv, dvitops, oztex, 17oztex, textures, 16textures, xdvi
 		-- TODO: dvisvgm?
+	})
+end
+
+-- Compare detected drivers with expected values and return a list of mismatches
+local function get_driver_mismatches(loaded: {string:boolean}, expected: Values): {string}
+	local mismatches = {}
+	local graphics_driver = detect_graphics_driver(loaded)
+	if graphics_driver and expected.graphics and graphics_driver ~= expected.graphics then
+		table.insert(mismatches, "graphics")
 	end
 
+	local expl3_driver = detect_expl3_driver(loaded)
+	if expl3_driver and expected.expl3 and expl3_driver ~= expected.expl3.old and expl3_driver ~= expected.expl3.new then
+		table.insert(mismatches, "expl3")
+	end
+
+	local hyperref_driver = detect_hyperref_driver(loaded)
+	if hyperref_driver and expected.hyperref and hyperref_driver ~= expected.hyperref then
+		table.insert(mismatches, "hyperref")
+	end
+
+
+	local xypic_driver = detect_xypic_driver(loaded)
+	if xypic_driver and expected.xypic and xypic_driver ~= expected.xypic then
+		table.insert(mismatches, "xypic")
+	end
+
+	-- Verbose logging of detected drivers
 	if CLUTTEALTEX_VERBOSITY >= 1 then
 		message.info("checkdriver: graphics=", tostring(graphics_driver))
 		message.info("checkdriver: expl3=", tostring(expl3_driver))
@@ -183,39 +201,75 @@ local function checkdriver(expected_driver:string, filelist:{reruncheck.Filemap_
 		message.info("checkdriver: xypic=", tostring(xypic_driver))
 	end
 
-	local expected = assert(right_values[expected_driver], "invalid value for expected_driver")
-	if graphics_driver ~= nil and expected.graphics ~= nil and graphics_driver ~= expected.graphics then
+	return mismatches
+end
+
+-- Diagnostic output for driver mismatches
+local mismatch_output:{string:function} = {
+	graphics = function(expected:Values, _:string)
 		message.diag("The driver option for graphics(x)/color is missing or wrong.")
 		message.diag("Consider setting '", expected.graphics, "' option.")
-	end
-	if expl3_driver ~= nil and expected.expl3 ~= nil and expl3_driver ~= expected.expl3.old and expl3_driver ~= expected.expl3.new then
+	end,
+	expl3 = function(expected:Values, _:string)
 		message.diag("The driver option for expl3 is missing or wrong.")
 		message.diag("Consider setting 'driver=", expected.expl3.new, "' option when loading expl3.")
 		if expected.expl3.old ~= expected.expl3.new then
 			message.diag("You might need to instead set 'driver=", expected.expl3.old, "' if you are using an older version of expl3.")
 		end
-	end
-	if hyperref_driver ~= nil and expected.hyperref ~= nil and hyperref_driver ~= expected.hyperref then
+	end,
+	hyperref = function(expected:Values, _:string)
 		message.diag("The driver option for hyperref is missing or wrong.")
 		message.diag("Consider setting '", expected.hyperref, "' option.")
-	end
-	if xypic_driver ~= nil and expected.xypic ~= nil and xypic_driver ~= expected.xypic then
+	end,
+	xypic = function(expected:Values, expected_driver:string)
 		message.diag("The driver option for Xy-pic is missing or wrong.")
 		if expected_driver == "dvipdfmx" then
 			message.diag("Consider setting 'dvipdfmx' option or running \\xyoption{pdf}.")
-		elseif expected_driver == "pdftex" then
+			elseif expected_driver == "pdftex" then
 			message.diag("Consider setting 'pdftex' option or running \\xyoption{pdf}.")
-		elseif expected.xypic == "pdf" then
+			elseif expected.xypic == "pdf" then
 			message.diag("Consider setting 'pdf' package option or running \\xyoption{pdf}.")
-		elseif expected.xypic == "dvips" then
+			elseif expected.xypic == "dvips" then
 			message.diag("Consider setting 'dvips' option.")
+		end
+	end,
+}
+
+-- Main function to check drivers based on expected driver and loaded files
+-- @param expected_driver: one of "dvips", "dvipdfmx", "dvisvgm", "pdftex", "xetex", "luatex"
+local function checkdriver(expected_driver: string, filelist: {reruncheck.Filemap_ele})
+	if CLUTTEALTEX_VERBOSITY >= 1 then
+		message.info("checkdriver: expects ", expected_driver)
+	end
+
+	-- Gather loaded files into a table
+	local loaded = {}
+	for _, t in ipairs(filelist) do
+		if t.kind == "input" then
+			local basename = pathutil.basename(t.path)
+			loaded[basename] = true
+		end
+	end
+
+	-- Validate expected driver
+	local expected = assert(right_values[expected_driver], "invalid value for expected_driver")
+
+	-- Get mismatches and output diagnostics
+	local mismatches = get_driver_mismatches(loaded, expected)
+	if #mismatches > 0 then
+		if CLUTTEALTEX_VERBOSITY >= 1 then
+			message.info("checkdriver: mismatches found in ", table.concat(mismatches, ", "))
+		end
+
+		for _, mismatch in ipairs(mismatches) do
+		mismatch_output[mismatch]()
+	end
+		else
+		if CLUTTEALTEX_VERBOSITY >= 1 then
+			message.info("checkdriver: all drivers matched as expected")
 		end
 	end
 end
-
---[[
-filelist[i] = {path = ""}
-]]
 
 return {
 	checkdriver = checkdriver,
