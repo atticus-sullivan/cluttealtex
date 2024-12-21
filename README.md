@@ -23,3 +23,15 @@ mostly a duplicate of `cluttex` which is already published there.
 - also supports the `memoize` package. You only need to pass `--memoize` to
   `cluttealtex` and put `\usepackage{memoize}` in your LaTeX file. Also you can
   pass arbitrary additional parameters to `memoize` (useful for e.g. `readonly` key)
+
+## Arguments
+For a detailed reference, have a look at the `cluttealtex.pdf` which comes
+bundled with every release.
+
+For a short lookup you can also have a look at [this table containing all valid
+arguments/options](args.md).
+
+- `optname` refers to the name of the option when passing it via the
+config file (`.cluttealtexrc.lua`)
+- arguments containing `[=...]` all have a default value, so when passing this
+option you don't have to specify a value
