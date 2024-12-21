@@ -237,7 +237,7 @@ local mismatch_output:{string:function} = {
 
 -- Main function to check drivers based on expected driver and loaded files
 -- @param expected_driver: one of "dvips", "dvipdfmx", "dvisvgm", "pdftex", "xetex", "luatex"
-local function checkdriver(expected_driver: string, filelist: {reruncheck.Filemap_ele})
+local function checkdriver(expected_driver: string, filelist: {reruncheck.Filemap_ele}): {string}
 	if CLUTTEALTEX_VERBOSITY >= 1 then
 		message.info("checkdriver: expects ", expected_driver)
 	end
@@ -262,13 +262,14 @@ local function checkdriver(expected_driver: string, filelist: {reruncheck.Filema
 		end
 
 		for _, mismatch in ipairs(mismatches) do
-		mismatch_output[mismatch]()
+		mismatch_output[mismatch](expected, expected_driver)
 	end
 		else
 		if CLUTTEALTEX_VERBOSITY >= 1 then
 			message.info("checkdriver: all drivers matched as expected")
 		end
 	end
+	return mismatches
 end
 
 return {
