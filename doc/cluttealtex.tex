@@ -1,61 +1,328 @@
-\documentclass[a4paper]{report}
-\usepackage[unicode]{hyperref}
-\usepackage{amsmath}
-\usepackage{tabularx}
+\documentclass[a4paper, 11pt]{scrartcl}
+
+% ----- Packages -----
 \usepackage{xspace}
-\usepackage{csquotes}
+\usepackage{scrlayer-scrpage}                           % header and footer
+\usepackage{microtype}
+\usepackage[unicode,colorlinks=false,breaklinks=true]{hyperref} % make e.g. toc clickable
+\usepackage[english=american]{csquotes}                  % pick always the right quotation marks
+% TODO remove this eventually before merging
+\usepackage{todo}                                       % to enter todos in the document
+\usepackage{pdflscape}
+\usepackage{cleveref}
+
+\usepackage{tabularx}         % better configuration of tables
+\usepackage{ltxtable}         % use tabularx as longtable (\LTXtable{width}{pathToTable}) where the table referenced to contains of \begin{longtable}{preamble}content\end{longtable}
+\usepackage{booktabs}         % more nice rules (headrule/midrule/crule/bottomrule)
+
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,listingsutf8}
+
+\usepackage{catppuccinpalette}
+\usepackage{listings} % for code
+
+\lstset{
+	rulecolor=\color{black},
+	emphstyle=\color{CtpYellow},
+	basicstyle=\tiny\ttfamily,
+	stringstyle=\color{CtpGreen},
+	commentstyle=\color{CtpOverlay2},
+	keywordstyle=\color{CtpMauve},
+	backgroundcolor=\color{CtpBase},
+	frame=none,
+	%
+	columns=fullflexible, % columns of chars
+	tabsize=2,
+	%
+	captionpos=b,
+	%
+	breakautoindent=true, %
+	postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
+	breaklines=true,
+	%
+	showstringspaces=false,
+	showtabs=false,
+	showspaces=false,
+	keepspaces=true,
+	%
+	inputencoding=utf8, extendedchars=true,
+	literate=
+	{á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+	{Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+	{à}{{\`a}}1 {è}{{\`e}}1 {ì}{{\`i}}1 {ò}{{\`o}}1 {ù}{{\`u}}1
+	{À}{{\`A}}1 {È}{{\'E}}1 {Ì}{{\`I}}1 {Ò}{{\`O}}1 {Ù}{{\`U}}1
+	{ä}{{\"a}}1 {ë}{{\"e}}1 {ï}{{\"i}}1 {ö}{{\"o}}1 {ü}{{\"u}}1
+	{Ä}{{\"A}}1 {Ë}{{\"E}}1 {Ï}{{\"I}}1 {Ö}{{\"O}}1 {Ü}{{\"U}}1
+	{â}{{\^a}}1 {ê}{{\^e}}1 {î}{{\^i}}1 {ô}{{\^o}}1 {û}{{\^u}}1
+	{Â}{{\^A}}1 {Ê}{{\^E}}1 {Î}{{\^I}}1 {Ô}{{\^O}}1 {Û}{{\^U}}1
+	{Ã}{{\~A}}1 {ã}{{\~a}}1 {Õ}{{\~O}}1 {õ}{{\~o}}1
+	{œ}{{\oe}}1 {Œ}{{\OE}}1 {æ}{{\ae}}1 {Æ}{{\AE}}1 {ß}{{\ss}}1
+	{ű}{{\H{u}}}1 {Ű}{{\H{U}}}1 {ő}{{\H{o}}}1 {Ő}{{\H{O}}}1
+	{ç}{{\c c}}1 {Ç}{{\c C}}1 {ø}{{\o}}1 {å}{{\r a}}1 {Å}{{\r A}}1
+	{€}{{\euro}}1 {£}{{\pounds}}1 {«}{{\guillemotleft}}1
+	{»}{{\guillemotright}}1 {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {¿}{{?`}}1
+}
+
+% ----- Settings -----
+\KOMAoptions{
+	paper=a4,           % set papersize
+	fontsize=12pt,      % set fontsize to 12pt
+	parskip=half,       % half a line will seperate paragraphs
+	headings=normal,    % headings in normalsize
+	BCOR=0cm,           % no space for binding
+	DIV=calc,           % calculare margins automatically, the calculated values can be found in the log file or use \areaset[BCOR]{width}{height}} to explicitly specify the textarea
+	twoside=false,      % onesided document
+	twocolumn=false,    % one columned pages
+	draft=false,         % show additional information
+	numbers=autoendperiod, % automatic punctuation in outline
+}
+\parindent0pt
+
+% ----- Commands -----
+\newcommand\eg{e.\,g.\xspace}
 \newcommand\CluttealTeX{ClutTeal\TeX\xspace}
 \providecommand\BibTeX{\textsc{Bib}\TeX\xspace}
+
+\newtcolorbox{boxcmd}{fontupper=\ttfamily}
+
+\NewTCBListing{boxcodelua}{}{%
+	listing options={style=tcblatex,language={[5.3]Lua},basicstyle=\ttfamily\scriptsize},
+	listing only,
+}
+
 \newcommand\texcmd[1]{\texttt{\textbackslash #1}}
 \newcommand\texenv[1]{\texttt{#1}}
 \newcommand\texpkg[1]{\texttt{#1}}
 \newcommand\metavar[1]{\textnormal{\textsf{#1}}}
 
-\title{\CluttealTeX manual\\(Version 0.8.0)}
-\author{Lukas Heindl\thanks{thanks to ARATA Mizuki for writing cluttex of which \CluttealTeX is a fork}}
-\date{2024-03-11}
+\title{\CluttealTeX manual\\(Version 0.8.0)} % TODO(release) update
+\author{%
+	Lukas Heindl\thanks{thanks to ARATA Mizuki for writing cluttex of which \CluttealTeX is a fork}\\
+	\url{oss.heindl+latex@protonmail.com} \\
+	\url{https://github.com/atticus-sullivan/cluttealtex}
+}
+\date{2024-03-11} % TODO(release) update
 
 \begin{document}
 \maketitle
 \tableofcontents
 
-\chapter{About \CluttealTeX}
+\section{About \CluttealTeX}
 \CluttealTeX is an automation tool for \LaTeX\ document processing.
 Basic features are,
 \begin{itemize}
-\item Does not clutter your working directory with ``extra'' files, like \texttt{.aux} or \texttt{.log}.
-\item If multiple runs are required to generate correct document, do so.
-\item Watch input files, and re-process documents if changes are detected\footnote{needs an external program if you are on a Unix system}.
-\item Run MakeIndex, \BibTeX, Biber, if requested.
-\item Produces a PDF, even if the engine (e.g.\ p\TeX) does not suport direct PDF generation.
-  If you want a DVI file, use \texttt{--output-format=dvi} option.
-\item No external dependencies, \CluttealTeX only uses texlua which should come with TeXLive
+	\item Does not clutter your working directory with \enquote{extra} files, like \texttt{.aux} or \texttt{.log}.
+	\item If multiple runs are required to generate correct document, do so.
+	\item Watch input files, and re-process documents if changes are detected\footnote{needs an external program if you are on a Unix system}.
+	\item Run MakeIndex, \BibTeX, Biber, and some other tools if requested and necessary.
+	\item Produces a PDF, even if the engine (e.g.\ p\TeX) does not suport direct PDF generation.
+		If you want a DVI file, use \texttt{--output-format=dvi} option.
+	\item No external dependencies, \CluttealTeX only uses \texttt{texlua} which should come with TeXLive
 \end{itemize}
 
 The unique feature of this program is that, auxiliary files such as \texttt{.aux} or \texttt{.toc} are created in an isolated location, so you will not be annoyed with these extra files.
 
-% A competitor: \href{http://www.personal.psu.edu/jcc8/latexmk/}{Latexmk}
+Other similar programs include
+\begin{itemize}
+	\item \href{https://ctan.org/pkg/latexmk/}{latexmk}
+	\item \href{https://ctan.org/pkg/arara/}{arara}
+	\item \href{https://gitlab.com/latex-rubber/rubber/}{rubber}
+\end{itemize}
 
-\chapter{How to use \CluttealTeX}
-\section{Installation}
-If you want to install \CluttealTeX manually, fetch an archive from
-GitHub\footnote{\url{https://github.com/atticus-sullivan/cluttealtex}} (either
-release for stable builds or from github actions for nightly build), extract
-it, and copy \texttt{bin/cluttealtex} or \texttt{bin/cluttealtex.bat} to
-somewhere in your \texttt{PATH}.
+\subsection{Feedback}
+If any issues arise, be it a bug, a missing feature and\,/\,or missing support for an external tool\,/\,package, feel free to reach out and file an issue at \url{https://github.com/atticus-sullivan/cluttealtex/issues}.
 
-\subsection{Building}
-You might also clone the repository and run \texttt{make install} (note the
-required tools \texttt{fd}, \texttt{tl} (luarocks)) for installing to your
-\texttt{TEXMFHOME} tree.
+\section{How to use \CluttealTeX}
+\subsection{Installation}
+Installing manually:
+\begin{enumerate}
+	\renewcommand{\theenumi}{\arabic{enumi}}
+	\item fetch an archive from GitHub\footnote{\url{https://github.com/atticus-sullivan/cluttealtex}}
+		(either use the latest release for the stable build or from latest github actions for the nightly build)
+	\item extract the archive (or directly only download the executable)
+	\item copy \texttt{bin/cluttealtex} or \texttt{bin/cluttealtex.bat} to somewhere in your \texttt{PATH}
+\end{enumerate}
 
-\section{Command-line usage}
-Usage:
-\begin{center}
-  \texttt{cluttealtex -e \metavar{ENGINE} \metavar{OPTIONs} [--] \metavar{INPUT}.tex}
-\end{center}
+Installing via CTAN (\eg \texttt{tlmgr}) currently is not possible, but uploading this as CTAN package is planned in the near future.
 
-\subsection{Basic options}
+\subsubsection{Building}
+You can also build \CluttealTeX yourself:
+\begin{enumerate}
+	\renewcommand{\theenumi}{\arabic{enumi}}
+	\item Clone the repository from GitHub
+	\item run \texttt{make install}. For this you need the tools
+		\begin{itemize}
+			\item \texttt{fd}
+			\item \texttt{tl} (installable via \texttt{luarocks})
+			\item \texttt{l3build}
+		\end{itemize}
+		this will install \CluttealTeX into your \texttt{TEXMFHOME} tree
+\end{enumerate}
+
+\subsection{Quickstart}
+For building a simple (pdf)\LaTeX document running:
+\begin{boxcmd}
+  cluttealtex main.tex
+\end{boxcmd}
+
+If you need a different \TeX engine like Lua\LaTeX or Xe\LaTeX, you can specify this as well:
+\begin{boxcmd}
+  cluttealtex -e ENGINE main.tex
+\end{boxcmd}
+
+Similarly if your main file is not called \texttt{main.tex} you only have to adjust this parameter:
+\begin{boxcmd}
+  cluttealtex -e ENGINE MAINFILE.tex
+\end{boxcmd}
+
+\subsection{Usage}
+The general usage is as follows:
+\begin{boxcmd}
+  cluttealtex -e ENGINE OPTIONs [--] INPUT.tex
+\end{boxcmd}
+
+Also \CluttealTeX will search your current working directory for a file called \texttt{.cluttealtexrc.lua}.
+If it finds such a file, it will execute it and use the returned table for the options as well.
+This way, you can achieve it that you can build your document by only executing
+\begin{boxcmd}
+	cluttealtex
+\end{boxcmd}
+without any options.
+
+The config file can contain all kinds of tables.
+If one is missing \CluttealTeX will use an empty table (having no effect) instead.
+Also note that arguments passed via the CLI always have a higher priority than arguments passed via the config file.
+In the future some options might only be available via the config file as setting them via CLI is too complicated\,/\,not feasible (like \eg adding a hook which gets called after every successful compilation).
+
+A fully populated config file looks as follows:
+\begin{boxcodelua}
+return {
+	options = {
+		file = "main.tex",
+		output_directory = "tex-aux",
+		change_directory = true,
+		engine = "pdflatex",
+		biber = true, -- uses the default value of biber
+		-- could also be an array of these tables to configure multiple glossaries
+		-- equivalent to "--glossaries=makeindex:acr:acn:alg"
+		glossaries = {
+			type="makeindex",
+			out="acr",
+			inp="acn",
+			log="alg"
+		},
+		-- just something high to disable this upper limit
+		max_iterations = "50",
+		quiet = "0",
+	},
+	-- Change/Set the default value of an option. Only has an effect on cli arguments.
+	defaults = {
+		-- now if you pass --watch, "inofity" will be passed by default instead of "auto"
+		watch = "inotify",
+	},
+	-- for the experts:
+	add_cli_options = {
+		-- adds a new cli argument which can set arbitrary other options
+		my_own_option = {
+			-- short = "m",
+			long = "my-own-option",
+			param = true,
+			default = "my default value",
+			boolean = false,
+			-- passing this multiple times accumulates the values
+			-- (only has a readl effect when reading options from config file)
+			accumulate = true,
+			handle_cli = function(options, param)
+				-- my code, checking the passed parameter and setting some options accordingly
+				-- of course here you need to be careful not to leave "options" in an invalid state
+			end,
+		}
+	}
+}
+\end{boxcodelua}
+
+Generally in the config, but particularly for the passed functions, you can write arbitrary Lua code.
+The environment of the config and the environment of \CluttealTeX is partially shared.
+When the config accesses a global variable, it gets passed a (deep) copy of that value to avoid the config intervening with the execution of \CluttealTeX.
+
+You find a complete list of all available options at the end of this documentation in \cref{sec:listOpt}.
+The following sections will explain the various options in detail, grouped by category.
+
+\subsubsection{Basic Options}
+\paragraph{\TeX}
+% | engine | engine=engine | e=engine | - |
+% | engine_executable | engine-executable=engine_executable | - | - |
+% | tex_option | tex-option=tex_option | - | - |
+% | tex_options | tex-options=tex_options | - | - |
+% | dvipdfmx_option | dvipdfmx-option=dvipdfmx_option | - | - |
+% | dvipdfmx_options | dvipdfmx-options=dvipdfmx_options | - | - |
+% | interaction | interaction=interaction | - | - |
+% | jobname | jobname=jobname | - | - |
+% | output | output=output | o=output | - |
+% | shell_escape | shell-escape | - | - |
+% | synctex | synctex=synctex | - | - |
+% | shell_restricted | shell-restricted | - | - |
+% | halt_on_error | halt-on-error | - | - |
+% | fmt | fmt=fmt | - | - |
+% | file_line_error | file-line-error | - | - |
+
+\paragraph{\CluttealTeX}
+% | version | version | v | - |
+% | output_format | output-format=output_format | - | - |
+% | check_driver | check-driver=check_driver | - | - |
+
+% compilation
+% | start_with_draft | start-with-draft | - | - |
+% | skip_first | skip-first | - | - |
+% | max_iterations | max-iterations=max_iterations | - | - |
+% | fresh | fresh | - | - |
+
+% | includeonly | includeonly=includeonly | - | - |
+% | make_depends | make-depends=make_depends | - | - |
+
+% console output
+% | help | help | h | - |
+% | color | color[=color] | - | always |
+% | quiet | quiet[=quiet] | - | 1 |
+% | verbose | verbose | V | - |
+
+\subsubsection{Output directory}
+% | change_directory | change-directory | - | - |
+% | output_directory | output-directory=output_directory | - | - |
+% | print_output_directory | print-output-directory | - | - |
+
+\subsubsection{Watch Mode}
+% | watch | watch[=watch] | - | auto |
+% | watch_not_ext | watch-not-ext=watch_not_ext | - | - |
+% | watch_not_path | watch-not-path=watch_not_path | - | - |
+% | watch_only_ext | watch-only-ext=watch_only_ext | - | - |
+% | watch_only_path | watch-only-path=watch_only_path | - | - |
+
+\subsubsection{Auxiliary/External Programs}
+
+\paragraph{\BibTeX\,/\,Biber}
+% | biber | biber[=biber] | - | biber |
+% | bibtex | bibtex[=bibtex] | - | bibtex |
+
+\paragraph{Glossaries}
+% | glossaries | glossaries[=glossaries] | - | makeindex:main.glo:main.gls:main.glg |
+% | makeindex | makeindex[=makeindex] | - | makeindex |
+
+\paragraph{Sage\TeX}
+% | sagetex | sagetex[=sagetex] | - | sage |
+
+\subsubsection{Special packages}
+\paragraph{Shell escaping}
+% \paragraph{Minted + epstopd}
+% | package_support | package-support=package_support | - | - |
+
+\paragraph{memoize}
+% | memoize | memoize[=memoize] | - | perl |
+% | memoize_opt | memoize_opt=memoize_opt | - | - |
+
+
+% TODO rewrite from here
+\subsubsection{Basic options}
 \begin{description}
 \item[\texttt{-e}, \texttt{--engine=\metavar{ENGINE}}]
   Set which \TeX\ engine/format to use.
@@ -137,7 +404,7 @@ Usage:
   Can only be used with \texttt{--output-format=dvi}.
 \end{description}
 
-\subsection{Options for running auxiliary programs}
+\subsubsection{Options for running auxiliary programs}
 \begin{description}
 \item[\texttt{--makeindex=\metavar{COMMAND}}]
   Run MakeIndex.
@@ -166,7 +433,7 @@ Usage:
   \texttt{readonly}).
 \end{description}
 
-\subsection{\TeX-compatible options}
+\subsubsection{\TeX-compatible options}
 \begin{description}
 \item[\texttt{--[no-]shell-escape}]
 \item[\texttt{--shell-restricted}]
@@ -196,13 +463,13 @@ Usage:
 Long options, except \TeX-compatible ones, need two hyphens (e.g. \texttt{-synctex=1} is accepted, but not \texttt{--color}).
 Combining multiple short options, like \texttt{-Ve pdflatex}, is not supported.
 
-\section{Sync\TeX}\label{sec:synctex}
+\subsection{Sync\TeX}\label{sec:synctex}
 You can generate Sync\TeX\ data with \texttt{--synctex=1} option.
 
 Although \CluttealTeX\ has \enquote{Don't clutter your working directory} as its motto, the \texttt{.synctex.gz} file is always produced alongside the PDF file.
 This is because Sync\TeX\ cannot find its data file if it's not in the same directory as the PDF.
 
-\section{Watch mode}\label{sec:watch-mode}
+\subsection{Watch mode}\label{sec:watch-mode}
 If \texttt{--watch} option is given, \CluttealTeX\ enters \emph{watch mode} after processing the document.
 
 On Windows, a built-in filesystem watcher is implemented.
@@ -210,13 +477,13 @@ On Windows, a built-in filesystem watcher is implemented.
 On other platforms, an auxiliary program \texttt{fswatch}\footnote{\url{http://emcrisostomo.github.io/fswatch/}} or \texttt{inotifywait} needs to be installed.
 The auxiliary program will be detected automatically, but you can also select one specific tool via the paramter of the \texttt{--watch} option.
 
-\section{MakeIndex and \BibTeX}
+\subsection{MakeIndex and \BibTeX}
 If you want to generate index or bibliography, using MakeIndex or \BibTeX, set \texttt{--makeindex}, \texttt{--bibtex}, or \texttt{--biber} option.
 You need to explicitly specify the command name as an argument (e.g. \texttt{--makeindex=makeindex}, \texttt{--bibtex=bibtex}).
 
 If you want to use Biber to process bibliography, the option to use is \texttt{--biber}, not \texttt{--bibtex=biber}.
 
-\subsection{Glossaries}
+\subsubsection{Glossaries}
 \label{sec:glossaries}
 For more complex setups of indices you can use the \texttt{glossaries} option.
 Its parameter takes the form
@@ -273,7 +540,7 @@ Examples:
 		(default if no argument is givent to the \texttt{glossaries} option)
 \end{itemize}
 
-\section{For writing a large document}
+\subsection{For writing a large document}
 When writing a large document with \LaTeX, you usually split the \TeX\ files with \texcmd{include} command.
 When doing so, \texcmd{includeonly} can be used to eliminate processing time.
 But writing \texcmd{includeonly} in the \TeX\ source file is somewhat inconvenient.
@@ -287,7 +554,7 @@ Tips: When using \texttt{includeonly}, avoid using \texttt{--makeindex} or \text
 Another technique for eliminating time is, setting \texttt{--max-iterations=1}.
 It stops \CluttealTeX\ from processing the document multiple times, which may take several extra minutes.
 
-\section{Using Makefile}\label{sec:makefile-example}
+\subsection{Using Makefile}\label{sec:makefile-example}
 You can create Makefile to avoid writing \CluttealTeX\ options each time.
 Example:
 \begin{verbatim}
@@ -321,7 +588,7 @@ main.pdf: ... main.tex ... chap1.tex chap2.tex
 
 Note that \texttt{--make-depends} option is still experimental, and may not work well with other options like \texttt{--makeindex}.
 
-\section{Default output directory}
+\subsection{Default output directory}
 The auxiliary files like \texttt{.aux} are generated somewhere in the temporary directory, by default.
 The directory name depends on the following three parameters:
 \begin{itemize}
@@ -345,7 +612,7 @@ clean:
 \CluttealTeX itself doesn't erase the auxiliary files, unless \texttt{--fresh} option is set.
 Note that, the use of a temporary directory means, the auxiliary files may be cleared when the computer is rebooted.
 
-\section{Support for \texpkg{minted} and \texpkg{epstopdf}}
+\subsection{Support for \texpkg{minted} and \texpkg{epstopdf}}
 In general, packages that execute external commands (shell-escape) don't work well with \texttt{-output-directory}.
 Therefore, they don't work well with \CluttealTeX.
 
@@ -360,7 +627,7 @@ For example, if you want to typeset a document that uses \texpkg{minted}, run th
 cluttealtex -e pdflatex --shell-escape --package-support=minted document.tex
 \end{verbatim}
 
-\section{Check for driver file}
+\subsection{Check for driver file}
 
 \CluttealTeX\ can check that the correct driver file is loaded when certain packages are loaded.
 Currently, the list of supported packages are \texpkg{graphics}, \texpkg{color}, \texpkg{expl3}, \texpkg{hyperref}, and \texpkg{xy}.
@@ -368,7 +635,7 @@ Currently, the list of supported packages are \texpkg{graphics}, \texpkg{color},
 The check is always done with PDF mode.
 To check the driver with DVI mode, use \texttt{--check-driver} option.
 
-\section{Configuration file}
+\subsection{Configuration file}
 When calling \CluttealTeX, it will search for a file named \verb|.cluttealtexrc.lua| in the current working directory. If it finds such a file, \CluttealTeX will load that lua file and use the tables defined there as configuration options. Options set via the cli will always have a higher priority and overwrite anything that was set via the configuration file.
 
 Note: The configuration file must return the table used to configure \CluttealTeX
@@ -394,5 +661,15 @@ return {
 
 For now refer to \url{https://github.com/atticus-sullivan/cluttealtex/pull/22} for further details.
 The docs will be rewritten soon and this option described in more detail.
+
+\begin{landscape}
+\section{Summary of all available Options} \label{sec:listOpt}
+\begin{itemize}
+	\item \emph{optname} refers to the name of the option when passing it via the config file (\texttt{.cluttealtexrc.lua})
+	\item arguments containing \texttt{[=...]} all have a default value, so when passing this option you don't have to specify a value
+\end{itemize}
+
+\LTXtable{\linewidth}{args.tex}
+\end{landscape}
 
 \end{document}
