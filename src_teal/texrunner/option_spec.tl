@@ -529,6 +529,7 @@ local option_spec:{string:Option} = {
 	glossaries = {
 		long = "glossaries",
 		param = true,
+		accumulate = true,
 		default = "makeindex:main.glo:main.gls:main.glg",
 		handle_cli = function(options:options.Options, param:string|boolean)
 			assert(not options.makeindex, "'glossaries' cannot be used together with 'makeindex'\nUse e.g. --glossaries='makeindex:main.ind:main.idx:main.ilg' instead of makeindex")
