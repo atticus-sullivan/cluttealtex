@@ -50,16 +50,21 @@ end
 
 -- Create a lookup table for faster option parsing by short and long names
 local option_spec_lut:{string:{any:string}} = {long={}, short={}}
-for k,v in pairs(option_spec) do
-	if v.long then
-		-- Lookup for long options
-		option_spec_lut.long[v.long] = k
-	end
-	if v.short then
-		-- Lookup for short options
-		option_spec_lut.short[v.short] = k
+
+local function build_lut()
+	option_spec_lut = {long={}, short={}}
+	for k,v in pairs(option_spec) do
+		if v.long then
+			-- Lookup for long options
+			option_spec_lut.long[v.long] = k
+		end
+		if v.short then
+			-- Lookup for short options
+			option_spec_lut.short[v.short] = k
+		end
 	end
 end
+build_lut()
 
 -- Function to query an option by its name (either long or short form)
 local function query_options(name:string, kind:string): Option,string,boolean
@@ -196,6 +201,7 @@ local function add_custom_cli_options(add_cli_options: {string: table})
 			end
 		end
 	end
+	build_lut()
 end
 
 -- Function to parse the configuration file .cluttealtexrc.lua
