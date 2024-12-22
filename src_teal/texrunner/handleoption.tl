@@ -29,6 +29,14 @@ local option_spec = require "texrunner.option_spec".spec
 local usage = require "texrunner.option_spec".usage
 local read_cfg = require "texrunner.read_cfg".read_cfg
 
+local exit: function(code:integer)
+global CLUTTEALTEX_TEST_ENV: boolean
+if CLUTTEALTEX_TEST_ENV then
+	exit = function(code) error("exited with exitcode "..tostring(code)) end
+else
+	exit = os.exit
+end
+
 -- List of known TeX engines
 local KnownEngines = TexEngine.KnownEngines
 
@@ -93,7 +101,7 @@ local function handle_boolean_option(o: Option, optname: string, options: {strin
 			o.handle_cli(options, def)
 		else
 			message.error(("%s needs to be set via a table in the config file"):format(optname))
-			os.exit(1)
+			exit(1)
 		end
 	elseif o.boolean then
 		-- If the option is a boolean, handle it via cli handler
@@ -101,10 +109,11 @@ local function handle_boolean_option(o: Option, optname: string, options: {strin
 			o.handle_cli(options, value)
 		else
 			message.error(("%s needs to be set via a table in the config file"):format(optname))
-			os.exit(1)
+			exit(1)
 		end
 	else
 		message.error(("option %s does not take a boolean"):format(optname))
+		exit(1)
 	end
 end
 
@@ -116,7 +125,10 @@ local function handle_table_option(o: Option, optname: string, options: {string:
 	elseif o.handle_cli then
 		-- If handled via CLI, throw an error (table not allowed in config)
 		message.error(("config for '%s' must not be a table in .cluttealtexrc.lua"):format(optname))
-		os.exit(1)
+		exit(1)
+	else
+		message.error(("config for '%s' is not handled at all"):format(optname))
+		exit(1)
 	end
 end
 
@@ -139,7 +151,7 @@ local function handle_config_option(optname: string, opt: any, options: {string:
 					o.handle_cli(options, value)
 				else
 					message.error(("%s needs to be set via a table in the config file"):format(optname))
-					os.exit(1)
+					exit(1)
 				end
 			elseif value is boolean then
 				-- Handle boolean values
@@ -149,7 +161,7 @@ local function handle_config_option(optname: string, opt: any, options: {string:
 				handle_table_option(o, optname, options, value)
 			else
 				message.error(("config for '%s' must be either string, boolean or table in .cluttealtexrc.lua"):format(optname))
-				os.exit(1)
+				exit(1)
 			end
 		end
 	else
@@ -196,30 +208,30 @@ local function parse_config_file(): options.Options, string
 			local cfg_raw, err = read_cfg(".cluttealtexrc.lua")
 			if err or not cfg_raw then
 				message.error("Error during reading the .cluttealtexrc.lua file: " .. (err or ""))
-				os.exit(1)
+				exit(1)
 			end
 			if not (cfg_raw is table) or cfg_raw is nil then
 				message.error(".cluttealtexrc.lua needs to return a table with the configured options")
-				os.exit(1)
+				exit(1)
 			end
 			local cfg = cfg_raw as table
 
 			local cfg_options = cfg.options
 			if not (cfg_options is {string: any} or cfg_options is nil) then
 				message.error(".cluttealtexrc.lua needs to return a table which contains an options key")
-				os.exit(1)
+				exit(1)
 			end
 
 			local cfg_defaults = cfg.defaults
 			if not (cfg_defaults is {string: string} or cfg_defaults is nil) then
 				message.error(".cluttealtexrc.lua needs to return a table which contains an defaults key")
-				os.exit(1)
+				exit(1)
 			end
 
 			local cfg_cli_options = cfg.cli_options
 			if not (cfg_cli_options is {string: table} or cfg_cli_options is nil) then
 				message.error(".cluttealtexrc.lua needs to return a table which contains an cli_options key")
-				os.exit(1)
+				exit(1)
 			end
 
 			return {
@@ -266,7 +278,7 @@ local function parse_command_line_options(arg: {string}): options.Options, integ
 			o.handle_cli(options, param)
 		else
 			message.error(("%s can only be set as a table via the config file"):format(optname))
-			os.exit(1)
+			exit(1)
 		end
 	end
 	-- Return the parsed options and non-option index
@@ -277,11 +289,11 @@ end
 local function handle_input_file(arg: {string}, inputfile: string, non_option_index: integer): string
 	if (inputfile and non_option_index <= #arg) or (not inputfile and non_option_index < #arg) then
 		message.error("Multiple input files are not supported.")
-		os.exit(1)
+		exit(1)
 	elseif not inputfile and non_option_index > #arg then
 		-- No input file given
 		usage(arg)
-		os.exit(1)
+		exit(1)
 	elseif not inputfile then
 		-- Assign the input file
 		inputfile = arg[non_option_index]
@@ -305,14 +317,14 @@ local function determine_engine(options: options.Options, arg: {string}): TexEng
 	if options.engine == nil then
 		-- Error if engine is still not determined
 		message.error("Engine not specified.")
-		os.exit(1)
+		exit(1)
 	end
 
 	local engine = KnownEngines[options.engine]
 	if not engine then
 		-- Handle unknown engine
 		message.error("Unknown engine name '", options.engine, "'.")
-		os.exit(1)
+		exit(1)
 	end
 
 	-- Return the engine object
@@ -358,13 +370,14 @@ local function handle_cluttealtex_options(arg: {string}): string, TexEngine.Engi
 	if options.watch then
 		if options.watch ~= "fswatch" and options.watch ~= "inotifywait" then
 			message.error("Unknown wait engine '", options.watch, "'.")
-			os.exit(1)
+			exit(1)
 		end
 	end
 
 	if options.output_format == "pdf" then
 		if options.check_driver ~= nil then
-			error("--check-driver can only be used when the output format is DVI.")
+			message.error("--check-driver can only be used when the output format is DVI.")
+			exit(1)
 		end
 		if engine.supports_pdf_generation then
 			if engine.is_luatex then
@@ -387,9 +400,29 @@ local function handle_cluttealtex_options(arg: {string}): string, TexEngine.Engi
 	return inputfile, engine, options
 end
 
-return {
+local record Module
+	handle_cluttealtex_options: function({string}): string,TexEngine.Engine,options.Options
+	_internal: internal
+	record internal
+		add_custom_cli_options:     function(add_cli_options: {string: table})
+		determine_engine:           function(options: options.Options, arg: {string}): TexEngine.Engine
+		handle_boolean_option:      function(o: Option, optname: string, options: {string: any}, value: boolean)
+		handle_config_defaults:     function(defaults: {string: string})
+		handle_config_option:       function(optname: string, opt: any, options: {string: any})
+		handle_input_file:          function(arg: {string}, inputfile: string, non_option_index: integer): string
+		handle_table_option:        function(o: Option, optname: string, options: {string: any}, value: table)
+		merge_options:              function(...: options.Options): options.Options
+		parse_command_line_options: function(arg: {string}): options.Options, integer
+		parse_config_file:          function(): options.Options, string
+		query_options:              function(name:string, kind:string): Option,string,boolean
+	end
+end
+
+local _M:Module = {
 	handle_cluttealtex_options = handle_cluttealtex_options,
-	_internal = {
+}
+if CLUTTEALTEX_TEST_ENV then
+	_M._internal = {
 		add_custom_cli_options     = add_custom_cli_options,
 		determine_engine           = determine_engine,
 		handle_boolean_option      = handle_boolean_option,
@@ -402,4 +435,5 @@ return {
 		parse_config_file          = parse_config_file,
 		query_options              = query_options,
 	}
-}
+end
+return _M
