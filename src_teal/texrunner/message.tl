@@ -132,11 +132,23 @@ local function info_msg(...: string)
   end
 end
 
-return {
-  set_colors = set_colors,
-  exec  = exec_msg,
-  error = error_msg,
-  warn  = warn_msg,
-  diag  = diag_msg,
-  info  = info_msg,
-}
+global CLUTTEALTEX_TEST_ENV: boolean
+if CLUTTEALTEX_TEST_ENV then
+	return {
+		set_colors = function(...:any) end,
+		exec  = function(...:any) end,
+		error = function(...:any) end,
+		warn  = function(...:any) end,
+		diag  = function(...:any) end,
+		info  = function(...:any) end,
+	}
+else
+	return {
+		set_colors = set_colors,
+		exec  = exec_msg,
+		error = error_msg,
+		warn  = warn_msg,
+		diag  = diag_msg,
+		info  = info_msg,
+	}
+end
