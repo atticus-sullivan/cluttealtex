@@ -50,11 +50,14 @@ end
 local function parse_glossaries_option_from_table(opt:{string:string|nil}): options.Glos, string
 	local ret:options.Glos = {}
 
-	ret.type = opt.type
+	ret.type = opt.type or ""
 	if not (ret.type == "makeindex" or ret.type == "xindy" or (opt.path and opt.path ~= "")) then
 		return nil, "Invalid glossaries parameter. \""..ret.type.."\" is unsupported"
 	end
 
+	if not opt.out then
+		return nil, "'out' must be set"
+	end
 	ret.out = opt.out
 
 	if opt.inp and opt.inp ~= "" then
