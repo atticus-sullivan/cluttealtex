@@ -34,40 +34,12 @@ local record Module
 end
 
 local KnownEngines = TexEngine.KnownEngines
-global CLUTTEALTEX_VERSION:string
 
 local record CfgOption
 	options: {string:any}
 	defaults: {string:string}
 	-- of course the handle_cli function is not type checked this way
 	add_cli_options: {string:table}
-end
-
--- Default values for options
-local function set_default_values(options:options.Options)
-	if options.max_iterations == nil then
-		options.max_iterations = 3
-	end
-
-	if options.skip_first == nil then
-		options.skip_first = false
-	end
-
-	if options.interaction == nil then
-		options.interaction = "nonstopmode"
-	end
-
-	if options.file_line_error == nil then
-		options.file_line_error = true
-	end
-
-	if options.halt_on_error == nil then
-		options.halt_on_error = true
-	end
-
-	if options.output_format == nil then
-		options.output_format = "pdf"
-	end
 end
 
 -- built up a lookup table over short and long options in order to speed up argument parsing
@@ -80,18 +52,15 @@ for k,v in pairs(option_spec) do
 		option_spec_lut.short[v.short] = k
 	end
 end
-local function query_long_options(name:string):Option,string,boolean
+
+local function query_options(name:string, kind:string): Option,string,boolean
+	local key = option_spec_lut[kind][name]
 	local no = false
-	local key = option_spec_lut.long[name]
-	if not key then
+	if not key and kind == "long" then
 		key = option_spec_lut.long["no-"..name]
 		no = true
 	end
 	return option_spec[key], key, no
-end
-local function query_short_options(name:string):Option,string,boolean
-	local key = option_spec_lut.short[name]
-	return option_spec[key], key, false
 end
 
 local function merge_options(...: options.Options): options.Options
@@ -104,36 +73,110 @@ local function merge_options(...: options.Options): options.Options
 	return ret as options.Options
 end
 
+local function handle_boolean_option(o: Option, optname: string, options: {string: any}, value: boolean)
+	if not o.boolean and o.default and value then
+		if o.handle_cli then
+			o.handle_cli(options, o.default)
+		else
+			message.error(("%s needs to be set via a table in the config file"):format(optname))
+			os.exit(1)
+		end
+	elseif o.boolean then
+		if o.handle_cli then
+			o.handle_cli(options, value)
+		else
+			message.error(("%s needs to be set via a table in the config file"):format(optname))
+			os.exit(1)
+		end
+	else
+		message.error(("option %s does not take a boolean"):format(optname))
+	end
+end
 
--- inputfile, engine, options = handle_cluttealtex_options(arg)
-local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine,options.Options
-	-- Store options
-	local var_options:{options.Options} = {
-		-- place one dummy option record in the array to ensure these fields
-		-- are defined as array even in case the user does not set these options
-		{
-			tex_extraoptions = {},
-			dvipdfmx_extraoptions = {},
-			package_support = {},
-		}
-	}
+local function handle_table_option(o: Option, optname: string, options: {string: any}, value: table)
+	if o.handle_cfg then
+		o.handle_cfg(options, value)
+	elseif o.handle_cli then
+		message.error(("config for '%s' must not be a table in .cluttealtexrc.lua"):format(optname))
+		os.exit(1)
+	end
+end
+
+local function handle_config_option(optname: string, opt: any, options: {string: any})
+	if option_spec[optname] then
+		local o = option_spec[optname]
+		if not o.accumulate then
+			-- if option is not accumulating, wrap it in an array to be able to
+			-- use the same processing code like with accumulating options
+			opt = {opt}
+		elseif not opt is table then
+			-- if option is accumulating, but wasn't passed a table, simply
+			-- wrap it in a table to simplify the config file
+			opt = {opt}
+		end
+
+		for _, value in ipairs(opt as {any}) do
+			if value is string then
+				if o.handle_cli then
+					o.handle_cli(options, value)
+				else
+					message.error(("%s needs to be set via a table in the config file"):format(optname))
+					os.exit(1)
+				end
+			elseif value is boolean then
+				handle_boolean_option(o, optname, options, value)
+			elseif value is table then
+				handle_table_option(o, optname, options, value)
+			else
+				message.error(("config for '%s' must be either string, boolean or table in .cluttealtexrc.lua"):format(optname))
+				os.exit(1)
+			end
+		end
+	else
+		message.warn(("Option '%s' from .cluttealtexrc.lua unknown. Skipping that option"):format(optname))
+	end
+end
+
+local function handle_config_defaults(defaults: {string: string})
+	for optname, default in pairs(defaults) do
+		if option_spec[optname] then
+			option_spec[optname].default = default
+		else
+			message.warn(("Option '%s' from .cluttealtexrc.lua unknown. Not setting the default for this option"):format(optname))
+		end
+	end
+end
+
+local function add_custom_cli_options(add_cli_options: {string: table})
+	for optname, opt in pairs(add_cli_options) do
+		if option_spec[optname] then
+			message.warn(("In .cluttealtexrc.lua you're trying to define an optname (%s) which is already defined -> skipping it"):format(optname))
+		else
+			if not opt.handle_cli or (not opt.long and not opt.short) then
+				message.warn(("Options (%s) declared in .cluttealtexrc.lua must define the handle_cli function and at least have either long or short set -> skipping it"):format(optname))
+			else
+				option_spec[optname] = opt as Option
+			end
+		end
+	end
+end
+
+local function parse_config_file(): options.Options, string
+	local options:options.Options = {}
 	local inputfile:string
-
-		-- Parse options from config file
 	if fsutil.isfile(".cluttealtexrc.lua") then
-		local options:options.Options = {}
 		local cfg = (function(): CfgOption
 			-- use a function for checking types of the config table
-			local cfg, err = read_cfg(".cluttealtexrc.lua")
-			if err or not cfg then
-				message.error("Error during reading the .cluttealtexrc.lua file: "..(err or ""))
-					os.exit(1)
+			local cfg_raw, err = read_cfg(".cluttealtexrc.lua")
+			if err or not cfg_raw then
+				message.error("Error during reading the .cluttealtexrc.lua file: " .. (err or ""))
+				os.exit(1)
 			end
-			if not (cfg is table) or cfg is nil then
+			if not (cfg_raw is table) or cfg_raw is nil then
 				message.error(".cluttealtexrc.lua needs to return a table with the configured options")
 				os.exit(1)
 			end
-			local cfg = cfg as table
+			local cfg = cfg_raw as table
 
 			local cfg_options = cfg.options
 			if not (cfg_options is {string: any} or cfg_options is nil) then
@@ -160,126 +203,48 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 				}
 		end)()
 
+		-- process options key
 		for optname, opt in pairs(cfg.options or {}) do
 			if optname == "file" then
 				assert(inputfile is nil, "multiple input files given")
-				if not opt is string then
-					message.error("parameter for 'file' must be a string in .cluttealtexrc.lua")
-					os.exit(1)
-				end
 				inputfile = opt as string
 			else
-				-- if the option passed was a not a table, simply use the same handler like for cli arguments
-				if option_spec[optname] then
-					-- to avoid copying the following, wrap opt in a simple array in case the option does not accumulate
-					-- to simplify passing a single value to an accumulating option, wrap the opt in that case as well
-					if not option_spec[optname].accumulate then
-						opt = {opt}
-					elseif not opt is table then
-						opt = {opt}
-					end
-					for _, opt in ipairs(opt as {any}) do
-						if type(opt) == "string" then
-							local o = option_spec[optname]
-							if o.handle_cli then
-								o.handle_cli(options, opt as string)
-							else
-								message.error(("%s needs to be set via a table in the config file"):format(optname))
-								os.exit(1)
-							end
-						elseif type(opt) == "boolean" then
-							if not option_spec[optname].boolean and option_spec[optname].default and (opt as boolean) then
-								local o = assert(option_spec[optname])
-								if o.handle_cli then
-									o.handle_cli(options, option_spec[optname].default)
-								else
-									message.error(("%s needs to be set via a table in the config file"):format(optname))
-									os.exit(1)
-								end
-							elseif option_spec[optname].boolean then
-								local o = assert(option_spec[optname])
-								if o.handle_cli then
-									o.handle_cli(options, opt as boolean)
-								else
-									message.error(("%s needs to be set via a table in the config file"):format(optname))
-									os.exit(1)
-								end
-							else
-								message.error(("option %s does not take a boolean"):format(optname))
-							end
-						elseif type(opt) == "table" then
-							if not option_spec[optname].handle_cfg then
-								message.error(("config for '%s' must not be a table"):format(optname))
-							else
-								local o = assert(option_spec[optname])
-								if o.handle_cli then
-									o.handle_cfg(options, opt as table)
-								else
-									message.error(("%s needs to be set either as boolean/string in the config or as cli argument"):format(optname))
-									os.exit(1)
-								end
-							end
-						else
-							message.error(("config for '%s' must be either string, boolean or table in .cluttealtexrc.lua"):format(optname))
-							os.exit(1)
-						end
-					end
-				else
-					message.warn(("Option '%s' from .cluttealtexrc.lua unknown. Skipping that option"):format(optname))
-				end
+				handle_config_option(optname, opt, options)
 			end
 		end
 
-		for optname, default in pairs(cfg.defaults or {}) do
-			if option_spec[optname] then
-				option_spec[optname].default = default
-			else
-				message.warn(("Option '%s' from .cluttealtexrc.lua unknown. Not setting the default for this option"):format(optname))
-			end
-		end
+		-- process defaults key
+		handle_config_defaults(cfg.defaults or {})
 
-		for optname, opt in pairs(cfg.add_cli_options or {}) do
-			if option_spec[optname] then
-				message.warn(("In .cluttealtexrc.lua you're trying to define an optname (%s) which is already defined -> skipping it"):format(optname))
-			else
-				if not opt.handle_cli or (not opt.long and not opt.short) then
-					message.warn(("Options (%s) declared in .cluttealtexrc.lua must define the handle_cli function and at least have either long or short set -> skipping it"):format(optname))
-				else
-					option_spec[optname] = opt as Option
-				end
-			end
-		end
-		table.insert(var_options, options)
+		-- process add_cli_options key
+		add_custom_cli_options(cfg.add_cli_options or {})
 	end
+	return options, inputfile
+end
 
-	-- Parse options from commandline
-	local option_and_params, non_option_index = parseoption(arg, query_long_options, query_short_options)
-
-	-- Handle options
-	do
-		local options:options.Options = {}
-		CLUTTEALTEX_VERBOSITY = 0
-		for _,option in ipairs(option_and_params) do
-			local optname:string = option[1]
-			local param:string|boolean = option[2]
-			local o = assert(option_spec[optname], "invalid optname found")
-			if o.handle_cli then
-				o.handle_cli(options, param)
-			else
-				message.error(("%s can only be set as a table via the config file"):format(optname))
-				os.exit(1)
-			end
+local function parse_command_line_options(arg: {string}): options.Options, integer
+	local option_and_params, non_option_index = parseoption(
+		arg,
+		function(name: string): Option, string, boolean return query_options(name, "long") end,
+		function(name: string): Option, string, boolean return query_options(name, "short") end
+	)
+	local options:options.Options = {}
+	CLUTTEALTEX_VERBOSITY = 0
+	for _, option in ipairs(option_and_params) do
+		local optname:string       = option[1]
+		local param:string|boolean = option[2]
+		local o = assert(option_spec[optname], "invalid optname found")
+		if o.handle_cli then
+			o.handle_cli(options, param)
+		else
+			message.error(("%s can only be set as a table via the config file"):format(optname))
+			os.exit(1)
 		end
-		table.insert(var_options, options)
 	end
+	return options, non_option_index
+end
 
-	local options = merge_options(table.unpack(var_options))
-
-	if options.color == nil then
-		message.set_colors("auto")
-	end
-
-	-- Handle non-options (i.e. input file)
+local function handle_input_file(arg: {string}, inputfile: string, non_option_index: integer): string
 	if (inputfile and non_option_index <= #arg) or (not inputfile and non_option_index < #arg) then
 		message.error("Multiple input files are not supported.")
 		os.exit(1)
@@ -290,9 +255,12 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 	elseif not inputfile then
 		inputfile = arg[non_option_index]
 	end
+	return inputfile
+end
 
-	-- TODO(refactor) remove
-	-- If run as 'cllualatex', then the default engine is lualatex
+-- TODO(refactor) remove
+-- If run as 'cllualatex', then the default engine is lualatex
+local function determine_engine(options: options.Options, arg: {string}): TexEngine.Engine
 	if options.engine == nil and type(arg[0]) == "string" then
 		local basename = pathutil.trimext(pathutil.basename(arg[0]))
 		local engine_part = string.match(basename, "^cl(%w+)$")
@@ -305,20 +273,43 @@ local function handle_cluttealtex_options(arg:{string}): string,TexEngine.Engine
 		message.error("Engine not specified.")
 		os.exit(1)
 	end
+
 	local engine = KnownEngines[options.engine]
 	if not engine then
 		message.error("Unknown engine name '", options.engine, "'.")
 		os.exit(1)
 	end
 
-	set_default_values(options)
+	return engine
+end
 
-	-- parameter validy check TODO should this be organized as function like
-	-- set_default_values and with a key in the option spec (list or function)?
+local function handle_cluttealtex_options(arg: {string}): string, TexEngine.Engine, options.Options
+	local default_options:options.Options = {
+			tex_extraoptions = {},
+			dvipdfmx_extraoptions = {},
+			package_support = {},
+			-- ordinary default values
+			max_iterations = 3,
+			skip_first = false,
+			interaction = "nonstopmode",
+			file_line_error = true,
+			halt_on_error = true,
+			output_format = "pdf",
+	}
 
-	-- TODO(refactor) EDIT(lukas): no probably make use of the option_spec for
-	-- this (add a new new function to which we pass the value set in the
-	-- options table)
+	local config_options, inputfile = parse_config_file()
+	local cli_options, non_option_index = parse_command_line_options(arg)
+	local options = merge_options(default_options, config_options, cli_options)
+
+	if options.color == nil then
+		message.set_colors("auto")
+	end
+
+	inputfile = handle_input_file(arg, inputfile, non_option_index)
+	local engine = determine_engine(options, arg)
+
+	-- TODO: Add validation logic here
+	-- better: move validationlogic to option_spec
 	if options.watch then
 		if options.watch ~= "fswatch" and options.watch ~= "inotifywait" then
 			message.error("Unknown wait engine '", options.watch, "'.")
