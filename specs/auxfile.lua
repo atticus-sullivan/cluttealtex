@@ -7,8 +7,10 @@ local after    = lester.after
 local it       = lester.it
 local expect   = lester.expect
 
-local auxfile = require 'src_lua.texrunner.auxfile'
 CLUTTEALTEX_VERBOSITY = 0
+CLUTTEALTEX_TEST_ENV  = true
+
+local auxfile = require 'src_lua.texrunner.auxfile'
 
 describe('auxfile', function()
 
