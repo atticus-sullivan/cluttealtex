@@ -30,139 +30,102 @@ local record Option
 	handle_cfg: function({string:any}, table)
 end
 
--- options_and_params, i = parseoption(arg, options)
--- options[i] = {short = "o", long = "option" [, param = true] [, boolean = true] [, allow_single_hyphen = false]}
--- options_and_params[j] = {"option", "value"}
--- arg[i], arg[i + 1], ..., arg[#arg] are non-options
 local function parseoption(arg:{string}, query_long_options:(function(string):Option,string,boolean), query_short_options:(function(string):Option,string,boolean)): {{string,string|boolean}},integer
-local i = 1
-	local option_and_params:{{string,string|boolean}} = {}
+	local options_and_params:{{string,string|boolean}} = {}
+	local i = 1
+
 	while i <= #arg do
-		if arg[i] == "--" then
-			-- Stop handling options
-			i = i + 1
+		local current = arg[i]
+
+		if current == "--" then
+			-- "--" marks the end of options
+			-- TODO i += 1 ?
 			break
-		elseif arg[i]:sub(1,2) == "--" then
-			-- two hypens
-			local param:string|boolean
-			local name:string
-			name,param = arg[i]:match("^([^=]+)=(.*)$", 3)
-			name = name or arg[i]:sub(3)
-			local opt, optname, no_opt = query_long_options(name)
-			if opt and opt.long then
-				-- option was found as long option with two hypens
-				if not no_opt then
-					-- option is "normal" (no 'no-' prefix)
-					-- check if option takes an argument
-					if opt.param then
-						if param then
-							-- --option=param
-						else
-							if opt.default ~= nil then
-								-- no param with space if option specifies a
-								-- default in order to avoid accidentally
-								-- consuming the next argument
-								param = opt.default
-							else
-								-- --option param
-								assert(i + 1 <= #arg, "argument missing after " .. arg[i] .. " option")
-								param = arg[i + 1]
-								i = i + 1
-							end
-						end
-					else
-						-- --option
-						param = true
-					end
-				elseif opt.boolean and no_opt then
-					-- --no-option
-					param = false
-				else
-					error("no- option can't have a value assigned to it")
-				end
-				table.insert(option_and_params, {optname, param})
-			else
-				-- Unknown long option
-				error("unknown long option: " .. arg[i])
+		elseif current:sub(1, 2) == "--" then
+			-- Long options (e.g., --option or --option=value)
+			local option_name, value:string,string|boolean = current:match("^([^=]+)=(.*)$", 3)
+			option_name = option_name or current:sub(3)
+
+			local option, opt_name, no_opt = query_long_options(option_name)
+			if not option then
+				error("Unknown option: " .. option_name)
 			end
 
-		elseif arg[i]:sub(1,1) == "-" then
-			-- one hypen
-			local param:string|boolean
-			local name:string
-			name,param = arg[i]:match("^([^=]+)=(.*)$", 2)
-			name = name or arg[i]:sub(2)
-			local opt, optname, no_opt = query_long_options(name)
-			if opt and opt.long and opt.allow_single_hyphen then
-				if not no_opt then
-					if opt.param then
-						if param then
-							-- -option=param
+			if option.param then
+				if not value then
+					value = arg[i + 1]
+					if not value or value:sub(1, 1) == "-" then
+						if option.default then
+							value = option.default
+						elseif option.boolean then
+							value = not no_opt
 						else
-							if opt.default ~= nil then
-								-- no param with space if option specifies a
-								-- default in order to avoid accidentally
-								-- consuming the next argument
-								param = opt.default
-							else
-								-- -option param
-								assert(i + 1 <= #arg, "argument missing after " .. arg[i] .. " option")
-								param = arg[i + 1]
-								i = i + 1
-							end
+							error("Missing parameter for option: " .. opt_name)
 						end
 					else
-						-- -option
-						param = true
+						i = i + 1
 					end
-				elseif opt.boolean and no_opt then
-					-- -no-option
-					param = false
-				else
-					error("no- option can't have a value assigned to it")
 				end
-			elseif opt and opt.long and #name >= 2 then
-				error("You must supply two hyphens (i.e. --" .. name .. ") for long option")
+				if option.boolean and not value is boolean then
+					value = value == "true"
+				end
+				table.insert(options_and_params, { opt_name, value })
+			else
+				table.insert(options_and_params, { opt_name, not no_opt })
+			end
+			i = i + 1
+
+		elseif current:sub(1, 1) == "-" then
+			-- Short options or single-hyphen long options
+			local option_name, value:string,string|boolean = current:match("^([^=]+)=(.*)$", 2)
+			option_name = option_name or current:sub(2)
+
+			local option, opt_name, no_opt:Option, string, boolean
+
+			if #option_name == 1 then
+				option, opt_name, no_opt = query_short_options(option_name)
+			else
+				option, opt_name, no_opt = query_long_options(option_name)
+				if not option or not option.allow_single_hyphen then
+					error("Unknown option: " .. option_name)
+				end
+			end
+			if not option or not option.allow_single_hyphen then
+				error("Unknown option: " .. option_name)
 			end
 
-			-- parse as short option if not able to parse as long option with one hypen
-			if opt == nil then
-				-- Short option
-				name = arg[i]:sub(2,2)
-				opt, optname = query_short_options(name)
-				if opt and opt.short then
-					-- option was found as short option
-					if opt.param then
-						if #arg[i] > 2 then
-							-- -oparam
-							param = arg[i]:sub(3)
+			if option.param then
+				if not value then
+					value = arg[i + 1]
+					if not value or value:sub(1, 1) == "-" then
+						if option.default then
+							value = option.default
+						elseif option.boolean then
+							value = not no_opt
 						else
-						-- passing arguments separated with space is common with short options
-						-- -> no default here TODO not a nice consistent behavior
-							-- -o param
-							assert(i + 1 <= #arg, "argument missing after " .. arg[i] .. " option")
-							param = arg[i + 1]
-							i = i + 1
+							error("Missing parameter for option: " .. opt_name)
 						end
 					else
-						-- -o
-						assert(#arg[i] == 2, "combining multiple short options like -abc is not supported")
-						param = true
+						i = i + 1
 					end
 				end
-			end
-			if opt then
-				table.insert(option_and_params, {optname, param})
+				if option.boolean and not value is boolean then
+					value = value == "true"
+				end
+				table.insert(options_and_params, { opt_name, value })
 			else
-				error("unknown short option: " .. arg[i])
+				table.insert(options_and_params, { opt_name, not no_opt })
 			end
+			i = i + 1
+
 		else
-			-- arg[i] is not an option
+			-- Non-option argument, skip
 			break
 		end
-		i = i + 1
 	end
-	return option_and_params, i
+
+	-- Return the parsed options
+	return options_and_params
 end
 
 return {
