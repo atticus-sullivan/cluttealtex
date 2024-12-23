@@ -157,7 +157,7 @@ local function parseoption(arg:{string}, query_long_options:(function(string):Mo
 	end
 
 	-- Return the parsed options
-	return options_and_params
+	return options_and_params, i
 end
 
 local _M:Module = {
