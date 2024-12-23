@@ -1,5 +1,10 @@
 local lester = require 'lester'
 
+require 'specs.auxfile'
+require 'specs.checkdriver'
+require 'specs.fsutil'
+require 'specs.handleoption'
+require 'specs.option'
 require 'specs.pathutil'
 require 'specs.shellutil'
 
