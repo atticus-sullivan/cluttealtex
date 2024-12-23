@@ -29,131 +29,131 @@ local string_gsub = string.gsub
 local filesys = require "lfs"
 
 local function basename(path: string): string
-  local i = 0
-  while true do
-    local j = string_find(path, "/", i + 1, true)
-    if j == nil then
-      return string_sub(path, i + 1)
-    elseif j == #path then
-      return string_sub(path, i + 1, -2)
-    end
-    i = j
-  end
+local i = 0
+	while true do
+		local j = string_find(path, "/", i + 1, true)
+		if j == nil then
+			return string_sub(path, i + 1)
+		elseif j == #path then
+			return string_sub(path, i + 1, -2)
+		end
+		i = j
+	end
 end
 
 
 local function dirname(path: string): string
-  local i = 0
-  while true do
-    local j = string_find(path, "/", i + 1, true)
-    if j == nil then
-      if i == 0 then
-        -- No directory portion
-        return "."
-      elseif i == 1 then
-        -- Root
-        return "/"
-      else
-        -- Directory portion without trailing slash
-        return string_sub(path, 1, i - 1)
-      end
-    end
-    i = j
-  end
+	local i = 0
+	while true do
+		local j = string_find(path, "/", i + 1, true)
+		if j == nil then
+			if i == 0 then
+				-- No directory portion
+				return "."
+			elseif i == 1 then
+				-- Root
+				return "/"
+			else
+				-- Directory portion without trailing slash
+				return string_sub(path, 1, i - 1)
+			end
+		end
+		i = j
+	end
 end
 
 local function parentdir(path: string): string
-  local i = 0
-  while true do
-    local j = string_find(path, "/", i + 1, true)
-    if j == nil then
-      if i == 0 then
-        -- No directory portion
-        return "."
-      elseif i == 1 then
-        -- Root
-        return "/"
-      else
-        -- Directory portion without trailing slash
-        return string_sub(path, 1, i - 1)
-      end
-    elseif j == #path then
-      -- Directory portion without trailing slash
-      return string_sub(path, 1, i - 1)
-    end
-    i = j
-  end
+	local i = 0
+	while true do
+		local j = string_find(path, "/", i + 1, true)
+		if j == nil then
+			if i == 0 then
+				-- No directory portion
+				return "."
+			elseif i == 1 then
+				-- Root
+				return "/"
+			else
+				-- Directory portion without trailing slash
+				return string_sub(path, 1, i - 1)
+			end
+		elseif j == #path then
+			-- Directory portion without trailing slash
+			return string_sub(path, 1, i - 1)
+		end
+		i = j
+	end
 end
 
 local function trimext(path: string): string
-  return (string_gsub(path, "%.[^/%.]*$", ""))
+	return (string_gsub(path, "%.[^/%.]*$", ""))
 end
 
 local function ext(path: string): string
-  return string_match(path, "%.([^/%.]*)$") or ""
+	return string_match(path, "%.([^/%.]*)$") or ""
 end
 
 local function replaceext(path: string, newext: string): string
-  local newpath, n = string_gsub(path, "%.([^/%.]*)$", function():string return "." .. newext end)
-  if n == 0 then
-    return newpath .. "." .. newext
-  else
-    return newpath
-  end
+	local newpath, n = string_gsub(path, "%.([^/%.]*)$", function():string return "." .. newext end)
+	if n == 0 then
+		return newpath .. "." .. newext
+	else
+		return newpath
+	end
 end
 
 local function joinpath2(x: string, y: string): string
-  local xd = x
-  if string_sub(x, -1) ~= "/" then
-    xd = x .. "/"
-  end
-  if y == "." then
-    return xd
-  elseif y == ".." then
-    return dirname(x)
-  else
-    if string_sub(y, 1, 2) == "./" then
-      return xd .. string_sub(y, 3)
-    else
-      return xd .. y
-    end
-  end
+	local xd = x
+	if string_sub(x, -1) ~= "/" then
+		xd = x .. "/"
+	end
+	if y == "." then
+		return xd
+	elseif y == ".." then
+		return dirname(x)
+	else
+		if string_sub(y, 1, 2) == "./" then
+			return xd .. string_sub(y, 3)
+		else
+			return xd .. y
+		end
+	end
 end
 
 local function joinpath(a?:string, b?:string, ...: string): string
-  local n = select("#", ...)
-  if not a then
-    -- 0 argument
-    return "."
-  elseif not b then
-    -- 1 argument
-    return a
-  elseif n == 0 then
-    -- 2 arguments
-    return joinpath2(a, b)
-  else
-    -- >= 3 arguments
-    return joinpath(joinpath2(a, b), ...)
-  end
+	local n = select("#", ...)
+	if not a then
+		-- 0 argument
+		return "."
+	elseif not b then
+		-- 1 argument
+		return a
+	elseif n == 0 then
+		-- 2 arguments
+		return joinpath2(a, b)
+	else
+		-- >= 3 arguments
+		return joinpath(joinpath2(a, b), ...)
+	end
 end
 
 local function abspath(path: string, cwd?: string): string
-  if string_sub(path, 1, 1) == "/" then
-    -- absolute path
-    return path
-  else
-    cwd = cwd or filesys.currentdir()
-    return joinpath2(cwd, path)
-  end
+	if string_sub(path, 1, 1) == "/" then
+		-- absolute path
+		return path
+	else
+		cwd = cwd or filesys.currentdir()
+		return joinpath2(cwd, path)
+	end
 end
 
 return {
-  basename = basename,
-  dirname = dirname,
-  parentdir = parentdir,
-  trimext = trimext,
-  ext = ext,
-  replaceext = replaceext,
-  join = joinpath,
-  abspath = abspath,
+	basename = basename,
+	dirname = dirname,
+	parentdir = parentdir,
+	trimext = trimext,
+	ext = ext,
+	replaceext = replaceext,
+	join = joinpath,
+	abspath = abspath,
 }

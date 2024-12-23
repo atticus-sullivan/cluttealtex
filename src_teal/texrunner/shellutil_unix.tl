@@ -26,40 +26,39 @@ local table_insert = table.insert
 local table_concat = table.concat
 local os_execute   = os.execute
 
--- s: string
 local function escape(s: string): string
-  local len = #s
-  local result = {}
-  local t, i = string_match(s, "^([^']*)()") as (string, integer)
-  assert(t)
-  if t ~= "" then
-    table_insert(result, "'")
-    table_insert(result, t)
-    table_insert(result, "'")
-  end
-  while i < len do
-    t, i = string_match(s, "^('+)()", i) as (string, integer)
-    assert(t)
-    table_insert(result, '"')
-    table_insert(result, t)
-    table_insert(result, '"')
-    t, i = string_match(s, "^([^']*)()", i) as (string, integer)
-    assert(t)
-    if t ~= "" then
-      table_insert(result, "'")
-      table_insert(result, t)
-      table_insert(result, "'")
-    end
-  end
-  return table_concat(result, "")
+	local len = #s
+	local result = {}
+	local t, i = string_match(s, "^([^']*)()") as (string, integer)
+	assert(t)
+	if t ~= "" then
+		table_insert(result, "'")
+		table_insert(result, t)
+		table_insert(result, "'")
+	end
+	while i < len do
+		t, i = string_match(s, "^('+)()", i) as (string, integer)
+		assert(t)
+		table_insert(result, '"')
+		table_insert(result, t)
+		table_insert(result, '"')
+		t, i = string_match(s, "^([^']*)()", i) as (string, integer)
+		assert(t)
+		if t ~= "" then
+			table_insert(result, "'")
+			table_insert(result, t)
+			table_insert(result, "'")
+		end
+	end
+	return table_concat(result, "")
 end
 
 local function has_command(name: string): boolean
-	local result = os_execute("which " .. escape(name) .. " > /dev/null 2>/dev/null")
-	return result == 0
+	local result = os_execute("which " .. escape(name) .. " > /dev/null")
+	return result
 end
 
 return {
-  escape = escape,
-  has_command = has_command,
+	escape = escape,
+	has_command = has_command,
 }
