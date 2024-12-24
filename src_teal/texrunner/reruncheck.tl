@@ -359,7 +359,7 @@ end
 
 -- Check if one file is newer than another
 local function comparefiletime(srcpath:string, dstpath:string, auxstatus:{string:Module.Status}): boolean
-	if not filesys.isfile(dstpath) then
+	if not fsutil.isfile(dstpath) then
 		return true
 	end
 	local src_info = auxstatus[srcpath]
@@ -371,18 +371,18 @@ local function comparefiletime(srcpath:string, dstpath:string, auxstatus:{string
 			return src_mtime > dst_mtime
 		end
 	end
-		return false
+	return false
 end
 
 -- Check if any file in the list is newer than a reference file
 local function anyNonOutputNewerThan(filelist:{Module.Filemap_ele}, reference: string): boolean
-	if not filesys.isfile(reference) then
+	if not fsutil.isfile(reference) then
 		return true
 	end
 	local attrs = get_file_attributes(reference, true, false)
 	local ref_mtime = attrs.mtime
 	for _,f in ipairs(filelist) do
-		if f.kind ~= "output" and filesys.isfile(f.abspath) then
+		if f.kind ~= "output" and fsutil.isfile(f.abspath) then
 			local f_attrs = get_file_attributes(f.abspath, true, false)
 			local f_mtime = f_attrs.mtime
 			if f_mtime > ref_mtime then
@@ -413,6 +413,5 @@ if CLUTTEALTEX_TEST_ENV then
 		check_auxiliary_file  = check_auxiliary_file,
 	}
 end
-
 
 return _M
