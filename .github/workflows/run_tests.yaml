@@ -1,0 +1,33 @@
+name: run tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: install make deps
+      run: |
+        sudo apt install fd-find texlive-latex-extra
+
+    - name: Install lua
+      uses: jkl1337/gh-actions-lua@v11
+      with:
+        luaVersion: "5.4.7"
+    - name: Install LuaRocks (latest)
+      uses: jkl1337/gh-actions-luarocks@v5
+
+    - name: install luarocks deps
+      run: |
+        luarocks install --dev tl
+        luarocks install cyan
+        luarocks install lester
+
+    - name: make
+      run: make FD=fdfind build test
