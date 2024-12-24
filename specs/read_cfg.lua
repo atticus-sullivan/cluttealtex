@@ -183,4 +183,22 @@ describe("read_cfg", function()
 		local result = read_cfg("empty_config.lua")
 		expect.not_exist(result)
 	end)
+
+	it("config should be able to make changes to tables passed as argument and return new tables", function()
+		local x = {}
+		local config_content = [[
+			local function foo(tab)
+				tab.key = "value"
+				return {keyB="valueB"}
+			end
+			return foo
+		]]
+		write_config("config.lua", config_content)
+
+		local result = read_cfg("config.lua")
+		expect.exist(result)
+		local y = result(x)
+		expect.equal(x, {key="value"})
+		expect.equal(y, {keyB="valueB"})
+	end)
 end)
