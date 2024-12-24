@@ -12,7 +12,7 @@ CLUTTEALTEX_TEST_ENV  = true
 
 local tex_engine = require 'src_lua.texrunner.tex_engine'
 
-describe("Engine command generation", function()
+describe("tex_engine", function()
 
 	-- Basic setup: known engines
 	local KnownEngines = tex_engine.KnownEngines
