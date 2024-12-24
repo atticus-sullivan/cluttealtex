@@ -35,7 +35,7 @@ local filesys = require "lfs"
 local md5     = require "md5"
 -- local kpse = require "kpse"
 
--- My own modules
+-- custom modules
 local pathutil    = require "texrunner.pathutil"
 local fsutil      = require "texrunner.fsutil"
 local shellutil   = require "texrunner.shellutil"
@@ -195,7 +195,7 @@ end
 -- Run TeX command (*tex, *latex)
 -- should_rerun, newauxstatus = single_run([auxstatus])
 -- This function should be run in a coroutine.
-local function single_run(auxstatus:{string:reruncheck.Status}, iteration:integer): boolean|string, {string:reruncheck.Status}
+local function single_run_coroutine(auxstatus:{string:reruncheck.Status}, iteration:integer): boolean|string, {string:reruncheck.Status}
 	local minted, epstopdf = false, false
 	local bibtex_aux_hash:string = nil
 	local mainauxfile = path_in_output_directory("aux")
@@ -234,7 +234,6 @@ local function single_run(auxstatus:{string:reruncheck.Status}, iteration:intege
 		end
 		auxstatus = {}
 	end
-	--local timestamp = os.time()
 
 	local tex_injection = ""
 
@@ -480,7 +479,6 @@ local function single_run(auxstatus:{string:reruncheck.Status}, iteration:intege
 			-- mmz,pdf  -> memoize-extract -> pdf,pdf
 			-- tex      -> pdflatex tex    -> aux,pdf
 			if pathutil.ext(file.path) == "mmz" then
-				local memoizefileinfo = {path = file.path, abspath = file.abspath, kind = "auxiliary"}
 				local must_extract = false
 				for l in io.lines(file.abspath) do
 					local newExtern = string.match(l, "^\\mmzNewExtern")
@@ -549,12 +547,12 @@ end
 
 -- Run (La)TeX (possibly multiple times) and produce a PDF file.
 -- This function should be run in a coroutine.
-local function do_typeset_c(): string, function
+local function do_typeset_coroutine(): string, function
 	local iteration = 0
 	local should_rerun, auxstatus: boolean|string, {string:reruncheck.Status}
 	repeat
 		iteration = iteration + 1
-		should_rerun, auxstatus = single_run(auxstatus, iteration)
+		should_rerun, auxstatus = single_run_coroutine(auxstatus, iteration)
 		if should_rerun == "No pages of output." then
 			message.warn("No pages of output.")
 			return
@@ -628,7 +626,7 @@ end
 
 local function do_typeset(): boolean, string, integer
 	-- Execute the command string yielded by do_typeset_c
-	for command, recover in coroutine.wrap(do_typeset_c) do
+	for command, recover in coroutine.wrap(do_typeset_coroutine) do
 		if command is string and (recover is function or recover is nil) then
 			message.exec(command)
 			local success, termination, status_or_signal = os.execute(command)
