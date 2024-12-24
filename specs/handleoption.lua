@@ -13,7 +13,7 @@ CLUTTEALTEX_TEST_ENV  = true
 local handleoption = require 'src_lua.texrunner.handleoption'
 
 
--- TODO rewrite the tests
+-- TODO rewrite the tests -> make independent of option_spec if somehow possible
 describe("handleoption", function()
 	before(function() end)
 	after(function() end)
