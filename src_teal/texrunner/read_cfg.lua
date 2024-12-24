@@ -1,5 +1,4 @@
 --[[
-  Copyright 2018 ARATA Mizuki
   Copyright 2024 Lukas Heindl
 
   This file is part of CluttealTeX.
@@ -18,13 +17,16 @@
   along with CluttealTeX.  If not, see <http://www.gnu.org/licenses/>.
 ]]
 
-local function deep_copy(x)
+local function deep_copy(x, seen)
+	seen = seen or {}
 	if type(x) == "table" then
+		if seen[x] then return seen[x] end
 		local r = {}
+		seen[x] = r
 		for k,v in pairs(x) do
-			r[k] = deep_copy(v)
+			r[deep_copy(k, seen)] = deep_copy(v, seen)
 		end
-		return r
+		return setmetatable(r, getmetatable(x))
 	else
 		return x
 	end
