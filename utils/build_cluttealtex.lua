@@ -116,6 +116,14 @@ local modules = {
 		name = "texrunner.fswatcher",
 		path = "texrunner/fswatcher.lua",
 	},
+	{
+		name = "texrunner.typeset",
+		path = "texrunner/typeset.lua",
+	},
+	{
+		name = "texrunner.watcher",
+		path = "texrunner/watcher.lua",
+	},
 }
 
 local imported_globals = {"io", "os", "string", "table", "package", "require", "assert", "error", "ipairs", "type", "select", "arg"}
