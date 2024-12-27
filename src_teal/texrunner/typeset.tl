@@ -63,8 +63,7 @@ end
 -- Run TeX command (*tex, *latex)
 -- should_rerun, newauxstatus = single_run([auxstatus])
 -- This function should be run in a coroutine.
-local function single_run_coroutine(args: Module.typesetArgs): boolean|string, {string:reruncheck.Status}
-
+local function single_run_coroutine(args: Module.typesetArgs): boolean|string
 	local minted, epstopdf = false, false
 	local bibtex_aux_hash:string = nil
 	local mainauxfile = args.path_in_output_directory("aux")
@@ -92,7 +91,7 @@ local function single_run_coroutine(args: Module.typesetArgs): boolean|string, {
 		if args.iteration == 1 and not args.options.watch then
 			local outfile = args.path_in_output_directory(args.output_extension)
 			if not reruncheck.anyNonOutputNewerThan(filelist, outfile) then
-				return false, args.auxstatus
+				return false
 			end
 		end
 	else
@@ -189,7 +188,7 @@ local function single_run_coroutine(args: Module.typesetArgs): boolean|string, {
 	end
 	coroutine.yield(command, recover) -- Execute the command
 	if recovered then
-		return true, {}
+		return true
 	end
 
 	local filelist, filemap = reruncheck.parse_recorder_file(args.recorderfile, args.options)
@@ -410,18 +409,19 @@ local function single_run_coroutine(args: Module.typesetArgs): boolean|string, {
 		return "No pages of output."
 	end
 
-	local should_rerun, auxstatus = reruncheck.comparefileinfo(filelist, args.auxstatus)
-	return should_rerun or lightweight_mode, auxstatus
+	local should_rerun: boolean
+	should_rerun, args.auxstatus = reruncheck.comparefileinfo(filelist, args.auxstatus)
+	return should_rerun or lightweight_mode
 end
 
 -- Run (La)TeX (possibly multiple times) and produce a PDF file.
 -- This function should be run in a coroutine.
 local function do_typeset_coroutine(args:Module.typesetArgs): string, function
 	local iteration = 0
-	local should_rerun, auxstatus: boolean|string, {string:reruncheck.Status}
+	local should_rerun: boolean|string
 	repeat
 		iteration = iteration + 1
-		should_rerun, auxstatus = single_run_coroutine(args)
+		should_rerun = single_run_coroutine(args)
 		if should_rerun == "No pages of output." then
 			message.warn("No pages of output.")
 			return
@@ -521,11 +521,12 @@ local function do_typeset(args: Module.typesetArgs): boolean, string, integer
 end
 
 local function get_typesetter(args: Module.typesetArgs): (function(): boolean, string, integer, {reruncheck.Filemap_ele})
+	local filelist, filemap: {reruncheck.Filemap_ele}, {string: reruncheck.Filemap_ele}
 	return function(): boolean, string, integer, {reruncheck.Filemap_ele}
 		local success, termination, status = do_typeset(args)
 		-- TODO: filenames here can be UTF-8 if command_line_encoding=utf-8
 
-		local filelist, filemap = reruncheck.parse_recorder_file(args.recorderfile, options)
+		filelist, filemap = reruncheck.parse_recorder_file(args.recorderfile, options)
 		if args.engine.is_luatex and fsutil.isfile(args.recorderfile2) then
 			filelist, filemap = reruncheck.parse_recorder_file(args.recorderfile2, options, filelist, filemap)
 		end
