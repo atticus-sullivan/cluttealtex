@@ -18,6 +18,7 @@
   along with CluttealTeX.  If not, see <http://www.gnu.org/licenses/>.
 ]]
 
+local os = require"os_"
 local string_gsub = string.gsub
 local os_execute = os.execute
 
@@ -33,7 +34,7 @@ assert(escape([[Hello\" world!"]]) == [["Hello\\\" world!\""]])
 
 local function has_command(name: string): boolean
   local result = os_execute("where " .. escape(name) .. " > NUL 2>&1")
-  return result
+  return result == 0
 end
 
 return {
