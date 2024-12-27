@@ -124,6 +124,10 @@ local modules = {
 		name = "texrunner.watcher",
 		path = "texrunner/watcher.lua",
 	},
+	{
+		name = "texrunner.utils",
+		path = "texrunner/utils.lua",
+	},
 }
 
 local imported_globals = {"io", "os", "string", "table", "package", "require", "assert", "error", "ipairs", "type", "select", "arg"}

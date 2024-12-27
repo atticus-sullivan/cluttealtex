@@ -1,6 +1,6 @@
-local option_t = require"texrunner.tex_engine"
+local engine = require"texrunner.tex_engine_t"
 
-local function create_initialization_script(filename:string, options:option_t.Option)
+local function create_initialization_script(filename:string, options:engine.Option)
 	local initscript = assert(io.open(filename,"w"))
 	if type(options.file_line_error) == "boolean" then
 		initscript:write(string.format("texconfig.file_line_error = %s\n", options.file_line_error))

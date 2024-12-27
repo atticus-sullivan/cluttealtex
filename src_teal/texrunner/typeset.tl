@@ -44,7 +44,7 @@ else
 end
 
 local record Module
-	do_typeset: function(args: typesetArgs): boolean, string, integer
+	get_typesetter: function(args: Module.typesetArgs): (function(): boolean, string, integer, {reruncheck.Filemap_ele})
 	record typesetArgs
 		auxstatus:{string:reruncheck.Status}
 		iteration:integer
@@ -520,8 +520,22 @@ local function do_typeset(args: Module.typesetArgs): boolean, string, integer
 	return true
 end
 
+local function get_typesetter(args: Module.typesetArgs): (function(): boolean, string, integer, {reruncheck.Filemap_ele})
+	return function(): boolean, string, integer, {reruncheck.Filemap_ele}
+		local success, termination, status = do_typeset(args)
+		-- TODO: filenames here can be UTF-8 if command_line_encoding=utf-8
+
+		local filelist, filemap = reruncheck.parse_recorder_file(args.recorderfile, options)
+		if args.engine.is_luatex and fsutil.isfile(args.recorderfile2) then
+			filelist, filemap = reruncheck.parse_recorder_file(args.recorderfile2, options, filelist, filemap)
+		end
+
+		return success, termination, status, filelist
+	end
+end
+
 local _M:Module = {
-	do_typeset = do_typeset
+	get_typesetter = get_typesetter
 }
 
 return _M
