@@ -16,11 +16,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ]]
 
-local Option  = require "texrunner.option".Option
-local shellutil   = require "texrunner.shellutil"
-local options = require"texrunner.option_type"
-local pathutil    = require "texrunner.pathutil"
-local message     = require "texrunner.message"
+local Option    = require "texrunner.option".Option
+local shellutil = require "texrunner.shellutil"
+local option_t  = require"texrunner.option_type"
+local pathutil  = require "texrunner.pathutil"
+local message   = require "texrunner.message"
 
 global CLUTTEALTEX_VERSION:string
 
@@ -47,8 +47,8 @@ local function split(opt:string): {string}
 	return ret
 end
 
-local function parse_glossaries_option_from_table(opt:{string:string|nil}): options.Glos, string
-	local ret:options.Glos = {}
+local function parse_glossaries_option_from_table(opt:{string:string|nil}): option_t.Glos, string
+	local ret:option_t.Glos = {}
 
 	ret.type = opt.type or ""
 	if not (ret.type == "makeindex" or ret.type == "xindy" or (opt.path and opt.path ~= "")) then
@@ -108,7 +108,7 @@ local function parse_glossaries_option_from_table(opt:{string:string|nil}): opti
 	return ret
 end
 
-local function parse_glossaries_option_from_string(opt:string): options.Glos, string
+local function parse_glossaries_option_from_string(opt:string): option_t.Glos, string
 	local s = split(opt)
 	if #s < 2 or #s > 6 then
 		return nil, "Error on splitting the glossaries parameter \""..opt.."\""
@@ -230,7 +230,7 @@ local option_spec:{string:Option} = {
 		short = "e",
 		long = "engine",
 		param = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.engine == nil, "multiple --engine options")
 			if param is string then
 				options.engine = param
@@ -242,7 +242,7 @@ local option_spec:{string:Option} = {
 	engine_executable = {
 		long = "engine-executable",
 		param = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.engine_executable == nil, "multiple --engine-executable options")
 			if param is string then
 				options.engine_executable = param
@@ -255,7 +255,7 @@ local option_spec:{string:Option} = {
 		short = "o",
 		long = "output",
 		param = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.output == nil, "multiple --output options")
 			if param is string then
 				options.output = param
@@ -266,7 +266,7 @@ local option_spec:{string:Option} = {
 	},
 	fresh = {
 		long = "fresh",
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.fresh == nil, "multiple --fresh options")
 			if param is string then
 				options.fresh = true
@@ -278,7 +278,7 @@ local option_spec:{string:Option} = {
 	max_iterations = {
 		long = "max-iterations",
 		param = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.max_iterations == nil, "multiple --max-iterations options")
 			options.max_iterations = assert(tonumber(param) as integer, "invalid value for --max-iterations option")
 			assert(options.max_iterations >= 1, "invalid value for --max-iterations option")
@@ -286,14 +286,14 @@ local option_spec:{string:Option} = {
 	},
 	skip_first = {
 		long = "skip-first",
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.skip_first == nil, "multiple --skip-first options")
 			options.skip_first = true
 		end,
 	},
 	start_with_draft = {
 		long = "start-with-draft",
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.start_with_draft == nil, "multiple --start-with-draft options")
 			options.start_with_draft = true
 		end,
@@ -301,7 +301,7 @@ local option_spec:{string:Option} = {
 	change_directory = {
 		long = "change-directory",
 		boolean = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.change_directory == nil, "multiple --change-directory options")
 				if param is boolean then
 					options.change_directory = param
@@ -314,7 +314,7 @@ local option_spec:{string:Option} = {
 		long = "watch",
 		param = true,
 		default = "auto",
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.watch == nil, "multiple --watch options")
 			if param is string then
 				options.watch = param
@@ -326,7 +326,7 @@ local option_spec:{string:Option} = {
 	watch_only_path = {
 		long = "watch-only-path",
 		param = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			if param is string then
 				options.watch_inc_exc = options.watch_inc_exc or {}
 				table.insert(options.watch_inc_exc, {param=pathutil.abspath(param),type='only_path'})
@@ -338,7 +338,7 @@ local option_spec:{string:Option} = {
 	watch_not_path = {
 		long = "watch-not-path",
 		param = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			if param is string then
 				options.watch_inc_exc = options.watch_inc_exc or {}
 				table.insert(options.watch_inc_exc, {param=pathutil.abspath(param),type='not_path'})
@@ -350,7 +350,7 @@ local option_spec:{string:Option} = {
 	watch_only_ext = {
 		long = "watch-only-ext",
 		param = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			if param is string then
 				options.watch_inc_exc = options.watch_inc_exc or {}
 				table.insert(options.watch_inc_exc, {param=param,type='only_ext'})
@@ -362,7 +362,7 @@ local option_spec:{string:Option} = {
 	watch_not_ext = {
 		long = "watch-not-ext",
 		param = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			if param is string then
 				options.watch_inc_exc = options.watch_inc_exc or {}
 				table.insert(options.watch_inc_exc, {param=param,type='not_ext'})
@@ -375,7 +375,7 @@ local option_spec:{string:Option} = {
 		short = "h",
 		long = "help",
 		allow_single_hyphen = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			usage(arg)
 			os.exit(0)
 		end,
@@ -383,7 +383,7 @@ local option_spec:{string:Option} = {
 	version = {
 		short = "v",
 		long = "version",
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			io.stderr:write("cluttealtex ",CLUTTEALTEX_VERSION,"\n")
 			os.exit(0)
 		end,
@@ -391,7 +391,7 @@ local option_spec:{string:Option} = {
 	verbose = {
 		short = "V",
 		long = "verbose",
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			CLUTTEALTEX_VERBOSITY = CLUTTEALTEX_VERBOSITY + 1
 		end,
 	},
@@ -399,7 +399,7 @@ local option_spec:{string:Option} = {
 		long = "color",
 		param = true,
 		default = "always",
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.color == nil, "multiple --color options")
 			if param is string then
 				options.color = param
@@ -412,7 +412,7 @@ local option_spec:{string:Option} = {
 	includeonly = {
 		long = "includeonly",
 		param = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.includeonly == nil, "multiple --includeonly options")
 			if param is string then
 				options.includeonly = param
@@ -424,7 +424,7 @@ local option_spec:{string:Option} = {
 	make_depends = {
 		long = "make-depends",
 		param = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.make_depends == nil, "multiple --make-depends options")
 			if param is string then
 				options.make_depends = param
@@ -435,7 +435,7 @@ local option_spec:{string:Option} = {
 	},
 	print_output_directory = {
 		long = "print-output-directory",
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.print_output_directory == nil, "multiple --print-output-directory options")
 			if param is string then
 				options.print_output_directory = true
@@ -447,7 +447,7 @@ local option_spec:{string:Option} = {
 	package_support = {
 		long = "package-support",
 		param = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			local known_packages:{string:boolean} = {["minted"] = true, ["epstopdf"] = true}
 			if param is string then
 				for pkg in string.gmatch(param, "[^,%s]+") do
@@ -464,7 +464,7 @@ local option_spec:{string:Option} = {
 	check_driver = {
 		long = "check-driver",
 		param = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.check_driver == nil, "multiple --check-driver options")
 			assert(param == "dvipdfmx" or param == "dvips" or param == "dvisvgm", "wrong value for --check-driver option")
 			if param is string then
@@ -478,7 +478,7 @@ local option_spec:{string:Option} = {
 		long = "makeindex",
 		param = true,
 		default = "makeindex",
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(not options.glossaries, "'makeindex' cannot be used together with 'glossaries'\nUse e.g. --glossaries='makeindex:main.ind:main.idx:main.ilg' instead of makeindex")
 			assert(options.makeindex == nil, "multiple --makeindex options")
 			if param is string then
@@ -492,7 +492,7 @@ local option_spec:{string:Option} = {
 		long = "bibtex",
 		param = true,
 		default = "bibtex",
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.bibtex == nil, "multiple --bibtex options")
 			assert(options.biber == nil, "multiple --bibtex/--biber options")
 			if param is string then
@@ -506,7 +506,7 @@ local option_spec:{string:Option} = {
 		long = "biber",
 		param = true,
 		default = "biber",
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.biber == nil, "multiple --biber options")
 			assert(options.bibtex == nil, "multiple --bibtex/--biber options")
 			if param is string then
@@ -520,7 +520,7 @@ local option_spec:{string:Option} = {
 		long = "sagetex",
 		param = true,
 		default = "sage",
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.sagetex == nil, "multiple --sagetex options")
 			if param is string then
 				options.sagetex = param
@@ -534,7 +534,7 @@ local option_spec:{string:Option} = {
 		param = true,
 		accumulate = true,
 		default = "makeindex:main.glo:main.gls:main.glg",
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(not options.makeindex, "'glossaries' cannot be used together with 'makeindex'\nUse e.g. --glossaries='makeindex:main.ind:main.idx:main.ilg' instead of makeindex")
 			if not options.glossaries then
 				options.glossaries = {}
@@ -546,7 +546,7 @@ local option_spec:{string:Option} = {
 				error("invalid param type")
 			end
 		end,
-		handle_cfg = function(options:options.Options, param: table)
+		handle_cfg = function(options:option_t.Options, param: table)
 			local param = (function(): {string:string|nil}
 				local inp = param.inp
 				if not inp is string and not inp is nil then
@@ -588,7 +588,7 @@ local option_spec:{string:Option} = {
 		long = "memoize",
 		param = true,
 		default = "perl",
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.memoize == nil, "multiple --memoize options")
 			if param is string then
 				if param == "python" then
@@ -606,7 +606,7 @@ local option_spec:{string:Option} = {
 	memoize_opt = {
 		long = "memoize_opt", -- TODO should be memoize-opt on commandline probably, but is breaking
 		param = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			if param is string then
 				options.memoize_opts = options.memoize_opts or {}
 				table.insert(options.memoize_opts, param)
@@ -619,7 +619,7 @@ local option_spec:{string:Option} = {
 		long = "quiet",
 		param = true,
 		default = "1",
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.quiet == nil, "multiple --quiet options")
 			if param is string then
 				options.quiet = assert(tonumber(param) as integer, "parameter must be an integer")
@@ -633,7 +633,7 @@ local option_spec:{string:Option} = {
 		long = "synctex",
 		param = true,
 		allow_single_hyphen = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.synctex == nil, "multiple --synctex options")
 			if param is string then
 				options.synctex = param
@@ -646,7 +646,7 @@ local option_spec:{string:Option} = {
 		long = "file-line-error",
 		boolean = true,
 		allow_single_hyphen = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			if param is boolean then
 				options.file_line_error = param
 			else
@@ -658,7 +658,7 @@ local option_spec:{string:Option} = {
 		long = "interaction",
 		param = true,
 		allow_single_hyphen = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.interaction == nil, "multiple --interaction options")
 			if param is string then
 				assert(param == "batchmode" or param == "nonstopmode" or param == "scrollmode" or param == "errorstopmode", "invalid argument for --interaction")
@@ -672,7 +672,7 @@ local option_spec:{string:Option} = {
 		long = "halt-on-error",
 		boolean = true,
 		allow_single_hyphen = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			if param is boolean then
 				options.halt_on_error = param
 			else
@@ -684,7 +684,7 @@ local option_spec:{string:Option} = {
 		long = "shell-escape",
 		boolean = true,
 		allow_single_hyphen = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.shell_escape == nil and options.shell_restricted == nil, "multiple --(no-)shell-escape or --shell-restricted options")
 			if param is boolean then
 				options.shell_escape = param
@@ -696,7 +696,7 @@ local option_spec:{string:Option} = {
 	shell_restricted = {
 		long = "shell-restricted",
 		allow_single_hyphen = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.shell_escape == nil and options.shell_restricted == nil, "multiple --(no-)shell-escape or --shell-restricted options")
 			options.shell_restricted = true
 		end,
@@ -705,7 +705,7 @@ local option_spec:{string:Option} = {
 		long = "jobname",
 		param = true,
 		allow_single_hyphen = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.jobname == nil, "multiple --jobname options")
 			if param is string then
 				options.jobname = param
@@ -718,7 +718,7 @@ local option_spec:{string:Option} = {
 		long = "fmt",
 		param = true,
 		allow_single_hyphen = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.fmt == nil, "multiple --fmt options")
 			if param is string then
 				options.fmt = param
@@ -731,7 +731,7 @@ local option_spec:{string:Option} = {
 		long = "output-directory",
 		param = true,
 		allow_single_hyphen = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.output_directory == nil, "multiple --output-directory options")
 			if param is string then
 				options.output_directory = param
@@ -744,7 +744,7 @@ local option_spec:{string:Option} = {
 		long = "output-format",
 		param = true,
 		allow_single_hyphen = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.output_format == nil, "multiple --output-format options")
 			assert(param == "pdf" or param == "dvi", "invalid argument for --output-format")
 			if param is string then
@@ -757,7 +757,7 @@ local option_spec:{string:Option} = {
 	tex_option = {
 		long = "tex-option",
 		param = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			if param is string then
 				options.tex_extraoptions = options.tex_extraoptions or {}
 				table.insert(options.tex_extraoptions, shellutil.escape(param))
@@ -769,7 +769,7 @@ local option_spec:{string:Option} = {
 	tex_options = {
 		long = "tex-options",
 		param = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			if param is string then
 				options.tex_extraoptions = options.tex_extraoptions or {}
 				table.insert(options.tex_extraoptions, param)
@@ -781,7 +781,7 @@ local option_spec:{string:Option} = {
 	dvipdfmx_option = {
 		long = "dvipdfmx-option",
 		param = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			if param is string then
 				options.dvipdfmx_extraoptions = options.dvipdfmx_extraoptions or {}
 				table.insert(options.dvipdfmx_extraoptions, shellutil.escape(param))
@@ -793,7 +793,7 @@ local option_spec:{string:Option} = {
 	dvipdfmx_options = {
 		long = "dvipdfmx-options",
 		param = true,
-		handle_cli = function(options:options.Options, param:string|boolean)
+		handle_cli = function(options:option_t.Options, param:string|boolean)
 			if param is string then
 				options.dvipdfmx_extraoptions = options.dvipdfmx_extraoptions or {}
 				table.insert(options.dvipdfmx_extraoptions, param)
