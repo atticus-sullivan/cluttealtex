@@ -326,6 +326,7 @@ local option_spec:{string:Option} = {
 	watch_only_path = {
 		long = "watch-only-path",
 		param = true,
+		no_cfg = true,
 		handle_cli = function(options:option_t.Options, param:string|boolean)
 			if param is string then
 				options.watch_inc_exc = options.watch_inc_exc or {}
@@ -338,6 +339,7 @@ local option_spec:{string:Option} = {
 	watch_not_path = {
 		long = "watch-not-path",
 		param = true,
+		no_cfg = true,
 		handle_cli = function(options:option_t.Options, param:string|boolean)
 			if param is string then
 				options.watch_inc_exc = options.watch_inc_exc or {}
@@ -350,6 +352,7 @@ local option_spec:{string:Option} = {
 	watch_only_ext = {
 		long = "watch-only-ext",
 		param = true,
+		no_cfg = true,
 		handle_cli = function(options:option_t.Options, param:string|boolean)
 			if param is string then
 				options.watch_inc_exc = options.watch_inc_exc or {}
@@ -362,6 +365,7 @@ local option_spec:{string:Option} = {
 	watch_not_ext = {
 		long = "watch-not-ext",
 		param = true,
+		no_cfg = true,
 		handle_cli = function(options:option_t.Options, param:string|boolean)
 			if param is string then
 				options.watch_inc_exc = options.watch_inc_exc or {}

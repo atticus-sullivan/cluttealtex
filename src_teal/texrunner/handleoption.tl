@@ -141,6 +141,10 @@ end
 local function handle_config_option(optname: string, opt: any, options: {string: any})
 	if option_spec[optname] then
 		local o = option_spec[optname]
+		if o.no_cfg then
+			message.error(("%s no valid option in config file"):format(optname))
+			exit(1)
+		end
 		if not o.accumulate then
 			-- If option doesn't accumulate, wrap it in an array for uniform processing
 			opt = {opt}
@@ -279,11 +283,16 @@ local function parse_command_line_options(arg: {string}): options.Options, integ
 		local optname:string       = option[1]
 		local param:string|boolean = option[2]
 		local o = assert(option_spec[optname], "invalid optname found")
-		if o.handle_cli then
-			-- Handle each option via the appropriate handler
-			o.handle_cli(options, param)
+		if not o.no_cli then
+			if o.handle_cli then
+				-- Handle each option via the appropriate handler
+				o.handle_cli(options, param)
+			else
+				message.error(("%s can only be set as a table via the config file"):format(optname))
+				exit(1)
+			end
 		else
-			message.error(("%s can only be set as a table via the config file"):format(optname))
+			message.error(("%s no valid option via cli"):format(optname))
 			exit(1)
 		end
 	end
