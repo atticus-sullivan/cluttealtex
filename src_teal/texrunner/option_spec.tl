@@ -464,6 +464,7 @@ local option_spec:{string:Option} = {
 	package_support = {
 		long = "package-support",
 		param = true,
+		accumulate = true,
 		handle_cli = function(options:option_t.Options, param:string|boolean)
 			local known_packages:{string:boolean} = {["minted"] = true, ["epstopdf"] = true}
 			if param is string then
