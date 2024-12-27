@@ -23,21 +23,15 @@ local string_gsub = string.gsub
 local os_execute = os.execute
 
 local function escape(s: string): string
-  return '"' .. string_gsub(string_gsub(s, '(\\*)"', '%1%1\\"'), '(\\+)$', '%1%1') .. '"'
+	return '"' .. string_gsub(string_gsub(s, '(\\*)"', '%1%1\\"'), '(\\+)$', '%1%1') .. '"'
 end
 
--- TEST CODE
-assert(escape([[Hello world!]]) == [["Hello world!"]])
-assert(escape([[Hello" world!]]) == [["Hello\" world!"]])
-assert(escape([[Hello\" world!"]]) == [["Hello\\\" world!\""]])
--- END TEST CODE
-
 local function has_command(name: string): boolean
-  local result = os_execute("where " .. escape(name) .. " > NUL 2>&1")
-  return result == 0
+	local result = os_execute("where " .. escape(name) .. " > NUL 2>&1")
+	return result == 0
 end
 
 return {
-  escape = escape,
-  has_command = has_command,
+	escape = escape,
+	has_command = has_command,
 }

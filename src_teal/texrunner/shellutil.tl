@@ -23,7 +23,7 @@
 local os = require "os_"
 
 if os.type == "windows" then
-  return require("texrunner.shellutil_windows")
+	return require("texrunner.shellutil_windows")
 else
-  return require("texrunner.shellutil_unix")
+	return require("texrunner.shellutil_unix")
 end

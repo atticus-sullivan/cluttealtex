@@ -113,8 +113,24 @@ local modules = {
 		path = "texrunner/option_type.lua",
 	},
 	{
+		name = "texrunner.tex_engine_t",
+		path = "texrunner/tex_engine_t.lua",
+	},
+	{
 		name = "texrunner.fswatcher",
 		path = "texrunner/fswatcher.lua",
+	},
+	{
+		name = "texrunner.typeset",
+		path = "texrunner/typeset.lua",
+	},
+	{
+		name = "texrunner.watcher",
+		path = "texrunner/watcher.lua",
+	},
+	{
+		name = "texrunner.utils",
+		path = "texrunner/utils.lua",
 	},
 }
 

@@ -18,154 +18,154 @@ You should have received a copy of the GNU General Public License
 along with CluttealTeX.  If not, see <http://www.gnu.org/licenses/>.
 ]]
 
-local record Option
-	short: string
-	long: string
-	param: boolean
-	allow_single_hyphen: boolean
-	default: string
-	boolean: boolean
-	accumulate: boolean
-	handle_cli: function({string:any}, string|boolean)
-	handle_cfg: function({string:any}, table)
+local exit: function(code:integer)
+global CLUTTEALTEX_TEST_ENV: boolean
+if CLUTTEALTEX_TEST_ENV then
+	exit = function(code) error("exited with exitcode "..tostring(code)) end
+else
+	exit = os.exit
 end
 
--- options_and_params, i = parseoption(arg, options)
--- options[i] = {short = "o", long = "option" [, param = true] [, boolean = true] [, allow_single_hyphen = false]}
--- options_and_params[j] = {"option", "value"}
--- arg[i], arg[i + 1], ..., arg[#arg] are non-options
-local function parseoption(arg:{string}, query_long_options:(function(string):Option,string,boolean), query_short_options:(function(string):Option,string,boolean)): {{string,string|boolean}},integer
-local i = 1
-	local option_and_params:{{string,string|boolean}} = {}
+local record Module
+	parseoption: function(arg:{string}, query_long_options:(function(string):Option,string,boolean), query_short_options:(function(string):Option,string,boolean)): {{string,string|boolean}},integer
+	_internal: internal
+	record internal
+		handle_option_param: function(option:Option, opt_name:string, no_opt:boolean, value:string|boolean, next_arg:string): {string,string|boolean},integer
+	end
+	record Option
+		short: string
+		long: string
+		param: boolean
+		allow_single_hyphen: boolean
+		default: string
+		boolean: boolean
+		accumulate: boolean
+		handle_cli: function({string:any}, string|boolean)
+		handle_cfg: function({string:any}, table)
+	end
+end
+
+-- Handles parsing an individual option, resolving its value if necessary
+-- @param option:Option - The option metadata
+-- @param opt_name:string - The resolved name of the option
+-- @param no_opt:boolean - Indicates whether this is a negated option (e.g., "--no-<option>")
+-- @param value:string|boolean - The value provided inline (if any)
+-- @param next_arg:string - The next argument in the CLI input, potentially the value
+-- @return {string, string|boolean}, integer - The parsed option and the number of additional arguments consumed
+local function handle_option_param(option:Module.Option, opt_name:string, no_opt:boolean, value:string|boolean, next_arg:string): {string,string|boolean},integer
+	local inc = 0
+	if option.param then
+		-- If the option requires a parameter, resolve its value
+		if not value then
+			value = next_arg -- Look at the next argument
+			if not value or value:sub(1, 1) == "-" then
+				-- next_arg can't be used as value
+				if option.default then
+					value = option.default
+				elseif option.boolean then
+					value = not no_opt
+				else
+					error("Missing parameter for option: " .. opt_name)
+				end
+			else
+				-- next_arg is used as value
+				inc = inc + 1
+			end
+		end
+		if option.boolean and not value is boolean then
+			-- Convert string values to boolean for boolean options
+			value = value == "true"
+		end
+		return { opt_name, value }, inc
+	else
+		-- If the option doesn't take a parameter, treat it as a flag
+		return { opt_name, not no_opt }, inc
+	end
+end
+
+-- Parses command-line arguments into options and their associated values
+-- @param arg:{string} - The list of command-line arguments
+-- @param query_long_options:function - Callback to query metadata for long options
+-- @param query_short_options:function - Callback to query metadata for short options
+-- @return {{string,string|boolean}}, integer - A list of parsed options and their values
+local function parseoption(arg:{string}, query_long_options:(function(string):Module.Option,string,boolean), query_short_options:(function(string):Module.Option,string,boolean)): {{string,string|boolean}},integer
+
+	-- Stores the parsed options
+	local options_and_params:{{string,string|boolean}} = {}
+	-- Index for iterating over arguments
+	local i = 1
+
 	while i <= #arg do
-		if arg[i] == "--" then
-			-- Stop handling options
-			i = i + 1
+		-- Current argument being processed
+		local current = arg[i]
+
+		if current == "--" then
+			-- "--" marks the end of options; subsequent arguments are not parsed
+			-- TODO i += 1 ?
 			break
-		elseif arg[i]:sub(1,2) == "--" then
-			-- two hypens
-			local param:string|boolean
-			local name:string
-			name,param = arg[i]:match("^([^=]+)=(.*)$", 3)
-			name = name or arg[i]:sub(3)
-			local opt, optname, no_opt = query_long_options(name)
-			if opt and opt.long then
-				-- option was found as long option with two hypens
-				if not no_opt then
-					-- option is "normal" (no 'no-' prefix)
-					-- check if option takes an argument
-					if opt.param then
-						if param then
-							-- --option=param
-						else
-							if opt.default ~= nil then
-								-- no param with space if option specifies a
-								-- default in order to avoid accidentally
-								-- consuming the next argument
-								param = opt.default
-							else
-								-- --option param
-								assert(i + 1 <= #arg, "argument missing after " .. arg[i] .. " option")
-								param = arg[i + 1]
-								i = i + 1
-							end
-						end
-					else
-						-- --option
-						param = true
-					end
-				elseif opt.boolean and no_opt then
-					-- --no-option
-					param = false
-				else
-					error("no- option can't have a value assigned to it")
-				end
-				table.insert(option_and_params, {optname, param})
-			else
-				-- Unknown long option
-				error("unknown long option: " .. arg[i])
+		elseif current:sub(1, 2) == "--" then
+			-- Handles long options (e.g., --option or --option=value)
+			local option_name, value:string,string|boolean = current:match("^([^=]+)=(.*)$", 3)
+			-- Extract the option name
+			option_name = option_name or current:sub(3)
+
+			local option, opt_name, no_opt = query_long_options(option_name)
+			if not option then
+				error("Unknown option: " .. option_name)
 			end
 
-		elseif arg[i]:sub(1,1) == "-" then
-			-- one hypen
-			local param:string|boolean
-			local name:string
-			name,param = arg[i]:match("^([^=]+)=(.*)$", 2)
-			name = name or arg[i]:sub(2)
-			local opt, optname, no_opt = query_long_options(name)
-			if opt and opt.long and opt.allow_single_hyphen then
-				if not no_opt then
-					if opt.param then
-						if param then
-							-- -option=param
-						else
-							if opt.default ~= nil then
-								-- no param with space if option specifies a
-								-- default in order to avoid accidentally
-								-- consuming the next argument
-								param = opt.default
-							else
-								-- -option param
-								assert(i + 1 <= #arg, "argument missing after " .. arg[i] .. " option")
-								param = arg[i + 1]
-								i = i + 1
-							end
-						end
-					else
-						-- -option
-						param = true
-					end
-				elseif opt.boolean and no_opt then
-					-- -no-option
-					param = false
-				else
-					error("no- option can't have a value assigned to it")
+			-- Delegate parsing of the option's parameter/value
+			local o, inc = handle_option_param(option, opt_name, no_opt, value, arg[i+1])
+			-- Add the parsed option
+			table.insert(options_and_params, o)
+			-- Advance index by consumed arguments
+			i = i + 1 + inc
+
+		elseif current:sub(1, 1) == "-" then
+			-- Handles short options or single-hyphen long options
+			local option_name, value:string,string|boolean = current:match("^([^=]+)=(.*)$", 2)
+			-- Extract the option name
+			option_name = option_name or current:sub(2)
+
+			local option, opt_name, no_opt:Module.Option, string, boolean
+
+			if #option_name == 1 then
+				-- Query as a short option
+				option, opt_name, no_opt = query_short_options(option_name)
+				if not option then
+					error("Unknown option: " .. option_name)
 				end
-			elseif opt and opt.long and #name >= 2 then
-				error("You must supply two hyphens (i.e. --" .. name .. ") for long option")
+			else
+				-- Query as a single-hyphen long option
+				option, opt_name, no_opt = query_long_options(option_name)
+				if not option or not option.allow_single_hyphen then
+					error("Unknown option: " .. option_name)
+				end
 			end
 
-			-- parse as short option if not able to parse as long option with one hypen
-			if opt == nil then
-				-- Short option
-				name = arg[i]:sub(2,2)
-				opt, optname = query_short_options(name)
-				if opt and opt.short then
-					-- option was found as short option
-					if opt.param then
-						if #arg[i] > 2 then
-							-- -oparam
-							param = arg[i]:sub(3)
-						else
-						-- passing arguments separated with space is common with short options
-						-- -> no default here TODO not a nice consistent behavior
-							-- -o param
-							assert(i + 1 <= #arg, "argument missing after " .. arg[i] .. " option")
-							param = arg[i + 1]
-							i = i + 1
-						end
-					else
-						-- -o
-						assert(#arg[i] == 2, "combining multiple short options like -abc is not supported")
-						param = true
-					end
-				end
-			end
-			if opt then
-				table.insert(option_and_params, {optname, param})
-			else
-				error("unknown short option: " .. arg[i])
-			end
+			-- Delegate parsing of the option's parameter/value
+			local o, inc = handle_option_param(option, opt_name, no_opt, value, arg[i+1])
+			-- Add the parsed option
+			table.insert(options_and_params, o)
+			-- Advance index by consumed arguments
+			i = i + 1 + inc
+
 		else
-			-- arg[i] is not an option
+			-- Non-option argument, skip
 			break
 		end
-		i = i + 1
 	end
-	return option_and_params, i
+
+	-- Return the parsed options
+	return options_and_params, i
 end
 
-return {
+local _M:Module = {
 	parseoption = parseoption,
-	Option      = Option,
 }
+if CLUTTEALTEX_TEST_ENV then
+	_M._internal = {
+		handle_option_param = handle_option_param,
+	}
+end
+return _M

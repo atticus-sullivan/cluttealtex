@@ -2,7 +2,7 @@
 
 FD ?= fd
 
-all: build doc install
+all: build test doc install
 
 build: checkAll
 	@cyan version
@@ -20,6 +20,9 @@ clean:
 
 doc:
 	l3build doc
+
+test: build
+	LUA_PATH="./src_lua/?.lua;$$LUA_PATH" texlua specs/init.lua
 
 install: build
 	l3build install --full

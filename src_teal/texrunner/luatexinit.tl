@@ -1,6 +1,6 @@
-local option_t = require"texrunner.tex_engine"
+local engine = require"texrunner.tex_engine_t"
 
-local function create_initialization_script(filename:string, options:option_t.Option)
+local function create_initialization_script(filename:string, options:engine.Option)
 	local initscript = assert(io.open(filename,"w"))
 	if type(options.file_line_error) == "boolean" then
 		initscript:write(string.format("texconfig.file_line_error = %s\n", options.file_line_error))
@@ -24,90 +24,90 @@ local texio_write_nl = texio.write_nl
 	initscript:write([==[
 local luawritelog
 local function openluawritelog()
-  if not luawritelog then
-    luawritelog = assert(io_open(output_directory .. "/" .. jobname .. ".cluttealtex-fls", "w"))
-  end
-  return luawritelog
+	if not luawritelog then
+		luawritelog = assert(io_open(output_directory .. "/" .. jobname .. ".cluttealtex-fls", "w"))
+	end
+	return luawritelog
 end
 io.open = function(fname, mode)
-  -- luatexja-ruby
-  if mode == "w" and fname == jobname .. ".ltjruby" then
-	fname = output_directory .. "/" .. fname
-  end
-  if type(mode) == "string" and string.find(mode, "w") ~= nil then
-	-- write mode
-	openluawritelog():write("OUTPUT " .. fname .. "\n")
-  end
-  return io_open(fname, mode)
+	-- luatexja-ruby
+	if mode == "w" and fname == jobname .. ".ltjruby" then
+		fname = output_directory .. "/" .. fname
+	end
+	if type(mode) == "string" and string.find(mode, "w") ~= nil then
+		-- write mode
+		openluawritelog():write("OUTPUT " .. fname .. "\n")
+	end
+	return io_open(fname, mode)
 end
 os.execute = function(...)
-  texio_write_nl("log", string.format("CLUTTEALTEX_EXEC %s", ...), "")
-  return os_execute(...)
+	texio_write_nl("log", string.format("CLUTTEALTEX_EXEC %s", ...), "")
+	return os_execute(...)
 end
 ]==])
 
 	-- Silence some of the TeX output to the terminal.
 	initscript:write([==[
 local function start_file_cb(category, filename)
-  if category == 1 then -- a normal data file, like a TeX source
-	texio_write_nl("log", "("..filename)
-  elseif category == 2 then -- a font map coupling font names to resources
-	texio_write("log", "{"..filename)
-  elseif category == 3 then -- an image file (png, pdf, etc)
-	texio_write("<"..filename)
-  elseif category == 4 then -- an embedded font subset
-	texio_write("<"..filename)
-  elseif category == 5 then -- a fully embedded font
-	texio_write("<<"..filename)
-  else
-	print("start_file: unknown category", category, filename)
-  end
+	if category == 1 then -- a normal data file, like a TeX source
+		texio_write_nl("log", "("..filename)
+	elseif category == 2 then -- a font map coupling font names to resources
+		texio_write("log", "{"..filename)
+	elseif category == 3 then -- an image file (png, pdf, etc)
+		texio_write("<"..filename)
+	elseif category == 4 then -- an embedded font subset
+		texio_write("<"..filename)
+	elseif category == 5 then -- a fully embedded font
+		texio_write("<<"..filename)
+	else
+		print("start_file: unknown category", category, filename)
+	end
 end
 callback.register("start_file", start_file_cb)
 local function stop_file_cb(category)
-  if category == 1 then
-	texio_write("log", ")")
-  elseif category == 2 then
-	texio_write("log", "}")
-  elseif category == 3 then
-	texio_write(">")
-  elseif category == 4 then
-	texio_write(">")
-  elseif category == 5 then
-	texio_write(">>")
-  else
-	print("stop_file: unknown category", category)
-  end
+	if category == 1 then
+		texio_write("log", ")")
+	elseif category == 2 then
+		texio_write("log", "}")
+	elseif category == 3 then
+		texio_write(">")
+	elseif category == 4 then
+		texio_write(">")
+	elseif category == 5 then
+		texio_write(">>")
+	else
+		print("stop_file: unknown category", category)
+	end
 end
 callback.register("stop_file", stop_file_cb)
 texio.write = function(...)
-  if select("#",...) == 1 then
-	-- Suppress luaotfload's message (See src/fontloader/runtime/fontload-reference.lua)
-	local s = ...
-	if string.match(s, "^%(using cache: ")
-	   or string.match(s, "^%(using write cache: ")
-	   or string.match(s, "^%(using read cache: ")
-	   or string.match(s, "^%(load luc: ")
-	   or string.match(s, "^%(load cache: ") then
-	  return texio_write("log", ...)
+	if select("#",...) == 1 then
+		-- Suppress luaotfload's message (See src/fontloader/runtime/fontload-reference.lua)
+		local s = ...
+		if string.match(s, "^%(using cache: ")
+			or string.match(s, "^%(using write cache: ")
+			or string.match(s, "^%(using read cache: ")
+			or string.match(s, "^%(load luc: ")
+			or string.match(s, "^%(load cache: ") then
+			return texio_write("log", ...)
+		end
 	end
-  end
-  return texio_write(...)
+	return texio_write(...)
 end
 ]==])
 
 	-- Fix "arg" to make luamplib work
 	initscript:write([==[
 if string.match(arg[0], "^%-%-lua=") then
-  local minindex = 0
-  while arg[minindex - 1] ~= nil do
-	minindex = minindex - 1
-  end
-  local arg2 = {}
-  for i = 0, #arg - minindex do
-	arg2[i] = arg[i + minindex]
-  end
-  arg = arg2
+	local minindex = 0
+	while arg[minindex - 1] ~= nil do
+		minindex = minindex - 1
+	end
+	local arg2 = {}
+	for i = 0, #arg - minindex do
+		arg2[i] = arg[i + minindex]
+	end
+	arg = arg2
 end
 ]==])
 	initscript:close()
