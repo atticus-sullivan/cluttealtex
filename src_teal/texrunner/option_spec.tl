@@ -375,6 +375,19 @@ local option_spec:{string:Option} = {
 			end
 		end,
 	},
+	watch_inc_exc = {
+		no_cli = true,
+		accumulate = true,
+		handle_cfg = function(options:option_t.Options, param: {any})
+			for _,i in ipairs(param) do
+				if i is option_t.WatchIncExc then
+					if i.type and i.param and (i.type == "not_ext" or i.type == "only_ext" or i.type == "not_path" or i.type == "only_path") then
+						table.insert(options.watch_inc_exc, i)
+					end
+				end
+			end
+		end
+	},
 	help = {
 		short = "h",
 		long = "help",
