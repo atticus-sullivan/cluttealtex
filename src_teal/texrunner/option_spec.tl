@@ -175,7 +175,7 @@ Options:
       --biber[=COMMAND+OPTIONs]     Command for Biber.
       --sagetex[=COMMAND+OPTIONS]   Command for sagetex
       --memoize[=python/perl/path]  Command which shall be used for memoize
-      --memoize_opt=PACKAGE_OPT     Additional package option for memoize
+      --memoize-opt=PACKAGE_OPT     Additional package option for memoize
       --glossaries=[CONFIGURATION]  Configuration can contain
                                     "type:outputFile:inputFile:logFile:pathToCommand:commandArgs" (":" can be escaped with "\").
                                     Only the outputFile and either type or pathToCommand
@@ -604,7 +604,7 @@ local option_spec:{string:Option} = {
 		end,
 	},
 	memoize_opt = {
-		long = "memoize_opt", -- TODO should be memoize-opt on commandline probably, but is breaking
+		long = "memoize-opt",
 		param = true,
 		handle_cli = function(options:options.Options, param:string|boolean)
 			if param is string then
