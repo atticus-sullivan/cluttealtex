@@ -28,7 +28,7 @@ end
 
 local function has_command(name: string): boolean
 	local result = os_execute("where " .. escape(name) .. " > NUL 2>&1")
-	return result
+	return result == 0
 end
 
 return {

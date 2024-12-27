@@ -55,7 +55,7 @@ end
 
 local function has_command(name: string): boolean
 	local result = os_execute("which " .. escape(name) .. " > /dev/null")
-	return result
+	return result == 0
 end
 
 return {
