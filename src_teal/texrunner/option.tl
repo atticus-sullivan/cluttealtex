@@ -33,15 +33,17 @@ local record Module
 		handle_option_param: function(option:Option, opt_name:string, no_opt:boolean, value:string|boolean, next_arg:string): {string,string|boolean},integer
 	end
 	record Option
-		short: string
-		long: string
-		param: boolean
+		short:               string
+		long:                string
+		param:               boolean
 		allow_single_hyphen: boolean
-		default: string
-		boolean: boolean
-		accumulate: boolean
-		handle_cli: function({string:any}, string|boolean)
-		handle_cfg: function({string:any}, table)
+		default:             string
+		boolean:             boolean
+		accumulate:          boolean
+		handle_cli:          function({string:any}, string|boolean)
+		handle_cfg:          function({string:any}, table)
+		no_cli:              boolean
+		no_cfg:              boolean
 	end
 end
 
