@@ -103,7 +103,7 @@ local function single_run_coroutine(args: Module.typesetArgs): boolean|string
 		args.auxstatus = {}
 	end
 
-	local tex_injection = ""
+	local tex_injection = args.tex_options.tex_injection or ""
 
 	if args.options.includeonly then
 		tex_injection = string.format("%s\\includeonly{%s}", args.tex_options.tex_injection or "", args.options.includeonly)
