@@ -105,8 +105,26 @@ local function single_run_coroutine(args: Module.typesetArgs): boolean|string
 
 	local tex_injection = args.tex_options.tex_injection or ""
 
-	if args.options.includeonly then
-		tex_injection = string.format("%s\\includeonly{%s}", args.tex_options.tex_injection or "", args.options.includeonly)
+	-- collect hook priorities
+	local hook_prios = {}
+	for prio in pairs(args.options.hooks.tex_injection) do
+		table.insert(hook_prios, prio)
+	end
+	-- sort the priorities in order to execute them in the right order
+	table.sort(hook_prios)
+	for _,prio in ipairs(hook_prios) do
+		local h = args.options.hooks.tex_injection[prio]
+		-- check if hook is valid
+		if not h or not h[1] or not h[2] then
+			message.error("Malformed hook: h[1]: ", h[1], " h[2]: ", h[2])
+			exit(1)
+		else
+			-- execute hook
+			if CLUTTEALTEX_VERBOSITY >= 1 then
+				message.info("Executing tex_injection hook '", h[2], "'")
+			end
+			tex_injection = h[1](args.options, tex_injection)
+		end
 	end
 
 	if minted or args.options.package_support["minted"] then

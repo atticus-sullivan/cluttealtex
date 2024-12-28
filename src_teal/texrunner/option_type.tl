@@ -37,25 +37,68 @@ local record Module
 		memoize_opts: {string}
 		extraoptions: {string}
 		quiet: integer
+
+		hooks: Hooks
 	end
 	record WatchIncExc
 		type: string
 		param: string
 	end
 	record Glos
-		type: string -- only used for splitting and cmd building
-		out: string -- used during compilation
-		inp: string -- used during compilation
-		log: string -- only used for splitting and cmd building
-		path: string -- only used for splitting and cmd building
-
+		-- only used for splitting and cmd building
+		type: string
+		log: string
+		path: string
+		-- used during compilation
+		out: string
+		inp: string
 		-- used during compilation
 		-- takes the name of the inputfile as an argument and returns the
 		-- formatted command
 		cmd: function(function(string):string): string
 	end
 
+	-- hooks are always associated with a priority and a descriptive string
+	-- a low number means a high priority -> is executed first
+	record Hooks
+		-- hooks used to inject code into the *TeX input
+		-- hooks need to return the new tex_injection string (usually they should only prepend/append)
+		tex_injection: {number: {(function(options:Options, tex_injection: string): string), string}}
+
+		-- hooks which are run before/after every *TeX invocation
+		pre_compile: {number: function}
+		post_compile: {number: function}
+
+		-- hooks which are run before/after every the whole build procedure
+		-- (potentially includes multiple invocations to *TeX and other tools
+		-- like makeindex or biber
+		pre_build: {number: function}
+		post_build: {number: function}
+	end
+
+	-- stores the allocated priorities
+	hook_prios: HookPrios
+	record HookPrios
+		tex_injection: {string: integer}
+	end
+	init_hooks: function(): Hooks
 end
 
-local _M: Module = {}
+local _M: Module = {
+	hook_prios = {
+		tex_injection = {
+			includeonly     = 1,
+			package_support = 2,
+			memoize         = 3,
+			quiet           = 4,
+		}
+	},
+	init_hooks = function():Module.Hooks return {
+		tex_injection = {},
+		pre_compile   = {},
+		post_compile  = {},
+		pre_build     = {},
+		post_build    = {},
+	} end
+}
 return _M

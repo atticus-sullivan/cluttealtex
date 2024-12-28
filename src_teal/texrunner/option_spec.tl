@@ -16,11 +16,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ]]
 
-local Option    = require "texrunner.option".Option
-local shellutil = require "texrunner.shellutil"
-local option_t  = require"texrunner.option_type"
-local pathutil  = require "texrunner.pathutil"
-local message   = require "texrunner.message"
+local Option        = require "texrunner.option".Option
+local shellutil     = require "texrunner.shellutil"
+local option_t      = require"texrunner.option_type"
+local pathutil      = require "texrunner.pathutil"
+local message       = require "texrunner.message"
+local typeset_hooks = require "texrunner.typeset_hooks"
 
 global CLUTTEALTEX_VERSION:string
 
@@ -433,6 +434,8 @@ local option_spec:{string:Option} = {
 			assert(options.includeonly == nil, "multiple --includeonly options")
 			if param is string then
 				options.includeonly = param
+				options.hooks = options.hooks or option_t.init_hooks()
+				options.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.includeonly)] = {typeset_hooks.includeonly, "includeonly"}
 			else
 				error("invalid param type")
 			end

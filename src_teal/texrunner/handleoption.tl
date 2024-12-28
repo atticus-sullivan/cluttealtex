@@ -350,16 +350,19 @@ end
 local function handle_cluttealtex_options(arg: {string}): string, TexEngine.Engine, options.Options
 	-- Define default options
 	local default_options:options.Options = {
-			tex_extraoptions = {},
+			-- important default values because these options need to be tables
+			-- (otherwise iterating over them fails)
+			tex_extraoptions      = {},
 			dvipdfmx_extraoptions = {},
-			package_support = {},
+			package_support       = {},
+			hooks                 = options.init_hooks(),
 			-- ordinary default values
-			max_iterations = 3,
-			skip_first = false,
-			interaction = "nonstopmode",
-			file_line_error = true,
-			halt_on_error = true,
-			output_format = "pdf",
+			max_iterations        = 3,
+			skip_first            = false,
+			interaction           = "nonstopmode",
+			file_line_error       = true,
+			halt_on_error         = true,
+			output_format         = "pdf",
 	}
 
 	-- Parse configuration and command-line options
