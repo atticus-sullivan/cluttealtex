@@ -26,7 +26,7 @@ local os                           = require"os_"
 local pathutil                     = require "texrunner.pathutil"
 local checkdriver                  = require "texrunner.checkdriver".checkdriver
 local shellutil                    = require "texrunner.shellutil"
-local options                      = require "texrunner.option_type"
+local options                      = require "texrunner.option_type" -- legacy import
 local message                      = require "texrunner.message"
 local reruncheck                   = require "texrunner.reruncheck"
 local fsutil                       = require "texrunner.fsutil"
@@ -34,6 +34,8 @@ local engine_t                     = require "texrunner.tex_engine"
 local extract_bibtex_from_aux_file = require "texrunner.auxfile".extract_bibtex_from_aux_file
 local safename                     = require "texrunner.safename"
 local recoverylib                  = require "texrunner.recovery"
+
+local option_t                     = require "texrunner.option_type"
 
 local exit: function(code:integer)
 global CLUTTEALTEX_TEST_ENV: boolean
@@ -58,6 +60,37 @@ local record Module
 		tex_options:engine_t.Option
 		original_wd: string
 	end
+end
+
+local function hooks_sort_prios(hook_table: {number: {function, string}}): {number}
+	local priorities = {}
+	for prio in pairs(hook_table) do
+		table.insert(priorities, prio)
+	end
+	table.sort(priorities)
+	return priorities
+end
+
+local function hooks_validate(hook: {function, string}): boolean, string
+	if not hook or not hook[1] or not hook[2] then
+		return false, "Malformed hook"
+	end
+	return true, nil
+end
+
+-- returns the new tex_injection string
+local function hooks_apply_tex_injection(hooks: {number: {(function(option_t.Options, string):string), string}}, options: option_t.Options, tex_injection:string): string
+	local sorted_prios = hooks_sort_prios(hooks as {number: {function, string}})
+	local result = tex_injection
+	for _, prio in ipairs(sorted_prios) do
+		local hook = hooks[prio]
+		local valid, err = hooks_validate(hook)
+		if not valid then
+			error("Invalid hook: " .. err)
+		end
+		result = hook[1](options, result)
+	end
+	return result
 end
 
 -- Run TeX command (*tex, *latex)
@@ -105,27 +138,8 @@ local function single_run_coroutine(args: Module.typesetArgs): boolean|string
 
 	local tex_injection = args.tex_options.tex_injection or ""
 
-	-- collect hook priorities
-	local hook_prios = {}
-	for prio in pairs(args.options.hooks.tex_injection) do
-		table.insert(hook_prios, prio)
-	end
-	-- sort the priorities in order to execute them in the right order
-	table.sort(hook_prios)
-	for _,prio in ipairs(hook_prios) do
-		local h = args.options.hooks.tex_injection[prio]
-		-- check if hook is valid
-		if not h or not h[1] or not h[2] then
-			message.error("Malformed hook: h[1]: ", h[1], " h[2]: ", h[2])
-			exit(1)
-		else
-			-- execute hook
-			if CLUTTEALTEX_VERBOSITY >= 1 then
-				message.info("Executing tex_injection hook '", h[2], "'")
-			end
-			tex_injection = h[1](args.options, tex_injection)
-		end
-	end
+	-- run tex_injection hooks
+	tex_injection = hooks_apply_tex_injection(args.options.hooks.tex_injection, args.options, tex_injection)
 
 	if minted or args.options.package_support["minted"] then
 		local outdir = args.options.output_directory
