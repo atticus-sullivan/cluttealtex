@@ -90,6 +90,9 @@ local function hooks_apply_tex_injection(hooks: {number: {(function(option_t.Opt
 			error("Invalid hook: " .. err)
 		end
 		result = hook[1](options, result)
+		 if CLUTTEALTEX_VERBOSITY >= 1 then
+			message.info("Executing tex_injection hook '", hook[2], "'")
+		end
 	end
 	return result
 end

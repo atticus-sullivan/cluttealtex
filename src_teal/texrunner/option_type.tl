@@ -73,7 +73,7 @@ local record Module
 
 		-- hooks which are run before/after every the whole build procedure
 		-- (potentially includes multiple invocations to *TeX and other tools
-		-- like makeindex or biber
+		-- like makeindex or biber)
 		pre_build: {number: function}
 		post_build: {number: function}
 	end
