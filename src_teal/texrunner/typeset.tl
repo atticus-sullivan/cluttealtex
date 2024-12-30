@@ -72,7 +72,7 @@ local function hooks_sort_prios(hook_table: {number: {function, string}}): {numb
 	return priorities
 end
 
-local function hooks_validate(hook: {function, string}): boolean, string
+local function hooks_validate(hook: {function, string, boolean}): boolean, string
 	if not hook or not hook[1] or not hook[2] then
 		return false, "Malformed hook"
 	end
@@ -97,11 +97,33 @@ local function hooks_apply_tex_injection(hooks: {number: {(function(option_t.Opt
 	return result
 end
 
+local function hooks_apply_suggestion_file_based(hooks: {number: {(function(common_t.Filemap_ele):boolean), string, boolean}}, filelist:{common_t.Filemap_ele})
+	local sorted_prios = hooks_sort_prios(hooks as {number: {function, string}})
+	-- check if all hooks are valid
+	for _, prio in ipairs(sorted_prios) do
+		local hook = hooks[prio]
+		local valid, err = hooks_validate(hook)
+		if not valid then
+			error("Invalid hook: " .. err)
+		end
+	end
+
+	-- run hooks on files contained in the filelist and emit messages
+	for _,fileinfo in ipairs(filelist) do
+		for _, prio in ipairs(sorted_prios) do
+			local hook = hooks[prio]
+			if not hook[3] and hook[1](fileinfo) then
+				message.diag(hook[2])
+				hook[3] = true
+			end
+		end
+	end
+end
+
 -- Run TeX command (*tex, *latex)
 -- should_rerun, newauxstatus = single_run([auxstatus])
 -- This function should be run in a coroutine.
 local function single_run_coroutine(args: Module.typesetArgs): boolean|string
-	local minted, epstopdf = false, false
 	local bibtex_aux_hash:string = nil
 	local mainauxfile = args.path_in_output_directory("aux")
 	if fsutil.isfile(args.recorderfile) then
@@ -111,14 +133,10 @@ local function single_run_coroutine(args: Module.typesetArgs): boolean|string
 			filelist, filemap = reruncheck.parse_recorder_file(args.recorderfile2, args.options, filelist, filemap)
 		end
 		args.auxstatus = reruncheck.collectfileinfo(filelist, args.auxstatus)
-		for _,fileinfo in ipairs(filelist) do
-			if string.match(fileinfo.path, "minted/minted%.sty$") then
-				minted = true
-			end
-			if string.match(fileinfo.path, "epstopdf%.sty$") then
-				epstopdf = true
-			end
-		end
+
+		-- emits suggestsions to the user which options might be usefull
+		hooks_apply_suggestion_file_based(args.options.hooks.suggestion_file_based, filelist)
+
 		if args.options.bibtex then
 			local biblines = extract_bibtex_from_aux_file(mainauxfile, args.options.output_directory)
 			if #biblines > 0 then
@@ -145,29 +163,6 @@ local function single_run_coroutine(args: Module.typesetArgs): boolean|string
 	-- run tex_injection hooks
 	tex_injection = hooks_apply_tex_injection(args.options.hooks.tex_injection, args.options, tex_injection)
 
-	if minted or args.options.package_support["minted"] then
-		local outdir = args.options.output_directory
-		if os.type == "windows" then
-			outdir = string.gsub(outdir, "\\", "/") -- Use forward slashes
-		end
-		tex_injection = string.format("%s\\PassOptionsToPackage{outputdir=%s}{minted}", tex_injection or "", outdir)
-		if not args.options.package_support["minted"] then
-			message.diag("You may want to use --package-support=minted option.")
-		end
-	end
-	if epstopdf or args.options.package_support["epstopdf"] then
-		local outdir = args.options.output_directory
-		if os.type == "windows" then
-			outdir = string.gsub(outdir, "\\", "/") -- Use forward slashes
-		end
-		if string.sub(outdir, -1, -1) ~= "/" then
-			outdir = outdir.."/" -- Must end with a directory separator
-		end
-		tex_injection = string.format("%s\\PassOptionsToPackage{outdir=%s}{epstopdf}", tex_injection or "", outdir)
-		if not args.options.package_support["epstopdf"] then
-			message.diag("You may want to use --package-support=epstopdf option.")
-		end
-	end
 	if args.options.memoize then
 		tex_injection = string.format("%s\\PassOptionsToPackage{no memo dir,extract=no}{memoize}", tex_injection or "")
 	end

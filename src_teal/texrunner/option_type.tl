@@ -76,12 +76,20 @@ local record Module
 		-- like makeindex or biber)
 		pre_build: {number: function}
 		post_build: {number: function}
+
+		-- hooks which run when a recorder file is being parsed before running
+		-- *TeX in order to suggest some options based on the files from the
+		-- filelist
+		-- the third value in the tuple is used to store if the message (second
+		-- value in the tuple) has already been shown to the user
+		suggestion_file_based: {number: {(function(common_t.Filemap_ele):boolean), string, boolean}}
 	end
 
 	-- stores the allocated priorities
 	hook_prios: HookPrios
 	record HookPrios
-		tex_injection: {string: integer}
+		tex_injection:         {string: integer}
+		suggestion_file_based: {string: integer}
 	end
 	init_hooks: function(): Hooks
 end
@@ -93,14 +101,18 @@ local _M: Module = {
 			package_support = 2,
 			memoize         = 3,
 			quiet           = 4,
-		}
+		},
+		suggestion_file_based = {
+			package_support = 2,
+		},
 	},
 	init_hooks = function():Module.Hooks return {
-		tex_injection = {},
-		pre_compile   = {},
-		post_compile  = {},
-		pre_build     = {},
-		post_build    = {},
+		tex_injection         = {},
+		pre_compile           = {},
+		post_compile          = {},
+		pre_build             = {},
+		post_build            = {},
+		suggestion_file_based = {},
 	} end
 }
 return _M
