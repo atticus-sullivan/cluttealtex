@@ -163,12 +163,6 @@ local function single_run_coroutine(args: Module.typesetArgs): boolean|string
 	-- run tex_injection hooks
 	tex_injection = hooks_apply_tex_injection(args.options.hooks.tex_injection, args.options, tex_injection)
 
-	if args.options.memoize then
-		tex_injection = string.format("%s\\PassOptionsToPackage{no memo dir,extract=no}{memoize}", tex_injection or "")
-	end
-	if args.options.memoize_opts then
-		tex_injection = string.format("%s\\PassOptionsToPackage{%s}{memoize}", tex_injection or "", table.concat(args.options.memoize_opts, ","))
-	end
 	if args.options.quiet then
 		if args.options.quiet >= 1 then
 			tex_injection = string.format("%s\\AddToHook{begindocument/end}[quietX]{\\hbadness=99999 \\hfuzz=9999pt}", tex_injection or "")

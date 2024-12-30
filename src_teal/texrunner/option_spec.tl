@@ -646,6 +646,8 @@ local option_spec:{string:Option} = {
 				else
 					options.memoize = param
 				end
+				options.hooks = options.hooks or option_t.init_hooks()
+				options.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.memoize+0.1)] = {typeset_hooks.memoize, "memoize"}
 			else
 				error("invalid param type")
 			end
@@ -658,6 +660,8 @@ local option_spec:{string:Option} = {
 			if param is string then
 				options.memoize_opts = options.memoize_opts or {}
 				table.insert(options.memoize_opts, param)
+				options.hooks = options.hooks or option_t.init_hooks()
+				options.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.memoize-0.2)] = {typeset_hooks.memoize_opts, "memoize_opts"}
 			else
 				error("invalid param type")
 			end
