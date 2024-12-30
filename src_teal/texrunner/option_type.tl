@@ -1,4 +1,5 @@
 local common_t = require"texrunner.common_types"
+local engine_t = require"texrunner.tex_engine"
 
 local record Module
 	record Options
@@ -65,7 +66,7 @@ local record Module
 	record Hooks
 		-- hooks used to inject code into the *TeX input
 		-- hooks need to return the new tex_injection string (usually they should only prepend/append)
-		tex_injection: {number: {(function(options:Options, tex_injection: string): string), string}}
+		tex_injection: {number: {(function(options:Options, engine_t.Option, tex_injection: string): string), string}}
 
 		-- hooks which are run before/after every *TeX invocation
 		pre_compile: {number: function}

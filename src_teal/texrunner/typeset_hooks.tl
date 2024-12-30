@@ -21,20 +21,21 @@ along with CluttealTeX.  If not, see <http://www.gnu.org/licenses/>.
 local os = require"os_"
 
 local option_t = require "texrunner.option_type"
+local engine_t = require "texrunner.tex_engine"
 
-local function includeonly(options:option_t.Options, tex_injection: string): string
+local function includeonly(options:option_t.Options, tex_options:engine_t.Option, tex_injection: string): string
 	return string.format("%s\\includeonly{%s}", tex_injection or "", options.includeonly)
 end
 
-local function memoize(options:option_t.Options, tex_injection: string): string
+local function memoize(options:option_t.Options, tex_options:engine_t.Option, tex_injection: string): string
 	return string.format("%s\\PassOptionsToPackage{no memo dir,extract=no}{memoize}", tex_injection or "")
 end
 
-local function memoize_opts(options:option_t.Options, tex_injection: string): string
+local function memoize_opts(options:option_t.Options, tex_options:engine_t.Option, tex_injection: string): string
 	return string.format("%s\\PassOptionsToPackage{%s}{memoize}", tex_injection or "", table.concat(options.memoize_opts, ","))
 end
 
-local function ps_minted(options:option_t.Options, tex_injection: string): string
+local function ps_minted(options:option_t.Options, tex_options:engine_t.Option, tex_injection: string): string
 	local outdir = options.output_directory
 	if os.type == "windows" then
 		outdir = string.gsub(outdir, "\\", "/") -- Use forward slashes
@@ -43,7 +44,7 @@ local function ps_minted(options:option_t.Options, tex_injection: string): strin
 	return string.format("%s\\PassOptionsToPackage{outputdir=%s}{minted}", tex_injection or "", outdir)
 end
 
-local function ps_epstopdf(options:option_t.Options, tex_injection: string): string
+local function ps_epstopdf(options:option_t.Options, tex_options:engine_t.Option, tex_injection: string): string
 	local outdir = options.output_directory
 	if os.type == "windows" then
 		outdir = string.gsub(outdir, "\\", "/") -- Use forward slashes

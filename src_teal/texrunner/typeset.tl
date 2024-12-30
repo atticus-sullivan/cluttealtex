@@ -80,7 +80,7 @@ local function hooks_validate(hook: {function, string, boolean}): boolean, strin
 end
 
 -- returns the new tex_injection string
-local function hooks_apply_tex_injection(hooks: {number: {(function(option_t.Options, string):string), string}}, options: option_t.Options, tex_injection:string): string
+local function hooks_apply_tex_injection(hooks: {number: {(function(option_t.Options, engine_t.Option, string):string), string}}, options: option_t.Options, tex_options: engine_t.Option, tex_injection:string): string
 	local sorted_prios = hooks_sort_prios(hooks as {number: {function, string}})
 	local result = tex_injection
 	for _, prio in ipairs(sorted_prios) do
@@ -89,7 +89,7 @@ local function hooks_apply_tex_injection(hooks: {number: {(function(option_t.Opt
 		if not valid then
 			error("Invalid hook: " .. err)
 		end
-		result = hook[1](options, result)
+		result = hook[1](options, tex_options, result)
 		 if CLUTTEALTEX_VERBOSITY >= 1 then
 			message.info("Executing tex_injection hook '", hook[2], "'")
 		end
@@ -161,7 +161,7 @@ local function single_run_coroutine(args: Module.typesetArgs): boolean|string
 	local tex_injection = args.tex_options.tex_injection or ""
 
 	-- run tex_injection hooks
-	tex_injection = hooks_apply_tex_injection(args.options.hooks.tex_injection, args.options, tex_injection)
+	tex_injection = hooks_apply_tex_injection(args.options.hooks.tex_injection, args.options, args.tex_options, tex_injection)
 
 	if args.options.quiet then
 		if args.options.quiet >= 1 then
