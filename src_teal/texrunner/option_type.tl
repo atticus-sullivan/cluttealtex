@@ -1,3 +1,5 @@
+local common_t = require"texrunner.common_types"
+
 local record Module
 	record Options
 		biber: string

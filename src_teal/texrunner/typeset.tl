@@ -36,6 +36,7 @@ local safename                     = require "texrunner.safename"
 local recoverylib                  = require "texrunner.recovery"
 
 local option_t                     = require "texrunner.option_type"
+local common_t                     = require "texrunner.common_types"
 
 local exit: function(code:integer)
 global CLUTTEALTEX_TEST_ENV: boolean
@@ -46,7 +47,7 @@ else
 end
 
 local record Module
-	get_typesetter: function(args: Module.typesetArgs): (function(): boolean, string, integer, {reruncheck.Filemap_ele})
+	get_typesetter: function(args: Module.typesetArgs): (function(): boolean, string, integer, {common_t.Filemap_ele})
 	record typesetArgs
 		auxstatus:{string:reruncheck.Status}
 		iteration:integer
@@ -552,9 +553,9 @@ local function do_typeset(args: Module.typesetArgs): boolean, string, integer
 	return true
 end
 
-local function get_typesetter(args: Module.typesetArgs): (function(): boolean, string, integer, {reruncheck.Filemap_ele})
-	local filelist, filemap: {reruncheck.Filemap_ele}, {string: reruncheck.Filemap_ele}
-	return function(): boolean, string, integer, {reruncheck.Filemap_ele}
+local function get_typesetter(args: Module.typesetArgs): (function(): boolean, string, integer, {common_t.Filemap_ele})
+	local filelist, filemap: {common_t.Filemap_ele}, {string: common_t.Filemap_ele}
+	return function(): boolean, string, integer, {common_t.Filemap_ele}
 		local success, termination, status = do_typeset(args)
 		-- TODO: filenames here can be UTF-8 if command_line_encoding=utf-8
 

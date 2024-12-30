@@ -25,7 +25,8 @@ local md5 = require "md5"
 local fsutil = require "texrunner.fsutil"
 local pathutil = require "texrunner.pathutil"
 local message = require "texrunner.message"
-local options = require"texrunner.option_type"
+local option_t = require "texrunner.option_type"
+local common_t = require "texrunner.common_types"
 
 local exit: function(code:integer)
 global CLUTTEALTEX_TEST_ENV: boolean
@@ -37,10 +38,10 @@ end
 
 -- Module structure defining records and exported functions
 local record Module
-	record Filemap_ele
-		path: string
-		abspath: string
-		kind: FileKind
+	-- Record type for file attributes (modification time and size)
+	record fileAttrs
+		mtime: number
+		size:  number
 	end
 	record Status
 		mtime: number
@@ -48,22 +49,22 @@ local record Module
 		md5sum: string
 	end
 
-	parse_recorder_file: function(string, options.Options, ?{Module.Filemap_ele}, ?{string:Module.Filemap_ele}): {Module.Filemap_ele}, {string:Module.Filemap_ele}
-	collectfileinfo: function({Module.Filemap_ele}, {string:Module.Status}): {string:Module.Status}
-	comparefileinfo: function({Module.Filemap_ele}, {string:Module.Status}): boolean, {string:Module.Status}
+	parse_recorder_file: function(string, option_t.Options, ?{common_t.Filemap_ele}, ?{string:common_t.Filemap_ele}): {common_t.Filemap_ele}, {string:common_t.Filemap_ele}
+	collectfileinfo: function({common_t.Filemap_ele}, {string:Module.Status}): {string:Module.Status}
+	comparefileinfo: function({common_t.Filemap_ele}, {string:Module.Status}): boolean, {string:Module.Status}
 	comparefiletime: function(string, string, {string:Module.Status}): boolean
-	anyNonOutputNewerThan: function(filelist:{Module.Filemap_ele}, reference: string): boolean
+	anyNonOutputNewerThan: function(filelist:{common_t.Filemap_ele}, reference: string): boolean
 
 	_internal: Internal
 	record Internal
 		md5sum_file:          function(path:string): string
 		binarytohex:          function(s:string): string
 		get_file_attributes:  function(path: string, get_mtime:boolean, get_size:boolean): fileAttrs
-		get_output_file_kind: function(ext: string, options: options.Options): FileKind
-		get_input_file_kind:  function(ext: string, options: options.Options): FileKind
-		check_input_file:     function(path: string, fileinfo: Module.Filemap_ele, auxstatus: {string: Module.Status}): boolean, Module.Status
-		check_auxiliary_file: function(path: string, fileinfo: Module.Filemap_ele, auxstatus: {string: Module.Status}): boolean, Module.Status
-		parse_recorder_line:  function(line: string, options: options.Options, filelist: {Module.Filemap_ele}, filemap: {string: Module.Filemap_ele})
+		get_output_file_kind: function(ext: string, options: option_t.Options): common_t.FileKind
+		get_input_file_kind:  function(ext: string, options: option_t.Options): common_t.FileKind
+		check_input_file:     function(path: string, fileinfo: common_t.Filemap_ele, auxstatus: {string: Module.Status}): boolean, Module.Status
+		check_auxiliary_file: function(path: string, fileinfo: common_t.Filemap_ele, auxstatus: {string: Module.Status}): boolean, Module.Status
+		parse_recorder_line:  function(line: string, options: option_t.Options, filelist: {common_t.Filemap_ele}, filemap: {string: common_t.Filemap_ele})
 	end
 end
 
@@ -84,14 +85,8 @@ local function binarytohex(s:string): string
 	return r
 end
 
--- Record type for file attributes (modification time and size)
-local record fileAttrs
-	mtime: number
-	size:  number
-end
-
 -- Fetch file attributes (mtime, size)
-local function get_file_attributes(path: string, get_mtime:boolean, get_size:boolean): fileAttrs
+local function get_file_attributes(path: string, get_mtime:boolean, get_size:boolean): Module.fileAttrs
 	local mtime, size: any, any
 
 	if get_mtime then
@@ -111,15 +106,8 @@ local function get_file_attributes(path: string, get_mtime:boolean, get_size:boo
 	return {mtime = mtime as number, size = size as number}
 end
 
--- Enum representing types of files handled by the module
-local enum FileKind
-	"auxiliary"
-	"output"
-	"input"
-end
-
 -- Determine the kind of an output file based on its extension and options
-local function get_output_file_kind(ext: string, options: options.Options): FileKind
+local function get_output_file_kind(ext: string, options: option_t.Options): common_t.FileKind
 	if ext == "out" then
 		return "auxiliary" -- hyperref bookmarks
 	elseif options.makeindex and ext == "idx" then
@@ -141,7 +129,7 @@ local function get_output_file_kind(ext: string, options: options.Options): File
 end
 
 -- Determine the kind of an input file based on its extension and options
-local function get_input_file_kind(ext: string, options: options.Options): FileKind
+local function get_input_file_kind(ext: string, options: option_t.Options): common_t.FileKind
 	if ext == "bbl" then
 		return "auxiliary"
 	elseif options.glossaries then
@@ -156,7 +144,7 @@ local function get_input_file_kind(ext: string, options: options.Options): FileK
 end
 
 -- Parse a single line from the recorder file
-local function parse_recorder_line(line: string, options: options.Options, filelist: {Module.Filemap_ele}, filemap: {string: Module.Filemap_ele})
+local function parse_recorder_line(line: string, options: option_t.Options, filelist: {common_t.Filemap_ele}, filemap: {string: common_t.Filemap_ele})
 	local t, path = line:match("^(%w+) (.*)$")
 	if not t or not path then
 		message.warn("Unrecognized line in recorder file: ", line)
@@ -176,7 +164,7 @@ local function parse_recorder_line(line: string, options: options.Options, filel
 	local ext = pathutil.ext(path)
 	local fileinfo = filemap[abspath]
 
-	local kind:FileKind
+	local kind:common_t.FileKind
 	if t == "INPUT" then
 		kind = get_input_file_kind(ext, options)
 	else
@@ -203,7 +191,7 @@ local function parse_recorder_line(line: string, options: options.Options, filel
 end
 
 -- Parse the recorder file and build file lists/maps
-local function parse_recorder_file(file: string, options: options.Options, filelist?: {Module.Filemap_ele}, filemap?: {string: Module.Filemap_ele}): {Module.Filemap_ele}, {string: Module.Filemap_ele}
+local function parse_recorder_file(file: string, options: option_t.Options, filelist?: {common_t.Filemap_ele}, filemap?: {string: common_t.Filemap_ele}): {common_t.Filemap_ele}, {string: common_t.Filemap_ele}
 	-- init
 	filelist = filelist or {}
 	filemap = filemap or {}
@@ -216,7 +204,7 @@ local function parse_recorder_file(file: string, options: options.Options, filel
 end
 
 -- Collect information about files in the file list
-local function collectfileinfo(filelist:{Module.Filemap_ele}, auxstatus:{string:Module.Status}): {string:Module.Status}
+local function collectfileinfo(filelist:{common_t.Filemap_ele}, auxstatus:{string:Module.Status}): {string:Module.Status}
 	auxstatus = auxstatus or {}
 
 	for _,fileinfo in ipairs(filelist) do
@@ -242,7 +230,7 @@ local function collectfileinfo(filelist:{Module.Filemap_ele}, auxstatus:{string:
 end
 
 -- Check if an input file has been updated
-local function check_input_file(path: string, fileinfo: Module.Filemap_ele, auxstatus: {string: Module.Status}): boolean, Module.Status
+local function check_input_file(path: string, fileinfo: common_t.Filemap_ele, auxstatus: {string: Module.Status}): boolean, Module.Status
 	local attrs = get_file_attributes(path, true, false)
 	local mtime = attrs.mtime
 
@@ -257,7 +245,7 @@ local function check_input_file(path: string, fileinfo: Module.Filemap_ele, auxs
 end
 
 -- Check if an auxiliary file has been modified
-local function check_auxiliary_file(path: string, fileinfo: Module.Filemap_ele, auxstatus: {string: Module.Status}): boolean, Module.Status
+local function check_auxiliary_file(path: string, fileinfo: common_t.Filemap_ele, auxstatus: {string: Module.Status}): boolean, Module.Status
 	local status = auxstatus[path]
 	if status then
 		-- Handle size and MD5 changes
@@ -326,7 +314,7 @@ local function check_auxiliary_file(path: string, fileinfo: Module.Filemap_ele, 
 end
 
 -- Compare file information for changes
-local function comparefileinfo(filelist: {Module.Filemap_ele}, auxstatus: {string: Module.Status}): boolean, {string: Module.Status}
+local function comparefileinfo(filelist: {common_t.Filemap_ele}, auxstatus: {string: Module.Status}): boolean, {string: Module.Status}
 	local newauxstatus: {string: Module.Status} = {}
 
 	for _, fileinfo in ipairs(filelist) do
@@ -375,7 +363,7 @@ local function comparefiletime(srcpath:string, dstpath:string, auxstatus:{string
 end
 
 -- Check if any file in the list is newer than a reference file
-local function anyNonOutputNewerThan(filelist:{Module.Filemap_ele}, reference: string): boolean
+local function anyNonOutputNewerThan(filelist:{common_t.Filemap_ele}, reference: string): boolean
 	if not fsutil.isfile(reference) then
 		return true
 	end

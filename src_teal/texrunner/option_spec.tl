@@ -22,6 +22,7 @@ local option_t      = require"texrunner.option_type"
 local pathutil      = require "texrunner.pathutil"
 local message       = require "texrunner.message"
 local typeset_hooks = require "texrunner.typeset_hooks"
+local common_t      = require "texrunner.common_types"
 
 global CLUTTEALTEX_VERSION:string
 
