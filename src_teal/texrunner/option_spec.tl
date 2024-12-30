@@ -470,11 +470,37 @@ local option_spec:{string:Option} = {
 		param = true,
 		accumulate = true,
 		handle_cli = function(options:option_t.Options, param:string|boolean)
-			local known_packages:{string:boolean} = {["minted"] = true, ["epstopdf"] = true}
+			local known_packages:{string:function(option_t.Options)} = {
+				-- minted uses offset 0.1 in hooks
+				minted = function(o: option_t.Options)
+					o.hooks = o.hooks or option_t.init_hooks()
+					o.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.package_support)+0.1] = {typeset_hooks.ps_minted, "package_support minted"}
+					o.hooks.suggestion_file_based[assert(option_t.hook_prios.suggestion_file_based.package_support)+0.1] = {
+						function(fileinfo:common_t.Filemap_ele): boolean
+								return string.match(fileinfo.path, "minted/minted%.sty$") ~= nil
+						end,
+						"You may want to use --package-support=minted option."
+					}
+				end,
+				-- epstopdf uses offset 0.2 in hooks
+				epstopdf = function(o: option_t.Options)
+					o.hooks = o.hooks or option_t.init_hooks()
+					o.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.package_support)+0.2] = {typeset_hooks.ps_epstopdf, "package_support epstopdf"}
+					o.hooks.suggestion_file_based[assert(option_t.hook_prios.suggestion_file_based.package_support)+0.2] = {
+						function(fileinfo:common_t.Filemap_ele): boolean
+								return string.match(fileinfo.path, "epstopdf%.sty$") ~= nil
+						end,
+						"You may want to use --package-support=epstopdf option."
+					}
+				end,
+			}
 			if param is string then
 				for pkg in string.gmatch(param, "[^,%s]+") do
 					options.package_support[pkg] = true
-					if not known_packages[pkg] and CLUTTEALTEX_VERBOSITY >= 1 then
+					if known_packages[pkg] then
+						-- register the corresponding hook
+						known_packages[pkg](options)
+					elseif CLUTTEALTEX_VERBOSITY >= 1 then
 						message.warn("CluttealTeX provides no special support for '"..pkg.."'.")
 					end
 				end
