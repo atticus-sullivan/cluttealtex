@@ -675,6 +675,8 @@ local option_spec:{string:Option} = {
 			assert(options.quiet == nil, "multiple --quiet options")
 			if param is string then
 				options.quiet = assert(tonumber(param) as integer, "parameter must be an integer")
+				options.hooks = options.hooks or option_t.init_hooks()
+				options.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.quiet)] = {typeset_hooks.quiet, "quiet"}
 			else
 				error("invalid param type")
 			end

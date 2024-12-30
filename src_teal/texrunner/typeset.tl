@@ -135,6 +135,7 @@ local function single_run_coroutine(args: Module.typesetArgs): boolean|string
 		args.auxstatus = reruncheck.collectfileinfo(filelist, args.auxstatus)
 
 		-- emits suggestsions to the user which options might be usefull
+		-- does nothing except potentially message.diag -> no return needed
 		hooks_apply_suggestion_file_based(args.options.hooks.suggestion_file_based, filelist)
 
 		if args.options.bibtex then
@@ -162,16 +163,6 @@ local function single_run_coroutine(args: Module.typesetArgs): boolean|string
 
 	-- run tex_injection hooks
 	tex_injection = hooks_apply_tex_injection(args.options.hooks.tex_injection, args.options, args.tex_options, tex_injection)
-
-	if args.options.quiet then
-		if args.options.quiet >= 1 then
-			tex_injection = string.format("%s\\AddToHook{begindocument/end}[quietX]{\\hbadness=99999 \\hfuzz=9999pt}", tex_injection or "")
-		end
-		if args.options.quiet >= 2 then
-			args.tex_options.interaction = "batchmode"
-			tex_injection = string.format("%s\\AddToHook{begindocument/end}[quiet]{\\nonstopmode}\\AddToHook{enddocument/info}[quiet]{\\batchmode}", tex_injection or "")
-		end
-	end
 
 	local inputline = tex_injection .. safename.safeinput(args.inputfile, args.engine)
 
