@@ -517,6 +517,8 @@ local option_spec:{string:Option} = {
 			assert(param == "dvipdfmx" or param == "dvips" or param == "dvisvgm", "wrong value for --check-driver option")
 			if param is string then
 				options.check_driver = param
+				options.hooks = options.hooks or option_t.init_hooks()
+				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.check_driver)] = {typeset_hooks.check_driver, "check_driver"}
 			else
 				assert(param is string, "invalid param type")
 			end

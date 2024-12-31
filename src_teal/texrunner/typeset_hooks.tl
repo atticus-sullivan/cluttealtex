@@ -78,6 +78,10 @@ local function ps_epstopdf(options:option_t.Options, tex_options:engine_t.Option
 	return string.format("%s\\PassOptionsToPackage{outdir=%s}{epstopdf}", tex_injection or "", outdir)
 end
 
+local function check_driver(options:option_t.Options, args:option_t.PostCompileArgs)
+	checkdriver(options.check_driver, args.filelist)
+end
+
 -- needs to run in a coroutine => will yield commands that should be executed
 local function makeindex(options:option_t.Options, args:option_t.PostCompileArgs)
 	-- Look for .idx files and run MakeIndex
@@ -108,10 +112,14 @@ end
 
 return {
 	includeonly  = includeonly,
-	ps_minted    = ps_minted,
-	ps_epstopdf  = ps_epstopdf,
 	memoize      = memoize,
 	memoize_opts = memoize_opts,
 	quiet        = quiet,
+
+	ps_minted    = ps_minted,
+	ps_epstopdf  = ps_epstopdf,
+
+	check_driver = check_driver,
+
 	makeindex   = makeindex,
 }
