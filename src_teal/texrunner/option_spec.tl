@@ -29,9 +29,30 @@ global CLUTTEALTEX_VERSION:string
 local record Module
 	spec:{string:Option}
 	usage:function({string})
-	init_hooks: function(option_t.Options)
+	init_hooks: function(option_t.Options, {string:Option})
 end
 local _M:Module = {}
+
+local function init_hooks(o:option_t.Options, spec:{string:Option})
+	o.hooks = o.hooks or {}
+
+	o.hooks.tex_injection            = {}
+	-- o.hooks.pre_compile              = {}
+	o.hooks.post_compile             = {}
+	-- o.hooks.pre_build                = {}
+	-- o.hooks.post_build               = {}
+	o.hooks.suggestion_file_based    = {}
+	o.hooks.suggestion_execlog_based = {}
+
+	for _,v in pairs(spec) do
+		if v.suggestion_handlers and v.suggestion_handlers.file_based then
+			v.suggestion_handlers.file_based(o)
+		end
+		if v.suggestion_handlers and v.suggestion_handlers.execlog_based then
+			v.suggestion_handlers.execlog_based(o)
+		end
+	end
+end
 
 local function split(opt:string): {string}
 	local ret,builder,state = {},{},0
@@ -125,7 +146,7 @@ local function parse_glossaries_option_from_string(opt:string): option_t.Glos, s
 	return parse_glossaries_option_from_table{type=s[1], out=s[2], inp=s[3], log=s[4], path=s[5], cmd_args=s[6]}
 end
 
-function _M.usage(arg:{string})
+local function usage(arg:{string})
 	io.write(string.format([[
 ClutteakTeX: Process TeX files without cluttering your working directory
 
@@ -233,7 +254,7 @@ Options:
 end
 
 
-_M.spec = {
+local spec = {
 	-- Options for CluttealTeX
 	engine = {
 		short = "e",
@@ -402,7 +423,7 @@ _M.spec = {
 		long = "help",
 		allow_single_hyphen = true,
 		handle_cli = function(options:option_t.Options, param:string|boolean)
-			_M.usage(arg)
+			usage(arg)
 			os.exit(0)
 		end,
 	},
@@ -442,7 +463,7 @@ _M.spec = {
 			assert(options.includeonly == nil, "multiple --includeonly options")
 			if param is string then
 				options.includeonly = param
-				if not options.hooks then _M.init_hooks(options) end
+				if not options.hooks then init_hooks(options, _M.spec) end
 				options.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.includeonly)] = {typeset_hooks.includeonly, "includeonly"}
 			else
 				error("invalid param type")
@@ -496,13 +517,13 @@ _M.spec = {
 			local known_packages:{string:function(option_t.Options)} = {
 				-- minted uses offset 0.1 in hooks
 				minted = function(o: option_t.Options)
-					if not o.hooks then _M.init_hooks(o) end
+					if not o.hooks then init_hooks(o, _M.spec) end
 					o.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.package_support)+0.1] = {typeset_hooks.ps_minted, "package_support minted"}
 					o.hooks.suggestion_file_based[assert(option_t.hook_prios.suggestion_file_based.package_support)+0.1] = nil
 				end,
 				-- epstopdf uses offset 0.2 in hooks
 				epstopdf = function(o: option_t.Options)
-					if not o.hooks then _M.init_hooks(o) end
+					if not o.hooks then init_hooks(o, _M.spec) end
 					o.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.package_support)+0.2] = {typeset_hooks.ps_epstopdf, "package_support epstopdf"}
 					o.hooks.suggestion_file_based[assert(option_t.hook_prios.suggestion_file_based.package_support)+0.2] = nil
 				end,
@@ -530,7 +551,7 @@ _M.spec = {
 			assert(param == "dvipdfmx" or param == "dvips" or param == "dvisvgm", "wrong value for --check-driver option")
 			if param is string then
 				options.check_driver = param
-				if not options.hooks then _M.init_hooks(options) end
+				if not options.hooks then init_hooks(options, _M.spec) end
 				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.check_driver)] = {typeset_hooks.check_driver, "check_driver"}
 			else
 				assert(param is string, "invalid param type")
@@ -556,7 +577,7 @@ _M.spec = {
 			assert(options.makeindex == nil, "multiple --makeindex options")
 			if param is string then
 				options.makeindex = param
-				if not options.hooks then _M.init_hooks(options) end
+				if not options.hooks then init_hooks(options, _M.spec) end
 				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.makeindex)] = {typeset_hooks.makeindex, "makeindex"}
 				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.makeindex)] = nil
 			else
@@ -583,7 +604,7 @@ _M.spec = {
 			assert(options.biber == nil, "multiple --bibtex/--biber options")
 			if param is string then
 				options.bibtex = param
-				if not options.hooks then _M.init_hooks(options) end
+				if not options.hooks then init_hooks(options, _M.spec) end
 				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.bibtex)] = {typeset_hooks.bibtex, "bibtex"}
 				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.bibtex)] = nil
 			else
@@ -610,7 +631,7 @@ _M.spec = {
 			assert(options.bibtex == nil, "multiple --bibtex/--biber options")
 			if param is string then
 				options.biber = param
-				if not options.hooks then _M.init_hooks(options) end
+				if not options.hooks then init_hooks(options, _M.spec) end
 				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.biber)] = {typeset_hooks.biber, "biber"}
 				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.biber)] = nil
 			else
@@ -636,7 +657,7 @@ _M.spec = {
 			assert(options.sagetex == nil, "multiple --sagetex options")
 			if param is string then
 				options.sagetex = param
-				if not options.hooks then _M.init_hooks(options) end
+				if not options.hooks then init_hooks(options, _M.spec) end
 				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.sagetex)] = {typeset_hooks.sagetex, "sagetex"}
 				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.sagetex)] = nil
 			else
@@ -657,7 +678,7 @@ _M.spec = {
 			if param is string then
 				options.glossaries = options.glossaries or {}
 				table.insert(options.glossaries, assert(parse_glossaries_option_from_string(param)))
-				if not options.hooks then _M.init_hooks(options) end
+				if not options.hooks then init_hooks(options, _M.spec) end
 				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.glossaries)] = {typeset_hooks.glossaries, "glossaries"}
 			else
 				error("invalid param type")
@@ -699,7 +720,7 @@ _M.spec = {
 
 			options.glossaries = options.glossaries or {}
 			table.insert(options.glossaries, assert(parse_glossaries_option_from_table(param)))
-			if not options.hooks then _M.init_hooks(options) end
+			if not options.hooks then init_hooks(options, _M.spec) end
 			options.hooks.post_compile[assert(option_t.hook_prios.post_compile.glossaries)] = {typeset_hooks.glossaries, "glossaries"}
 		end,
 	},
@@ -727,7 +748,7 @@ _M.spec = {
 				else
 					options.memoize = param
 				end
-				if not options.hooks then _M.init_hooks(options) end
+				if not options.hooks then init_hooks(options, _M.spec) end
 				options.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.memoize+0.1)] = {typeset_hooks.memoize, "memoize"}
 				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.memoize)] = {typeset_hooks.memoize_run, "memoize"}
 				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.memoize)] = nil
@@ -743,7 +764,7 @@ _M.spec = {
 			if param is string then
 				options.memoize_opts = options.memoize_opts or {}
 				table.insert(options.memoize_opts, param)
-				if not options.hooks then _M.init_hooks(options) end
+				if not options.hooks then init_hooks(options, _M.spec) end
 				options.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.memoize-0.2)] = {typeset_hooks.memoize_opts, "memoize_opts"}
 			else
 				error("invalid param type")
@@ -758,7 +779,7 @@ _M.spec = {
 			assert(options.quiet == nil, "multiple --quiet options")
 			if param is string then
 				options.quiet = assert(tonumber(param) as integer, "parameter must be an integer")
-				if not options.hooks then _M.init_hooks(options) end
+				if not options.hooks then init_hooks(options, _M.spec) end
 				options.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.quiet)] = {typeset_hooks.quiet, "quiet"}
 			else
 				error("invalid param type")
@@ -941,25 +962,8 @@ _M.spec = {
 	},
 }
 
-function _M.init_hooks(o:option_t.Options)
-	o.hooks = o.hooks or {}
-
-	o.hooks.tex_injection            = {}
-	-- o.hooks.pre_compile              = {}
-	o.hooks.post_compile             = {}
-	-- o.hooks.pre_build                = {}
-	-- o.hooks.post_build               = {}
-	o.hooks.suggestion_file_based    = {}
-	o.hooks.suggestion_execlog_based = {}
-
-	for _,v in pairs(_M.spec) do
-		if v.suggestion_handlers and v.suggestion_handlers.file_based then
-			v.suggestion_handlers.file_based(o)
-		end
-		if v.suggestion_handlers and v.suggestion_handlers.execlog_based then
-			v.suggestion_handlers.execlog_based(o)
-		end
-	end
-end
+_M.init_hooks = init_hooks
+_M.spec = spec
+_M.usage = usage
 
 return _M
