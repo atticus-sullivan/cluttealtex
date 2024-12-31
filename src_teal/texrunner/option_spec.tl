@@ -30,6 +30,12 @@ local record Module
 	spec:{string:Option}
 	usage:function({string})
 	init_hooks: function(option_t.Options, {string:Option})
+	_internal: Internal
+	record Internal
+		split: function(opt:string): {string}
+		parse_glossaries_option_from_table: function(opt:{string:string|nil}): option_t.Glos, string
+		parse_glossaries_option_from_string: function(opt:string): option_t.Glos, string
+	end
 end
 local _M:Module = {}
 
@@ -965,5 +971,14 @@ local spec = {
 _M.init_hooks = init_hooks
 _M.spec = spec
 _M.usage = usage
+
+
+if CLUTTEALTEX_TEST_ENV then
+	_M._internal = {
+		split                               = split,
+		parse_glossaries_option_from_table  = parse_glossaries_option_from_table,
+		parse_glossaries_option_from_string = parse_glossaries_option_from_string,
+	}
+end
 
 return _M
