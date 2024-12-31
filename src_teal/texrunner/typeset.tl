@@ -79,7 +79,7 @@ local function hooks_validate(hook: {function, string, boolean}): boolean, strin
 end
 
 -- returns the new tex_injection string
-local function hooks_apply_tex_injection(hooks: {number: {(function(option_t.Options, engine_t.Option, string):string), string}}, options: option_t.Options, tex_options: engine_t.Option, tex_injection:string): string
+local function hooks_apply_tex_injection(hooks: {number: {option_t.Hooks.tex_injection_func, string}}, options: option_t.Options, tex_options: engine_t.Option, tex_injection:string): string
 	local sorted_prios = hooks_sort_prios(hooks as {number: {function, string}})
 	local result = tex_injection
 	for _, prio in ipairs(sorted_prios) do
@@ -96,7 +96,7 @@ local function hooks_apply_tex_injection(hooks: {number: {(function(option_t.Opt
 	return result
 end
 
-local function hooks_apply_suggestion_file_based(hooks: {number: {(function(common_t.Filemap_ele):boolean), string, boolean}}, filelist:{common_t.Filemap_ele})
+local function hooks_apply_suggestion_file_based(hooks: {number: {option_t.Hooks.suggestion_file_based_func, string, boolean}}, filelist:{common_t.Filemap_ele})
 	local sorted_prios = hooks_sort_prios(hooks as {number: {function, string}})
 	-- check if all hooks are valid
 	for _, prio in ipairs(sorted_prios) do
@@ -119,7 +119,7 @@ local function hooks_apply_suggestion_file_based(hooks: {number: {(function(comm
 	end
 end
 
-local function hooks_apply_suggestion_excelog_based(hooks: {number: {(function(string, option_t.Options):boolean), string}}, execlog: string, o:option_t.Options)
+local function hooks_apply_suggestion_excelog_based(hooks: {number: {option_t.Hooks.suggestion_execlog_based_func, string}}, execlog: string, o:option_t.Options)
 	local sorted_prios = hooks_sort_prios(hooks as {number: {function, string}})
 	for _, prio in ipairs(sorted_prios) do
 		local hook = hooks[prio]
@@ -133,7 +133,7 @@ local function hooks_apply_suggestion_excelog_based(hooks: {number: {(function(s
 	end
 end
 
-local function hooks_apply_post_compile(hooks: {number: {(function(option_t.Options, option_t.PostCompileArgs)), string}}, options: option_t.Options, args: option_t.PostCompileArgs)
+local function hooks_apply_post_compile(hooks: {number: {option_t.Hooks.post_compile_func, string}}, options: option_t.Options, args: option_t.PostCompileArgs)
 	local sorted_prios = hooks_sort_prios(hooks as {number: {function, string}})
 	for _, prio in ipairs(sorted_prios) do
 		local hook = hooks[prio]

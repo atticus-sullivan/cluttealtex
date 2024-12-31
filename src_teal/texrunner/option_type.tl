@@ -66,11 +66,13 @@ local record Module
 	record Hooks
 		-- hooks used to inject code into the *TeX input
 		-- hooks need to return the new tex_injection string (usually they should only prepend/append)
-		tex_injection: {number: {(function(options:Options, engine_t.Option, tex_injection: string): string), string}}
+		type tex_injection_func = function(options:Options, engine_t.Option, tex_injection: string): string
+		tex_injection: {number: {tex_injection_func, string}}
 
 		-- hooks which are run before/after every *TeX invocation
 		-- pre_compile: {number: function}
-		post_compile: {number: {(function(Options, PostCompileArgs)), string}}
+		type post_compile_func = function(Options, PostCompileArgs)
+		post_compile: {number: {post_compile_func, string}}
 
 		-- hooks which are run before/after every the whole build procedure
 		-- (potentially includes multiple invocations to *TeX and other tools
@@ -83,31 +85,34 @@ local record Module
 		-- filelist
 		-- the third value in the tuple is used to store if the message (second
 		-- value in the tuple) has already been shown to the user
-		suggestion_file_based: {number: {(function(common_t.Filemap_ele):boolean), string, boolean}}
+		type suggestion_file_based_func = function(common_t.Filemap_ele):boolean
+		suggestion_file_based: {number: {suggestion_file_based_func, string, boolean}}
 
 		-- hooks which check the execlog if some option should be probably used
-		suggestion_execlog_based: {number: {(function(string, Options):boolean), string}}
+		type suggestion_execlog_based_func = function(string, Options):boolean
+		suggestion_execlog_based: {number: {suggestion_execlog_based_func, string}}
 	end
 
 	-- stores the allocated priorities
 	hook_prios: HookPrios
+	type HookPriosTab = {string:integer}
 	record HookPrios
-		tex_injection:         {string: integer}
+		tex_injection:         HookPriosTab
 
-		suggestion_file_based:    {string: integer}
-		suggestion_execlog_based: {string: integer}
+		suggestion_file_based:    HookPriosTab
+		suggestion_execlog_based: HookPriosTab
 
-		-- pre_compile:           {string: integer}
-		post_compile:          {string: integer}
+		-- pre_compile:           HookPriosTab
+		post_compile:          HookPriosTab
 
-		-- pre_build:             {string: integer}
-		-- post_build:            {string: integer}
+		-- pre_build:             HookPriosTab
+		-- post_build:            HookPriosTab
 	end
 
 	-- argument collections related to special hooks
 	record PostCompileArgs
-		filelist: {common_t.Filemap_ele}
-		auxstatus: {string: common_t.Status}
+		filelist: common_t.filelist
+		auxstatus: common_t.auxstatus
 		path_in_output_directory: function(string):string
 		bibtex_aux_hash: string
 		original_wd: string

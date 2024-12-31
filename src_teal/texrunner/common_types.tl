@@ -15,6 +15,8 @@ local record Module
 		size: number
 		md5sum: string
 	end
+	type filelist = {Filemap_ele}
+	type auxstatus = {string: Status}
 end
 
 return Module
