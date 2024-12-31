@@ -481,6 +481,7 @@ local option_spec:{string:Option} = {
 						end,
 						"You may want to use --package-support=minted option."
 					}
+					o.hooks.suggestion_file_based[assert(option_t.hook_prios.suggestion_file_based.package_support)+0.1] = nil
 				end,
 				-- epstopdf uses offset 0.2 in hooks
 				epstopdf = function(o: option_t.Options)
@@ -492,6 +493,7 @@ local option_spec:{string:Option} = {
 						end,
 						"You may want to use --package-support=epstopdf option."
 					}
+					o.hooks.suggestion_file_based[assert(option_t.hook_prios.suggestion_file_based.package_support)+0.2] = nil
 				end,
 			}
 			if param is string then
@@ -541,6 +543,7 @@ local option_spec:{string:Option} = {
 					end,
 					"You may want to use --makeindex option."
 				}
+				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.makeindex)] = nil
 			else
 				error("invalid param type")
 			end
@@ -563,6 +566,7 @@ local option_spec:{string:Option} = {
 					end,
 					"You may want to use --bibtex or --biber option."
 				}
+				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.bibtex)] = nil
 			else
 				error("invalid param type")
 			end
@@ -585,6 +589,7 @@ local option_spec:{string:Option} = {
 					end,
 					"You may want to use --bibtex or --biber option."
 				}
+				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.biber)] = nil
 			else
 				error("invalid param type")
 			end
@@ -606,6 +611,7 @@ local option_spec:{string:Option} = {
 					end,
 					"You may want to use --sagetex option."
 				}
+				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.sagetex)] = nil
 			else
 				error("invalid param type")
 			end
@@ -693,6 +699,7 @@ local option_spec:{string:Option} = {
 					end,
 					"You may want to use --memoize option."
 				}
+				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.memoize)] = nil
 			else
 				error("invalid param type")
 			end
