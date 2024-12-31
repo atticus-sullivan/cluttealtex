@@ -49,7 +49,7 @@ end
 local record Module
 	get_typesetter: function(args: Module.typesetArgs): (function(): boolean, string, integer, {common_t.Filemap_ele})
 	record typesetArgs
-		auxstatus:{string:reruncheck.Status}
+		auxstatus:{string:common_t.Status}
 		iteration:integer
 		path_in_output_directory: function(string): string
 		recorderfile: string

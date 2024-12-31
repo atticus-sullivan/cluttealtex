@@ -10,6 +10,11 @@ local record Module
 		"output"
 		"input"
 	end
+	record Status
+		mtime: number
+		size: number
+		md5sum: string
+	end
 end
 
 return Module
