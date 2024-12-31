@@ -37,6 +37,30 @@ describe("handleoption", function()
 		end)
 	end)
 
+	describe("merge_hook_type", function()
+		-- Test merging suggestion hooks
+		it("merges suggestion hooks correctly", function()
+			local hooks = { suggestion_hooks = { [1.1] = "hook1", [2] = "hook2" } }
+			local hs = { [1.1] = "hook1" } -- Only hook1 should remain
+			local ret = { hooks = hooks }
+
+			handleoption._internal.merge_hook_type("suggestion_hooks", hs, ret)
+
+			expect.equal(ret.hooks.suggestion_hooks, { [1.1] = "hook1" })
+		end)
+
+		-- Test merging hooks that are not suggestions
+		it("merges non-suggestion hooks correctly", function()
+			local hooks = { other_hooks = {[3] = "old_hook", [4] = "hook4"} }
+			local hs = { [3] = "hook3" }
+			local ret = { hooks = hooks }
+
+			handleoption._internal.merge_hook_type("other_hooks", hs, ret)
+
+			expect.equal(ret.hooks.other_hooks, { [3] = "hook3", [4] = "hook4" })
+		end)
+	end)
+
 	describe("merge_options", function()
 		-- Test for merge_options function
 		it("should correctly merge two option tables", function()
@@ -47,6 +71,28 @@ describe("handleoption", function()
 			expect.equal(merged_options.tex_extraoptions, {"opt3", "opt4"})
 			expect.equal(merged_options.max_iterations, 3)
 			expect.equal(merged_options.skip_first, false)
+		end)
+
+		-- Test merging options with hooks
+		it("correctly merges options including hooks", function()
+			local options1 = {
+				tex_extraoptions = {"opt1", "opt2"},
+				hooks = { suggestion_hooks = { [1] = "hook1" }, other_hooks = {} },
+			}
+			local options2 = {
+				tex_extraoptions = {"opt3", "opt4"},
+				hooks = { suggestion_hooks = { [1] = "hook1", [2] = "hook2" }, other_hooks = { [3] = "hook3" } },
+			}
+
+			local merged_options = handleoption._internal.merge_options(options1, options2)
+
+			expect.equal(merged_options, {
+				tex_extraoptions = {"opt3", "opt4"},
+				hooks = {
+					suggestion_hooks = {[1]="hook1"},
+					other_hooks = {[3]="hook3"},
+				},
+			})
 		end)
 	end)
 
