@@ -146,12 +146,13 @@ local _M: Module = {
 		}
 	},
 	init_hooks = function():Module.Hooks return {
-		tex_injection         = {},
-		pre_compile           = {},
-		post_compile          = {},
-		pre_build             = {},
-		post_build            = {},
-		suggestion_file_based = {},
+		tex_injection            = {},
+		pre_compile              = {},
+		post_compile             = {},
+		pre_build                = {},
+		post_build               = {},
+		suggestion_file_based    = {},
+		suggestion_execlog_based = {},
 	} end
 }
 return _M
