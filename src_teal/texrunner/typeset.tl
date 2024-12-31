@@ -260,31 +260,6 @@ local function single_run_coroutine(args: Module.typesetArgs): boolean|string
 	end
 
 	if args.options.memoize then
-		for _,file in ipairs(filelist) do
-			-- usual compilation with memoize
-			-- tex      -> pdflatex tex    -> aux,pdf,mmz
-			-- mmz,pdf  -> memoize-extract -> pdf,pdf
-			-- tex      -> pdflatex tex    -> aux,pdf
-			if pathutil.ext(file.path) == "mmz" then
-				local must_extract = false
-				for l in io.lines(file.abspath) do
-					local newExtern = string.match(l, "^\\mmzNewExtern")
-					must_extract = must_extract or newExtern ~= nil
-				end
-				if must_extract then
-					local extract_command = {
-						args.options.memoize, -- Do not escape options.memoize to allow additional options
-						pathutil.basename(pathutil.replaceext(file.abspath, "tex"))
-					}
-					coroutine.yield(table.concat(extract_command, " "))
-					-- ensure document gets recompiled afterwards
-					local succ, err = filesys.touch(file.path)
-					if not succ then
-						message.warn("Failed to touch " .. file.path .. " (" .. err .. ")")
-					end
-				end
-			end
-		end
 	else
 		-- Check log file
 		if string.find(execlog, "Package memoize Warning") then

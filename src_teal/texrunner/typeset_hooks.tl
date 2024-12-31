@@ -212,6 +212,34 @@ local function biber(options:option_t.Options, args:option_t.PostCompileArgs)
 	end
 end
 
+local function memoize_run(options:option_t.Options, args:option_t.PostCompileArgs)
+	for _,file in ipairs(args.filelist) do
+		-- usual compilation with memoize
+		-- tex      -> pdflatex tex    -> aux,pdf,mmz
+		-- mmz,pdf  -> memoize-extract -> pdf,pdf
+		-- tex      -> pdflatex tex    -> aux,pdf
+		if pathutil.ext(file.path) == "mmz" then
+			local must_extract = false
+			for l in io.lines(file.abspath) do
+				local newExtern = string.match(l, "^\\mmzNewExtern")
+				must_extract = must_extract or newExtern ~= nil
+			end
+			if must_extract then
+				local extract_command = {
+					options.memoize, -- Do not escape options.memoize to allow additional options
+					pathutil.basename(pathutil.replaceext(file.abspath, "tex"))
+				}
+				coroutine.yield(table.concat(extract_command, " "))
+				-- ensure document gets recompiled afterwards
+				local succ, err = filesys.touch(file.path)
+				if not succ then
+					message.warn("Failed to touch " .. file.path .. " (" .. err .. ")")
+				end
+			end
+		end
+	end
+end
+
 local function sagetex(options:option_t.Options, args:option_t.PostCompileArgs)
 	for _,file in ipairs(args.filelist) do
 		-- usual compilation with sagetex
@@ -254,5 +282,6 @@ return {
 	glossaries  = glossaries,
 	bibtex      = bibtex,
 	biber       = biber,
+	memoize_run = memoize_run,
 	sagetex     = sagetex,
 }

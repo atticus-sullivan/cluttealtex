@@ -662,6 +662,7 @@ local option_spec:{string:Option} = {
 				end
 				options.hooks = options.hooks or option_t.init_hooks()
 				options.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.memoize+0.1)] = {typeset_hooks.memoize, "memoize"}
+				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.memoize)] = {typeset_hooks.memoize_run, "memoize"}
 			else
 				error("invalid param type")
 			end
