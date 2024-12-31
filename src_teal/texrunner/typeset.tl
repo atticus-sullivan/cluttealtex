@@ -232,36 +232,15 @@ local function single_run_coroutine(args: Module.typesetArgs): boolean|string
 		logfile:close()
 	end
 
-	if args.options.check_driver ~= nil then
-		checkdriver(args.options.check_driver, filelist)
-	end
+	hooks_apply_post_compile(args.options.hooks.post_compile, args.options, {
+		filelist                 = filelist,
+		auxstatus                = args.auxstatus,
+		path_in_output_directory = args.path_in_output_directory,
+		bibtex_aux_hash          = bibtex_aux_hash,
+		original_wd              = args.original_wd,
+	})
 
-	if args.options.makeindex then
-		-- Look for .idx files and run MakeIndex
-		for _,file in ipairs(filelist) do
-			if pathutil.ext(file.path) == "idx" then
-				-- Run makeindex if the .idx file is new or updated
-				local idxfileinfo = {path = file.path, abspath = file.abspath, kind = "auxiliary"}
-				local output_ind = pathutil.replaceext(file.abspath, "ind")
-				if reruncheck.comparefileinfo({idxfileinfo}, args.auxstatus) or reruncheck.comparefiletime(file.abspath, output_ind, args.auxstatus) then
-					local idx_dir = pathutil.dirname(file.abspath)
-					local makeindex_command = {
-						"cd", shellutil.escape(idx_dir), "&&",
-						args.options.makeindex, -- Do not escape options.makeindex to allow additional options
-						"-o", pathutil.basename(output_ind),
-						pathutil.basename(file.abspath)
-					}
-					coroutine.yield(table.concat(makeindex_command, " "))
-					table.insert(filelist, {path = output_ind, abspath = output_ind, kind = "auxiliary"})
-				else
-					local succ, err = filesys.touch(output_ind)
-					if not succ then
-						message.warn("Failed to touch " .. output_ind .. " (" .. err .. ")")
-					end
-				end
-			end
-		end
-	else
+	if not args.options.makeindex then
 		-- Check log file
 		if string.find(execlog, "No file [^\n]+%.ind%.") then
 			message.diag("You may want to use --makeindex option.")

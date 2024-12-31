@@ -531,6 +531,8 @@ local option_spec:{string:Option} = {
 			assert(options.makeindex == nil, "multiple --makeindex options")
 			if param is string then
 				options.makeindex = param
+				options.hooks = options.hooks or option_t.init_hooks()
+				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.makeindex)] = {typeset_hooks.makeindex, "makeindex"}
 			else
 				error("invalid param type")
 			end

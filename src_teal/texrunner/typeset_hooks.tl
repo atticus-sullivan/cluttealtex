@@ -18,10 +18,21 @@ You should have received a copy of the GNU General Public License
 along with CluttealTeX.  If not, see <http://www.gnu.org/licenses/>.
 ]]
 
-local os = require"os_"
+local os      = require"os_"
+local filesys = require "lfs"
+local md5     = require "md5"
 
 local option_t = require "texrunner.option_type"
+local common_t = require "texrunner.common_types"
 local engine_t = require "texrunner.tex_engine"
+
+local message    = require "texrunner.message"
+local pathutil   = require "texrunner.pathutil"
+local shellutil  = require "texrunner.shellutil"
+local reruncheck = require "texrunner.reruncheck"
+local extract_bibtex_from_aux_file = require "texrunner.auxfile".extract_bibtex_from_aux_file
+
+local checkdriver                  = require "texrunner.checkdriver".checkdriver
 
 local function includeonly(options:option_t.Options, tex_options:engine_t.Option, tex_injection: string): string
 	return string.format("%s\\includeonly{%s}", tex_injection or "", options.includeonly)
@@ -67,6 +78,34 @@ local function ps_epstopdf(options:option_t.Options, tex_options:engine_t.Option
 	return string.format("%s\\PassOptionsToPackage{outdir=%s}{epstopdf}", tex_injection or "", outdir)
 end
 
+-- needs to run in a coroutine => will yield commands that should be executed
+local function makeindex(options:option_t.Options, args:option_t.PostCompileArgs)
+	-- Look for .idx files and run MakeIndex
+	for _,file in ipairs(args.filelist) do
+		if pathutil.ext(file.path) == "idx" then
+			-- Run makeindex if the .idx file is new or updated
+			local idxfileinfo = {path = file.path, abspath = file.abspath, kind = "auxiliary"}
+			local output_ind = pathutil.replaceext(file.abspath, "ind")
+			if reruncheck.comparefileinfo({idxfileinfo}, args.auxstatus) or reruncheck.comparefiletime(file.abspath, output_ind, args.auxstatus) then
+				local idx_dir = pathutil.dirname(file.abspath)
+				local makeindex_command = {
+					"cd", shellutil.escape(idx_dir), "&&",
+					options.makeindex, -- Do not escape options.makeindex to allow additional options
+					"-o", pathutil.basename(output_ind),
+					pathutil.basename(file.abspath)
+				}
+				coroutine.yield(table.concat(makeindex_command, " "))
+				table.insert(args.filelist, {path = output_ind, abspath = output_ind, kind = "auxiliary"})
+			else
+				local succ, err = filesys.touch(output_ind)
+				if not succ then
+					message.warn("Failed to touch " .. output_ind .. " (" .. err .. ")")
+				end
+			end
+		end
+	end
+end
+
 return {
 	includeonly  = includeonly,
 	ps_minted    = ps_minted,
@@ -74,4 +113,5 @@ return {
 	memoize      = memoize,
 	memoize_opts = memoize_opts,
 	quiet        = quiet,
+	makeindex   = makeindex,
 }
