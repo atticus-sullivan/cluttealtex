@@ -21,6 +21,7 @@ describe("option_spec", function()
 					post_compile = {},
 					suggestion_file_based = {},
 					suggestion_execlog_based = {},
+					post_build = {},
 				}
 			})
 		end)

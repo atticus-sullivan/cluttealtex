@@ -46,7 +46,7 @@ local function init_hooks(o:option_t.Options, spec:{string:Option})
 	-- o.hooks.pre_compile              = {}
 	o.hooks.post_compile             = {}
 	-- o.hooks.pre_build                = {}
-	-- o.hooks.post_build               = {}
+	o.hooks.post_build               = {}
 	o.hooks.suggestion_file_based    = {}
 	o.hooks.suggestion_execlog_based = {}
 
