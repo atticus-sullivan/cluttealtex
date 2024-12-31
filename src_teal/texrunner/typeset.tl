@@ -88,10 +88,10 @@ local function hooks_apply_tex_injection(hooks: {number: {option_t.Hooks.tex_inj
 		if not valid then
 			error("Invalid hook: " .. err)
 		end
-		result = hook[1](options, tex_options, result)
 		 if CLUTTEALTEX_VERBOSITY >= 1 then
 			message.info("Executing tex_injection hook '", hook[2], "'")
 		end
+		result = hook[1](options, tex_options, result)
 	end
 	return result
 end
@@ -141,10 +141,10 @@ local function hooks_apply_post_compile(hooks: {number: {option_t.Hooks.post_com
 		if not valid then
 			error("Invalid hook: " .. err)
 		end
-		hook[1](options, args)
 		 if CLUTTEALTEX_VERBOSITY >= 1 then
 			message.info("Executing post_compile hook '", hook[2], "'")
 		end
+		hook[1](options, args)
 	end
 end
 
@@ -156,10 +156,10 @@ local function hooks_apply_post_build(hooks: {number: {option_t.Hooks.post_build
 		if not valid then
 			error("Invalid hook: " .. err)
 		end
-		hook[1](options)
 		 if CLUTTEALTEX_VERBOSITY >= 1 then
 			message.info("Executing post_build hook '", hook[2], "'")
 		end
+		hook[1](options)
 	end
 end
 
