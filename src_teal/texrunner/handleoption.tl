@@ -26,6 +26,7 @@ local TexEngine   = require "texrunner.tex_engine"
 local message     = require "texrunner.message"
 local fsutil      = require "texrunner.fsutil"
 local option_spec = require "texrunner.option_spec".spec
+local init_hooks  = require "texrunner.option_spec".init_hooks
 local usage = require "texrunner.option_spec".usage
 local read_cfg = require "texrunner.read_cfg".read_cfg
 
@@ -81,17 +82,45 @@ local function query_options(name:string, kind:string): Option,string,boolean
 	return option_spec[key], key, no
 end
 
+local function merge_hook_type(ht:string, hs:{number:any}, ret:{string:any})
+	local hooks = ret["hooks"] as {string:{number:any}}
+	if ht:find("^suggestion") then
+		-- hooks are enabled by default
+		-- disable hooks not set in the next options
+		for k,_ in pairs(hooks[ht]) do
+			if not hs[k] then
+				hooks[ht][k] = nil
+			end
+		end
+	else
+		-- hooks are disabled by default
+		-- enable hooks set in the next options
+		for k,v in pairs(hs) do
+			hooks[ht][k] = v
+		end
+	end
+end
+
 -- Function to merge multiple option tables into one
 -- first table has highest priority etc.
 local function merge_options(...: options.Options): options.Options
 	-- Table to hold merged options
 	local ret:{string:any} = {}
+	local first = true
 	-- Iterate over each passed options table
 	for _, i in ipairs{...} do
 		for k,v in pairs(i as {string:any}) do
-			-- Add each option from the table to the result
-			ret[k] = v
+			if k == "hooks" and not first then
+				-- hooks need t be handled specially
+				for ht, hs in pairs(v as {string:{number:any}}) do
+					merge_hook_type(ht, hs, ret)
+				end
+			else
+				-- Add each option from the table to the result
+				ret[k] = v
+			end
 		end
+		first = false
 	end
 	-- Return the merged options table
 	return ret as options.Options
@@ -355,7 +384,6 @@ local function handle_cluttealtex_options(arg: {string}): string, TexEngine.Engi
 			tex_extraoptions      = {},
 			dvipdfmx_extraoptions = {},
 			package_support       = {},
-			hooks                 = options.init_hooks(),
 			-- ordinary default values
 			max_iterations        = 3,
 			skip_first            = false,
@@ -364,6 +392,7 @@ local function handle_cluttealtex_options(arg: {string}): string, TexEngine.Engi
 			halt_on_error         = true,
 			output_format         = "pdf",
 	}
+	init_hooks(default_options)
 
 	-- Parse configuration and command-line options
 	local config_options, inputfile = parse_config_file()

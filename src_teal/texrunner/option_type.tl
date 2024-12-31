@@ -103,7 +103,6 @@ local record Module
 		-- pre_build:             {string: integer}
 		-- post_build:            {string: integer}
 	end
-	init_hooks: function(): Hooks
 
 	-- argument collections related to special hooks
 	record PostCompileArgs
@@ -145,14 +144,5 @@ local _M: Module = {
 			sagetex     = 7,
 		}
 	},
-	init_hooks = function():Module.Hooks return {
-		tex_injection            = {},
-		-- pre_compile              = {},
-		post_compile             = {},
-		-- pre_build                = {},
-		-- post_build               = {},
-		suggestion_file_based    = {},
-		suggestion_execlog_based = {},
-	} end
 }
 return _M
