@@ -248,26 +248,6 @@ local function single_run_coroutine(args: Module.typesetArgs): boolean|string
 	end
 
 	if args.options.glossaries then
-		-- Look for configured files and run makeindex/xindy
-		for _,file in ipairs(filelist) do
-			for _, cfg in ipairs(args.options.glossaries) do
-				if pathutil.ext(file.path) == cfg.inp then
-					-- Run xindy/makeindex if the specified input-file is new or updated
-					local inputfileinfo = {path = file.path, abspath = file.abspath, kind = "auxiliary"}
-					local outputfile = args.path_in_output_directory(cfg.out)
-					if reruncheck.comparefileinfo({inputfileinfo}, args.auxstatus) or reruncheck.comparefiletime(file.abspath, outputfile, args.auxstatus) then
-						print(cfg.cmd(args.path_in_output_directory))
-						coroutine.yield(cfg.cmd(args.path_in_output_directory))
-						table.insert(filelist, {path = outputfile, abspath = outputfile, kind = "auxiliary"})
-					else
-						local succ, err = filesys.touch(outputfile)
-						if not succ then
-							message.warn("Failed to touch " .. outputfile .. " (" .. err .. ")")
-						end
-					end
-				end
-			end
-		end
 	end
 
 	if args.options.bibtex then

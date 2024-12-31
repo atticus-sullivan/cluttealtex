@@ -110,6 +110,30 @@ local function makeindex(options:option_t.Options, args:option_t.PostCompileArgs
 	end
 end
 
+local function glossaries(options:option_t.Options, args:option_t.PostCompileArgs)
+	-- Look for configured files and run makeindex/xindy
+	for _,file in ipairs(args.filelist) do
+		for _, cfg in ipairs(options.glossaries) do
+			if pathutil.ext(file.path) == cfg.inp then
+				-- Run xindy/makeindex if the specified input-file is new or updated
+				local inputfileinfo = {path = file.path, abspath = file.abspath, kind = "auxiliary"}
+				local outputfile = args.path_in_output_directory(cfg.out)
+				if reruncheck.comparefileinfo({inputfileinfo}, args.auxstatus) or reruncheck.comparefiletime(file.abspath, outputfile, args.auxstatus) then
+					-- TODO remove print statement?
+					print(cfg.cmd(args.path_in_output_directory))
+					coroutine.yield(cfg.cmd(args.path_in_output_directory))
+					table.insert(args.filelist, {path = outputfile, abspath = outputfile, kind = "auxiliary"})
+				else
+					local succ, err = filesys.touch(outputfile)
+					if not succ then
+						message.warn("Failed to touch " .. outputfile .. " (" .. err .. ")")
+					end
+				end
+			end
+		end
+	end
+end
+
 local function bibtex(options:option_t.Options, args:option_t.PostCompileArgs)
 	local mainauxfile = args.path_in_output_directory("aux")
 	local biblines2 = extract_bibtex_from_aux_file(mainauxfile, options.output_directory)
@@ -227,6 +251,7 @@ return {
 	check_driver = check_driver,
 
 	makeindex   = makeindex,
+	glossaries  = glossaries,
 	bibtex      = bibtex,
 	biber       = biber,
 	sagetex     = sagetex,

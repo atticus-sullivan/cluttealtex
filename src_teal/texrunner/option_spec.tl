@@ -600,6 +600,8 @@ local option_spec:{string:Option} = {
 			if param is string then
 				options.glossaries = options.glossaries or {}
 				table.insert(options.glossaries, assert(parse_glossaries_option_from_string(param)))
+				options.hooks = options.hooks or option_t.init_hooks()
+				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.glossaries)] = {typeset_hooks.glossaries, "glossaries"}
 			else
 				error("invalid param type")
 			end
@@ -640,6 +642,8 @@ local option_spec:{string:Option} = {
 
 			options.glossaries = options.glossaries or {}
 			table.insert(options.glossaries, assert(parse_glossaries_option_from_table(param)))
+			options.hooks = options.hooks or option_t.init_hooks()
+			options.hooks.post_compile[assert(option_t.hook_prios.post_compile.glossaries)] = {typeset_hooks.glossaries, "glossaries"}
 		end,
 	},
 	memoize = {
