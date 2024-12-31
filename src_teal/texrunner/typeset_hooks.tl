@@ -267,21 +267,145 @@ local function sagetex(options:option_t.Options, args:option_t.PostCompileArgs)
 	end
 end
 
+-- generic hook function to get a sorted list of priorities
+local function sort_prios(hook_table: {number: {function, string}}): {number}
+	local priorities = {}
+	for prio in pairs(hook_table) do
+		table.insert(priorities, prio)
+	end
+	table.sort(priorities)
+	return priorities
+end
+
+-- generic hook function to check if a hook-tuple is valid
+local function validate(hook: {function, string, boolean}): boolean, string
+	if not hook or not hook[1] or not hook[2] then
+		return false, "Malformed hook"
+	end
+	return true, nil
+end
+
+-- returns the new tex_injection string
+local function apply_tex_injection(hooks: {number: {option_t.Hooks.tex_injection_func, string}}, options: option_t.Options, tex_options: engine_t.Option, tex_injection:string): string
+	local sorted_prios = sort_prios(hooks as {number: {function, string}})
+	local result = tex_injection
+	for _, prio in ipairs(sorted_prios) do
+		local hook = hooks[prio]
+		local valid, err = validate(hook)
+		if not valid then
+			error("Invalid hook: " .. err)
+		end
+		 if CLUTTEALTEX_VERBOSITY >= 1 then
+			message.info("Executing tex_injection hook '", hook[2], "'")
+		end
+		result = hook[1](options, tex_options, result)
+	end
+	return result
+end
+
+-- only does message.diag, no modifications, no return
+local function apply_suggestion_file_based(hooks: {number: {option_t.Hooks.suggestion_file_based_func, string, boolean}}, filelist:{common_t.Filemap_ele})
+	local sorted_prios = sort_prios(hooks as {number: {function, string}})
+	-- check if all hooks are valid
+	for _, prio in ipairs(sorted_prios) do
+		local hook = hooks[prio]
+		local valid, err = validate(hook)
+		if not valid then
+			error("Invalid hook: " .. err)
+		end
+	end
+
+	-- run hooks on files contained in the filelist and emit messages
+	for _,fileinfo in ipairs(filelist) do
+		for _, prio in ipairs(sorted_prios) do
+			local hook = hooks[prio]
+			if not hook[3] and hook[1](fileinfo) then
+				message.diag(hook[2])
+				hook[3] = true
+			end
+		end
+	end
+end
+
+-- only does message.diag, no modifications, no return
+local function apply_suggestion_excelog_based(hooks: {number: {option_t.Hooks.suggestion_execlog_based_func, string}}, execlog: string, o:option_t.Options)
+	local sorted_prios = sort_prios(hooks as {number: {function, string}})
+	for _, prio in ipairs(sorted_prios) do
+		local hook = hooks[prio]
+		local valid, err = validate(hook)
+		if not valid then
+			error("Invalid hook: " .. err)
+		end
+		if hook[1](execlog, o) then
+			message.diag(hook[2])
+		end
+	end
+end
+
+-- must run in the coroutine
+-- yields shell commands to be executed
+local function apply_post_compile(hooks: {number: {option_t.Hooks.post_compile_func, string}}, options: option_t.Options, args: option_t.PostCompileArgs)
+	local sorted_prios = sort_prios(hooks as {number: {function, string}})
+	for _, prio in ipairs(sorted_prios) do
+		local hook = hooks[prio]
+		local valid, err = validate(hook)
+		if not valid then
+			error("Invalid hook: " .. err)
+		end
+		 if CLUTTEALTEX_VERBOSITY >= 1 then
+			message.info("Executing post_compile hook '", hook[2], "'")
+		end
+		hook[1](options, args)
+	end
+end
+
+-- must run in the coroutine
+-- yields shell commands to be executed
+local function apply_post_build(hooks: {number: {option_t.Hooks.post_build_func, string}}, options: option_t.Options)
+	local sorted_prios = sort_prios(hooks as {number: {function, string}})
+	for _, prio in ipairs(sorted_prios) do
+		local hook = hooks[prio]
+		local valid, err = validate(hook)
+		if not valid then
+			error("Invalid hook: " .. err)
+		end
+		 if CLUTTEALTEX_VERBOSITY >= 1 then
+			message.info("Executing post_build hook '", hook[2], "'")
+		end
+		hook[1](options)
+	end
+end
+
 return {
+	-- tex_injection hooks
 	includeonly  = includeonly,
 	memoize      = memoize,
 	memoize_opts = memoize_opts,
 	quiet        = quiet,
 
+	-- suggestion_file_based hooks
 	ps_minted    = ps_minted,
 	ps_epstopdf  = ps_epstopdf,
 
+	-- hook
 	check_driver = check_driver,
 
+	-- post_compile hooks
 	makeindex   = makeindex,
 	glossaries  = glossaries,
 	bibtex      = bibtex,
 	biber       = biber,
 	memoize_run = memoize_run,
 	sagetex     = sagetex,
+
+	-- functions for hook management
+	apply_post_compile             = apply_post_compile,
+	apply_tex_injection            = apply_tex_injection,
+	apply_suggestion_file_based    = apply_suggestion_file_based,
+	apply_suggestion_excelog_based = apply_suggestion_excelog_based,
+	apply_post_build               = apply_post_build,
+
+	-- internal
+	sort_prios = sort_prios,
+	validate   = validate,
 }

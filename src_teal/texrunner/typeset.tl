@@ -20,7 +20,6 @@ along with CluttealTeX.  If not, see <http://www.gnu.org/licenses/>.
 
 -- External libraries (included in texlua)
 local md5     = require "md5"
-local filesys = require "lfs"
 
 local os                           = require"os_"
 local pathutil                     = require "texrunner.pathutil"
@@ -34,8 +33,8 @@ local extract_bibtex_from_aux_file = require "texrunner.auxfile".extract_bibtex_
 local safename                     = require "texrunner.safename"
 local recoverylib                  = require "texrunner.recovery"
 
-local option_t                     = require "texrunner.option_type"
 local common_t                     = require "texrunner.common_types"
+local ts_hooks                     = require "texrunner.typeset_hooks"
 
 local exit: function(code:integer)
 global CLUTTEALTEX_TEST_ENV: boolean
@@ -62,107 +61,6 @@ local record Module
 	end
 end
 
-local function hooks_sort_prios(hook_table: {number: {function, string}}): {number}
-	local priorities = {}
-	for prio in pairs(hook_table) do
-		table.insert(priorities, prio)
-	end
-	table.sort(priorities)
-	return priorities
-end
-
-local function hooks_validate(hook: {function, string, boolean}): boolean, string
-	if not hook or not hook[1] or not hook[2] then
-		return false, "Malformed hook"
-	end
-	return true, nil
-end
-
--- returns the new tex_injection string
-local function hooks_apply_tex_injection(hooks: {number: {option_t.Hooks.tex_injection_func, string}}, options: option_t.Options, tex_options: engine_t.Option, tex_injection:string): string
-	local sorted_prios = hooks_sort_prios(hooks as {number: {function, string}})
-	local result = tex_injection
-	for _, prio in ipairs(sorted_prios) do
-		local hook = hooks[prio]
-		local valid, err = hooks_validate(hook)
-		if not valid then
-			error("Invalid hook: " .. err)
-		end
-		 if CLUTTEALTEX_VERBOSITY >= 1 then
-			message.info("Executing tex_injection hook '", hook[2], "'")
-		end
-		result = hook[1](options, tex_options, result)
-	end
-	return result
-end
-
-local function hooks_apply_suggestion_file_based(hooks: {number: {option_t.Hooks.suggestion_file_based_func, string, boolean}}, filelist:{common_t.Filemap_ele})
-	local sorted_prios = hooks_sort_prios(hooks as {number: {function, string}})
-	-- check if all hooks are valid
-	for _, prio in ipairs(sorted_prios) do
-		local hook = hooks[prio]
-		local valid, err = hooks_validate(hook)
-		if not valid then
-			error("Invalid hook: " .. err)
-		end
-	end
-
-	-- run hooks on files contained in the filelist and emit messages
-	for _,fileinfo in ipairs(filelist) do
-		for _, prio in ipairs(sorted_prios) do
-			local hook = hooks[prio]
-			if not hook[3] and hook[1](fileinfo) then
-				message.diag(hook[2])
-				hook[3] = true
-			end
-		end
-	end
-end
-
-local function hooks_apply_suggestion_excelog_based(hooks: {number: {option_t.Hooks.suggestion_execlog_based_func, string}}, execlog: string, o:option_t.Options)
-	local sorted_prios = hooks_sort_prios(hooks as {number: {function, string}})
-	for _, prio in ipairs(sorted_prios) do
-		local hook = hooks[prio]
-		local valid, err = hooks_validate(hook)
-		if not valid then
-			error("Invalid hook: " .. err)
-		end
-		if hook[1](execlog, o) then
-			message.diag(hook[2])
-		end
-	end
-end
-
-local function hooks_apply_post_compile(hooks: {number: {option_t.Hooks.post_compile_func, string}}, options: option_t.Options, args: option_t.PostCompileArgs)
-	local sorted_prios = hooks_sort_prios(hooks as {number: {function, string}})
-	for _, prio in ipairs(sorted_prios) do
-		local hook = hooks[prio]
-		local valid, err = hooks_validate(hook)
-		if not valid then
-			error("Invalid hook: " .. err)
-		end
-		 if CLUTTEALTEX_VERBOSITY >= 1 then
-			message.info("Executing post_compile hook '", hook[2], "'")
-		end
-		hook[1](options, args)
-	end
-end
-
-local function hooks_apply_post_build(hooks: {number: {option_t.Hooks.post_build_func, string}}, options: option_t.Options)
-	local sorted_prios = hooks_sort_prios(hooks as {number: {function, string}})
-	for _, prio in ipairs(sorted_prios) do
-		local hook = hooks[prio]
-		local valid, err = hooks_validate(hook)
-		if not valid then
-			error("Invalid hook: " .. err)
-		end
-		 if CLUTTEALTEX_VERBOSITY >= 1 then
-			message.info("Executing post_build hook '", hook[2], "'")
-		end
-		hook[1](options)
-	end
-end
-
 -- Run TeX command (*tex, *latex)
 -- should_rerun, newauxstatus = single_run([auxstatus])
 -- This function should be run in a coroutine.
@@ -179,7 +77,7 @@ local function single_run_coroutine(args: Module.typesetArgs): boolean|string
 
 		-- emits suggestsions to the user which options might be usefull
 		-- does nothing except potentially message.diag -> no return needed
-		hooks_apply_suggestion_file_based(args.options.hooks.suggestion_file_based, filelist)
+		ts_hooks.apply_suggestion_file_based(args.options.hooks.suggestion_file_based, filelist)
 
 		if args.options.bibtex then
 			local biblines = extract_bibtex_from_aux_file(mainauxfile, args.options.output_directory)
@@ -205,7 +103,7 @@ local function single_run_coroutine(args: Module.typesetArgs): boolean|string
 	local tex_injection = args.tex_options.tex_injection or ""
 
 	-- run tex_injection hooks
-	tex_injection = hooks_apply_tex_injection(args.options.hooks.tex_injection, args.options, args.tex_options, tex_injection)
+	tex_injection = ts_hooks.apply_tex_injection(args.options.hooks.tex_injection, args.options, args.tex_options, tex_injection)
 
 	local inputline = tex_injection .. safename.safeinput(args.inputfile, args.engine)
 
@@ -261,7 +159,7 @@ local function single_run_coroutine(args: Module.typesetArgs): boolean|string
 		logfile:close()
 	end
 
-	hooks_apply_post_compile(args.options.hooks.post_compile, args.options, {
+	ts_hooks.apply_post_compile(args.options.hooks.post_compile, args.options, {
 		filelist                 = filelist,
 		auxstatus                = args.auxstatus,
 		path_in_output_directory = args.path_in_output_directory,
@@ -269,7 +167,7 @@ local function single_run_coroutine(args: Module.typesetArgs): boolean|string
 		original_wd              = args.original_wd,
 	})
 
-	hooks_apply_suggestion_excelog_based(args.options.hooks.suggestion_execlog_based, execlog, args.options)
+	ts_hooks.apply_suggestion_excelog_based(args.options.hooks.suggestion_execlog_based, execlog, args.options)
 
 	if string.find(execlog, "No pages of output.") then
 		return "No pages of output."
@@ -358,7 +256,7 @@ local function do_typeset_coroutine(args:Module.typesetArgs): string, function
 		f:close()
 	end
 
-	hooks_apply_post_build(args.options.hooks.post_build, args.options)
+	ts_hooks.apply_post_build(args.options.hooks.post_build, args.options)
 end
 
 local function do_typeset(args: Module.typesetArgs): boolean, string, integer
