@@ -24,7 +24,6 @@ local filesys = require "lfs"
 
 local os                           = require"os_"
 local pathutil                     = require "texrunner.pathutil"
-local checkdriver                  = require "texrunner.checkdriver".checkdriver
 local shellutil                    = require "texrunner.shellutil"
 local options                      = require "texrunner.option_type" -- legacy import
 local message                      = require "texrunner.message"
@@ -116,6 +115,21 @@ local function hooks_apply_suggestion_file_based(hooks: {number: {(function(comm
 				message.diag(hook[2])
 				hook[3] = true
 			end
+		end
+	end
+end
+
+local function hooks_apply_post_compile(hooks: {number: {(function(option_t.Options, option_t.PostCompileArgs)), string}}, options: option_t.Options, args: option_t.PostCompileArgs)
+	local sorted_prios = hooks_sort_prios(hooks as {number: {function, string}})
+	for _, prio in ipairs(sorted_prios) do
+		local hook = hooks[prio]
+		local valid, err = hooks_validate(hook)
+		if not valid then
+			error("Invalid hook: " .. err)
+		end
+		hook[1](options, args)
+		 if CLUTTEALTEX_VERBOSITY >= 1 then
+			message.info("Executing post_compile hook '", hook[2], "'")
 		end
 	end
 end

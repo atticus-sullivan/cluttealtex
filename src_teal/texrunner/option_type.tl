@@ -70,7 +70,7 @@ local record Module
 
 		-- hooks which are run before/after every *TeX invocation
 		pre_compile: {number: function}
-		post_compile: {number: function}
+		post_compile: {number: {(function(Options, PostCompileArgs)), string}}
 
 		-- hooks which are run before/after every the whole build procedure
 		-- (potentially includes multiple invocations to *TeX and other tools
@@ -90,9 +90,25 @@ local record Module
 	hook_prios: HookPrios
 	record HookPrios
 		tex_injection:         {string: integer}
+
 		suggestion_file_based: {string: integer}
+
+		pre_compile:           {string: integer}
+		post_compile:          {string: integer}
+
+		pre_build:             {string: integer}
+		post_build:            {string: integer}
 	end
 	init_hooks: function(): Hooks
+
+	-- argument collections related to special hooks
+	record PostCompileArgs
+		filelist: {common_t.Filemap_ele}
+		auxstatus: {string: common_t.Status}
+		path_in_output_directory: function(string):string
+		bibtex_aux_hash: string
+		original_wd: string
+	end
 end
 
 local _M: Module = {
@@ -106,6 +122,15 @@ local _M: Module = {
 		suggestion_file_based = {
 			package_support = 2,
 		},
+		post_compile = {
+			checkdriver = 1,
+			makeindex   = 2,
+			glossaries  = 3,
+			bibtex      = 4,
+			biber       = 5,
+			memoize     = 6,
+			sagetex     = 7,
+		}
 	},
 	init_hooks = function():Module.Hooks return {
 		tex_injection         = {},
