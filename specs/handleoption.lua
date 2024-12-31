@@ -241,7 +241,9 @@ describe("handleoption", function()
 					log="xyg",
 					path="makeindex",
 					cmd=options.glossaries[1].cmd, -- ignore the function
-				}}})
+				}},
+				hooks=options.hooks, -- ignore the hooks for now
+				})
 			end)
 
 			-- Test handling an unknown type
@@ -368,6 +370,7 @@ describe("handleoption", function()
 				glossaries = {{type="makeindex", path="makeindex", out="acr", inp="acn", log="alg", cmd=options.glossaries[1].cmd}},
 				max_iterations = 50,
 				quiet = 0,
+				hooks = options.hooks, -- ignore the hooks for now
 			})
 			expect.equal(inputfile, "main.tex")
 			local watch = handleoption._internal.query_options("watch", "long")
