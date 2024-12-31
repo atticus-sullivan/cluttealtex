@@ -69,14 +69,14 @@ local record Module
 		tex_injection: {number: {(function(options:Options, engine_t.Option, tex_injection: string): string), string}}
 
 		-- hooks which are run before/after every *TeX invocation
-		pre_compile: {number: function}
+		-- pre_compile: {number: function}
 		post_compile: {number: {(function(Options, PostCompileArgs)), string}}
 
 		-- hooks which are run before/after every the whole build procedure
 		-- (potentially includes multiple invocations to *TeX and other tools
 		-- like makeindex or biber)
-		pre_build: {number: function}
-		post_build: {number: function}
+		-- pre_build: {number: function}
+		-- post_build: {number: function}
 
 		-- hooks which run when a recorder file is being parsed before running
 		-- *TeX in order to suggest some options based on the files from the
@@ -97,11 +97,11 @@ local record Module
 		suggestion_file_based:    {string: integer}
 		suggestion_execlog_based: {string: integer}
 
-		pre_compile:           {string: integer}
+		-- pre_compile:           {string: integer}
 		post_compile:          {string: integer}
 
-		pre_build:             {string: integer}
-		post_build:            {string: integer}
+		-- pre_build:             {string: integer}
+		-- post_build:            {string: integer}
 	end
 	init_hooks: function(): Hooks
 
@@ -147,10 +147,10 @@ local _M: Module = {
 	},
 	init_hooks = function():Module.Hooks return {
 		tex_injection            = {},
-		pre_compile              = {},
+		-- pre_compile              = {},
 		post_compile             = {},
-		pre_build                = {},
-		post_build               = {},
+		-- pre_build                = {},
+		-- post_build               = {},
 		suggestion_file_based    = {},
 		suggestion_execlog_based = {},
 	} end
