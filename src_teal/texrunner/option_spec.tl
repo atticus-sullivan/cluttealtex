@@ -565,6 +565,8 @@ local option_spec:{string:Option} = {
 			assert(options.bibtex == nil, "multiple --bibtex/--biber options")
 			if param is string then
 				options.biber = param
+				options.hooks = options.hooks or option_t.init_hooks()
+				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.biber)] = {typeset_hooks.biber, "biber"}
 			else
 				error("invalid param type")
 			end
