@@ -14,6 +14,7 @@ require 'specs.read_cfg'
 require 'specs.utils'
 require 'specs.watcher'
 require 'specs.option_spec'
+require 'specs.typeset_hooks'
 
 lester.report() -- Print overall statistic of the tests run.
 lester.exit() -- Exit with success if all tests passed.
