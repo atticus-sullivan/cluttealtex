@@ -84,6 +84,9 @@ local record Module
 		-- the third value in the tuple is used to store if the message (second
 		-- value in the tuple) has already been shown to the user
 		suggestion_file_based: {number: {(function(common_t.Filemap_ele):boolean), string, boolean}}
+
+		-- hooks which check the execlog if some option should be probably used
+		suggestion_execlog_based: {number: {(function(string, Options):boolean), string}}
 	end
 
 	-- stores the allocated priorities
@@ -91,7 +94,8 @@ local record Module
 	record HookPrios
 		tex_injection:         {string: integer}
 
-		suggestion_file_based: {string: integer}
+		suggestion_file_based:    {string: integer}
+		suggestion_execlog_based: {string: integer}
 
 		pre_compile:           {string: integer}
 		post_compile:          {string: integer}
@@ -123,6 +127,15 @@ local _M: Module = {
 			package_support = 2,
 		},
 		post_compile = {
+			checkdriver = 1,
+			makeindex   = 2,
+			glossaries  = 3,
+			bibtex      = 4,
+			biber       = 5,
+			memoize     = 6,
+			sagetex     = 7,
+		},
+		suggestion_execlog_based = {
 			checkdriver = 1,
 			makeindex   = 2,
 			glossaries  = 3,

@@ -119,6 +119,20 @@ local function hooks_apply_suggestion_file_based(hooks: {number: {(function(comm
 	end
 end
 
+local function hooks_apply_suggestion_excelog_based(hooks: {number: {(function(string, option_t.Options):boolean), string}}, execlog: string, o:option_t.Options)
+	local sorted_prios = hooks_sort_prios(hooks as {number: {function, string}})
+	for _, prio in ipairs(sorted_prios) do
+		local hook = hooks[prio]
+		local valid, err = hooks_validate(hook)
+		if not valid then
+			error("Invalid hook: " .. err)
+		end
+		if hook[1](execlog, o) then
+			message.diag(hook[2])
+		end
+	end
+end
+
 local function hooks_apply_post_compile(hooks: {number: {(function(option_t.Options, option_t.PostCompileArgs)), string}}, options: option_t.Options, args: option_t.PostCompileArgs)
 	local sorted_prios = hooks_sort_prios(hooks as {number: {function, string}})
 	for _, prio in ipairs(sorted_prios) do
@@ -240,40 +254,7 @@ local function single_run_coroutine(args: Module.typesetArgs): boolean|string
 		original_wd              = args.original_wd,
 	})
 
-	if not args.options.makeindex then
-		-- Check log file
-		if string.find(execlog, "No file [^\n]+%.ind%.") then
-			message.diag("You may want to use --makeindex option.")
-		end
-	end
-
-	if args.options.glossaries then
-	end
-
-	if args.options.bibtex then
-	elseif args.options.biber then
-	else
-		-- Check log file
-		if string.find(execlog, "No file [^\n]+%.bbl%.") then
-			message.diag("You may want to use --bibtex or --biber option.")
-		end
-	end
-
-	if args.options.memoize then
-	else
-		-- Check log file
-		if string.find(execlog, "Package memoize Warning") then
-			message.diag("You may want to use --memoize option.")
-		end
-	end
-
-	if args.options.sagetex then
-	else
-		-- Check log file
-		if string.find(execlog, "Run Sage on") then
-			message.diag("You may want to use --sagetex option.")
-		end
-	end
+	hooks_apply_suggestion_excelog_based(args.options.hooks.suggestion_execlog_based, execlog, args.options)
 
 	if string.find(execlog, "No pages of output.") then
 		return "No pages of output."

@@ -535,6 +535,12 @@ local option_spec:{string:Option} = {
 				options.makeindex = param
 				options.hooks = options.hooks or option_t.init_hooks()
 				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.makeindex)] = {typeset_hooks.makeindex, "makeindex"}
+				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.makeindex)] = {
+					function(execlog:string, _:option_t.Options): boolean
+						return string.find(execlog, "No file [^\n]+%.ind%.") ~= nil
+					end,
+					"You may want to use --makeindex option."
+				}
 			else
 				error("invalid param type")
 			end
@@ -551,6 +557,12 @@ local option_spec:{string:Option} = {
 				options.bibtex = param
 				options.hooks = options.hooks or option_t.init_hooks()
 				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.bibtex)] = {typeset_hooks.bibtex, "bibtex"}
+				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.bibtex)] = {
+					function(execlog:string, o:option_t.Options): boolean
+						return string.find(execlog, "No file [^\n]+%.bbl%.") ~= nil and not o.biber
+					end,
+					"You may want to use --bibtex or --biber option."
+				}
 			else
 				error("invalid param type")
 			end
@@ -567,6 +579,12 @@ local option_spec:{string:Option} = {
 				options.biber = param
 				options.hooks = options.hooks or option_t.init_hooks()
 				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.biber)] = {typeset_hooks.biber, "biber"}
+				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.biber)] = {
+					function(execlog:string, o:option_t.Options): boolean
+						return string.find(execlog, "No file [^\n]+%.bbl%.") ~= nil and not o.bibtex
+					end,
+					"You may want to use --bibtex or --biber option."
+				}
 			else
 				error("invalid param type")
 			end
@@ -582,6 +600,12 @@ local option_spec:{string:Option} = {
 				options.sagetex = param
 				options.hooks = options.hooks or option_t.init_hooks()
 				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.sagetex)] = {typeset_hooks.sagetex, "sagetex"}
+				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.sagetex)] = {
+					function(execlog:string, _:option_t.Options): boolean
+						return string.find(execlog, "Run Sage on") ~= nil
+					end,
+					"You may want to use --sagetex option."
+				}
 			else
 				error("invalid param type")
 			end
@@ -663,6 +687,12 @@ local option_spec:{string:Option} = {
 				options.hooks = options.hooks or option_t.init_hooks()
 				options.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.memoize+0.1)] = {typeset_hooks.memoize, "memoize"}
 				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.memoize)] = {typeset_hooks.memoize_run, "memoize"}
+				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.memoize)] = {
+					function(execlog:string, _:option_t.Options): boolean
+						return string.find(execlog, "Package memoize Warning") ~= nil
+					end,
+					"You may want to use --memoize option."
+				}
 			else
 				error("invalid param type")
 			end
