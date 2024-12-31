@@ -23,3 +23,62 @@ mostly a duplicate of `cluttex` which is already published there.
 - also supports the `memoize` package. You only need to pass `--memoize` to
   `cluttealtex` and put `\usepackage{memoize}` in your LaTeX file. Also you can
   pass arbitrary additional parameters to `memoize` (useful for e.g. `readonly` key)
+
+## For developers
+<details><summary>Click to expand</summary>
+
+### Hooking
+For some parts, cluttealtex makes use of a hooking mechanism. The initial idea
+was to keep the functions in `typeset.tl` smaller and to avoid piling up code
+for various options (like `glossaries` or `bibtex`/`biber`).
+
+There are various hooks that can be installed:
+- `tex_injection`: Executed prior to running the *TeX command. Used to inject
+code (like `\RequirePackage`) ino the TeX input
+- `suggestion_file_based`: Executed prior to running the *TeX command. If
+there's a recorder file, it is parsed and this hook is used to determine whether
+some options are suggested to the user.
+- `post_compile`: Executed after running *TeX and the `recovery`. Used to run
+external commands like `makeindex` or `biber`.
+- `suggestion_execlog_based`: Executed after running *TeX. Used to suggest some
+options to the user based on the log produced by *TeX.
+- `post_build` Executed after *TeX produced a stable output (potentially
+includes running *TeX multiple times as well as external commands). Currently
+not used by cluttealtex. Idea is more to make this available to the user.
+
+For the signature of the functions that can be used for the respective hooks,
+see `option_type.tl` the `Hooks.*_func` types.
+
+Note: All the hooks run in the typeset coroutine. They can use `coroutine.yield`
+in order to run shell commands.
+
+#### Priorities
+Each hook is registered with a priority. When a certain point is reached which
+can be hooked, the hooks are sorted based on the priority and executed in order.
+A low number hereby means the hook is executed earlier.
+
+The priorities used for options defined by cluttealtex are defined as constants
+in `option_type.tl` in the `hook_prios` table.
+
+Priorities are not just integers but numbers. Thus, an option gets the whole
+room from `[priority,priority+1[` to install hooks to. E.g. the `memoize` option
+only gets one priority and then uses different offsets for the `memoize`
+(`+0.1`) and the `memoize_opts` (`+0.2`) hooks.
+
+#### Merging Hooks
+When options are passed by multiple different means (e.g. CLI + config-file),
+the registered hooks get merged. This means all hooks defined in either of the
+option tables is kept.
+
+There is one exception for the hooks beginning with `suggestion_`. These are
+hooks that are enabled by default and usually are disabled when an option is
+set. Thus, for merging only the hooks which are defined in both option tables
+are kept.
+
+#### Suggestion Hooks
+Suggestion hooks should be enabled by default. For this purpose, the
+`suggestion_handlers` field in each option in the `option_spec` defines a
+function for each suggestion hook which gets executed when initializing the
+hooks table in the options.
+
+</details>

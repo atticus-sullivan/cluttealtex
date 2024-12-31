@@ -25,6 +25,7 @@ local options        = require "texrunner.option_type"
 local message        = require "texrunner.message"
 local reruncheck     = require "texrunner.reruncheck"
 local fswatcherlib_t = require"texrunner.fswatcher"
+local common_t       = require"texrunner.common_types"
 
 local exit: function(code:integer)
 global CLUTTEALTEX_TEST_ENV: boolean
@@ -35,7 +36,7 @@ else
 end
 
 -- Helper function to determine whether a file should be watched based on user-specified filters
-local function should_watch_file(fileinfo:reruncheck.Filemap_ele, filters: {options.WatchIncExc}): boolean
+local function should_watch_file(fileinfo:common_t.Filemap_ele, filters: {options.WatchIncExc}): boolean
 	if not filters then
 		-- If no filters are provided, watch all files by default
 		return true
@@ -69,7 +70,7 @@ local function should_watch_file(fileinfo:reruncheck.Filemap_ele, filters: {opti
 end
 
 -- Gather a list of input files to be watched based on filters and maximum allowed watches
-local function gather_input_files_to_watch(max_watches: integer, options: options.Options, filelist: {reruncheck.Filemap_ele}): {string}
+local function gather_input_files_to_watch(max_watches: integer, options: options.Options, filelist: {common_t.Filemap_ele}): {string}
 	local input_files_to_watch = {}
 	-- Iterate over the file list to determine files eligible for watching
 	for _,fileinfo in ipairs(filelist) do
@@ -207,7 +208,7 @@ end
 
 local record Module
 	get_do_watch: function(options: options.Options): ((function(files:{string}): boolean), integer)
-	gather_input_files_to_watch: function(max_watches: integer, options: options.Options, filelist: {reruncheck.Filemap_ele}): {string}
+	gather_input_files_to_watch: function(max_watches: integer, options: options.Options, filelist: {common_t.Filemap_ele}): {string}
 end
 
 local _M:Module = {

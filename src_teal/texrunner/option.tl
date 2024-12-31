@@ -26,6 +26,8 @@ else
 	exit = os.exit
 end
 
+local option_t = require"texrunner.option_type"
+
 local record Module
 	parseoption: function(arg:{string}, query_long_options:(function(string):Option,string,boolean), query_short_options:(function(string):Option,string,boolean)): {{string,string|boolean}},integer
 	_internal: internal
@@ -44,6 +46,11 @@ local record Module
 		handle_cfg:          function({string:any}, table)
 		no_cli:              boolean
 		no_cfg:              boolean
+		suggestion_handlers: SuggestionHandlers
+	end
+	record SuggestionHandlers
+		file_based:    function(option_t.Options)
+		execlog_based: function(option_t.Options)
 	end
 end
 
