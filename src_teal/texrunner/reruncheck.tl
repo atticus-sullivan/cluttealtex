@@ -266,7 +266,7 @@ local function check_auxiliary_file(path: string, fileinfo: common_t.Filemap_ele
 		if really_modified then
 			message.info("File '", fileinfo.path, "' was modified (", modified_because, ").")
 			return true, status
-		elseif CLUTTEALTEX_VERBOSITY >= 1 then
+		elseif CLUTTEALTEX_VERBOSITY >= 2 then
 			message.info("File '", fileinfo.path, "' unmodified (size and md5sum).")
 		end
 	else
