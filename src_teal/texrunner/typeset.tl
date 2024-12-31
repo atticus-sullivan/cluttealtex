@@ -313,30 +313,6 @@ local function single_run_coroutine(args: Module.typesetArgs): boolean|string
 	end
 
 	if args.options.sagetex then
-		for _,file in ipairs(filelist) do
-			-- usual compilation with sagetex
-			-- tex      -> pdflatex tex -> aux,pdf,sage
-			-- sage     -> sage sage    -> sout (eps)
-			-- tex,sout -> pdflatex tex -> aux,pdf,sage
-			local output_sout = pathutil.replaceext(file.abspath, "sout")
-			if pathutil.ext(file.path) == "sage" then
-				local sagefileinfo = {path = file.path, abspath = file.abspath, kind = "auxiliary"}
-				if reruncheck.comparefileinfo({sagefileinfo}, args.auxstatus) then
-					local sage_command = {
-						args.options.sagetex, -- Do not escape options.sagetex to allow additional options
-						pathutil.basename(file.abspath)
-					}
-					coroutine.yield(table.concat(sage_command, " "))
-					-- watch for changes in .sage
-					table.insert(filelist, {path = output_sout, abspath = output_sout, kind = "auxiliary"})
-				else
-					local succ, err = filesys.touch(output_sout)
-					if not succ then
-						message.warn("Failed to touch " .. output_sout .. " (" .. err .. ")")
-					end
-				end
-			end
-		end
 	else
 		-- Check log file
 		if string.find(execlog, "Run Sage on") then

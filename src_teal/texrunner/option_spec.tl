@@ -580,6 +580,8 @@ local option_spec:{string:Option} = {
 			assert(options.sagetex == nil, "multiple --sagetex options")
 			if param is string then
 				options.sagetex = param
+				options.hooks = options.hooks or option_t.init_hooks()
+				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.sagetex)] = {typeset_hooks.sagetex, "sagetex"}
 			else
 				error("invalid param type")
 			end
