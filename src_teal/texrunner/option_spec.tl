@@ -477,7 +477,7 @@ local option_spec:{string:Option} = {
 					o.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.package_support)+0.1] = {typeset_hooks.ps_minted, "package_support minted"}
 					o.hooks.suggestion_file_based[assert(option_t.hook_prios.suggestion_file_based.package_support)+0.1] = {
 						function(fileinfo:common_t.Filemap_ele): boolean
-								return string.match(fileinfo.path, "minted/minted%.sty$") ~= nil
+								return string.find(fileinfo.path, "minted/minted%.sty$") ~= nil
 						end,
 						"You may want to use --package-support=minted option."
 					}
@@ -488,7 +488,7 @@ local option_spec:{string:Option} = {
 					o.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.package_support)+0.2] = {typeset_hooks.ps_epstopdf, "package_support epstopdf"}
 					o.hooks.suggestion_file_based[assert(option_t.hook_prios.suggestion_file_based.package_support)+0.2] = {
 						function(fileinfo:common_t.Filemap_ele): boolean
-								return string.match(fileinfo.path, "epstopdf%.sty$") ~= nil
+								return string.find(fileinfo.path, "epstopdf%.sty$") ~= nil
 						end,
 						"You may want to use --package-support=epstopdf option."
 					}
