@@ -462,6 +462,7 @@ local record Module
 		parse_command_line_options: function(arg: {string}): options.Options, integer
 		parse_config_file:          function(): options.Options, string
 		query_options:              function(name:string, kind:string): Option,string,boolean
+		merge_hook_type:            function(ht:string, hs:{number:any}, ret:{string:any})
 	end
 end
 
@@ -481,6 +482,7 @@ if CLUTTEALTEX_TEST_ENV then
 		parse_command_line_options = parse_command_line_options,
 		parse_config_file          = parse_config_file,
 		query_options              = query_options,
+		merge_hook_type            = merge_hook_type,
 	}
 end
 return _M
