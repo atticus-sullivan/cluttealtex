@@ -271,31 +271,6 @@ local function single_run_coroutine(args: Module.typesetArgs): boolean|string
 	end
 
 	if args.options.bibtex then
-		local biblines2 = extract_bibtex_from_aux_file(mainauxfile, args.options.output_directory)
-		local bibtex_aux_hash2: string
-		if #biblines2 > 0 then
-			bibtex_aux_hash2 = md5.sum(table.concat(biblines2, "\n"))
-		end
-		local output_bbl = args.path_in_output_directory("bbl")
-		if bibtex_aux_hash ~= bibtex_aux_hash2 or reruncheck.comparefiletime(pathutil.abspath(mainauxfile), output_bbl, args.auxstatus) then
-			-- The input for BibTeX command has changed...
-			-- os.execute("pwd")
-			-- os.execute("echo $BIBINPUTS")
-			local bibtex_command = {
-				"cd", shellutil.escape(args.options.output_directory), "&&",
-				args.options.bibtex,
-				pathutil.basename(mainauxfile)
-			}
-			coroutine.yield(table.concat(bibtex_command, " "))
-		else
-			if CLUTTEALTEX_VERBOSITY >= 1 then
-				message.info("No need to run BibTeX.")
-			end
-			local succ, err = filesys.touch(output_bbl)
-			if not succ then
-				message.warn("Failed to touch " .. output_bbl .. " (" .. err .. ")")
-			end
-		end
 	elseif args.options.biber then
 		for _,file in ipairs(filelist) do
 			-- usual compilation with biber
