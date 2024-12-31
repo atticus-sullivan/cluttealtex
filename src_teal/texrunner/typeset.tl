@@ -148,6 +148,21 @@ local function hooks_apply_post_compile(hooks: {number: {option_t.Hooks.post_com
 	end
 end
 
+local function hooks_apply_post_build(hooks: {number: {option_t.Hooks.post_build_func, string}}, options: option_t.Options)
+	local sorted_prios = hooks_sort_prios(hooks as {number: {function, string}})
+	for _, prio in ipairs(sorted_prios) do
+		local hook = hooks[prio]
+		local valid, err = hooks_validate(hook)
+		if not valid then
+			error("Invalid hook: " .. err)
+		end
+		hook[1](options)
+		 if CLUTTEALTEX_VERBOSITY >= 1 then
+			message.info("Executing post_build hook '", hook[2], "'")
+		end
+	end
+end
+
 -- Run TeX command (*tex, *latex)
 -- should_rerun, newauxstatus = single_run([auxstatus])
 -- This function should be run in a coroutine.
@@ -342,6 +357,8 @@ local function do_typeset_coroutine(args:Module.typesetArgs): string, function
 		f:write("\n")
 		f:close()
 	end
+
+	hooks_apply_post_build(args.options.hooks.post_build, args.options)
 end
 
 local function do_typeset(args: Module.typesetArgs): boolean, string, integer

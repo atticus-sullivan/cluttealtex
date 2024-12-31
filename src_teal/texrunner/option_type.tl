@@ -78,7 +78,8 @@ local record Module
 		-- (potentially includes multiple invocations to *TeX and other tools
 		-- like makeindex or biber)
 		-- pre_build: {number: function}
-		-- post_build: {number: function}
+		type post_build_func = function(Options)
+		post_build: {number: {post_build_func,string}}
 
 		-- hooks which run when a recorder file is being parsed before running
 		-- *TeX in order to suggest some options based on the files from the
@@ -106,7 +107,7 @@ local record Module
 		post_compile:          HookPriosTab
 
 		-- pre_build:             HookPriosTab
-		-- post_build:            HookPriosTab
+		post_build:            HookPriosTab
 	end
 
 	-- argument collections related to special hooks
@@ -147,7 +148,8 @@ local _M: Module = {
 			biber       = 5,
 			memoize     = 6,
 			sagetex     = 7,
-		}
+		},
+		post_build = {},
 	},
 }
 return _M
