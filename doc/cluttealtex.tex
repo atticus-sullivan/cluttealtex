@@ -15,9 +15,26 @@
 \usepackage{ltxtable}         % use tabularx as longtable (\LTXtable{width}{pathToTable}) where the table referenced to contains of \begin{longtable}{preamble}content\end{longtable}
 \usepackage{booktabs}         % more nice rules (headrule/midrule/crule/bottomrule)
 
+\usepackage[svgnames]{xcolor}
 \usepackage{tcolorbox}
-\tcbuselibrary{skins,listingsutf8}
+\tcbuselibrary{skins,listingsutf8,documentation}
+% TODO adjust colors?
+\renewcommand*{\tcbdocnew}[1]{\textcolor{green!50!black}{\sffamily\bfseries N} #1}
+\renewcommand*{\tcbdocupdated}[1]{\textcolor{blue!75!black}{\sffamily\bfseries U} #1}
+\tcbset{skin=enhanced,
+	doc head={colback=yellow!10!white,interior style=fill},
+	doc head key={colback=magenta!5!white,interior style=fill},
+	doc head path={colback=blue!50!gray!7!white,interior style=fill},
+	color key=DarkViolet,
+	color value=Teal,
+	color color=Teal,
+	color counter=Orange!85!black,
+	color length=Orange!85!black,
+	index colorize,
+	index annotate,
+}
 
+\usepackage{multicol}
 \usepackage{catppuccinpalette}
 \usepackage{listings} % for code
 
@@ -249,37 +266,605 @@ You find a complete list of all available options at the end of this documentati
 The following sections will explain the various options in detail, grouped by category.
 
 \subsubsection{Basic Options}
+
+% \begin{docKeys}[
+%		% doc parameter={=\meta{engine}},
+%]{
+% 		{
+% 			% doc new=2025-01-01,
+% 			% doc updated=2025-01-01,
+%			doc keypath=cli,
+% 			doc name=suggest,
+% 			doc parameter={=\meta{value}},
+% 			doc description=initial default,
+% 		},
+% 		{
+% 			% doc new=2025-01-01,
+% 			% doc updated=2025-01-01,
+%			doc keypath=config,
+% 			doc name=suggest,
+% 			doc parameter={=\meta{value}},
+% 			doc description=initial default,
+% 		},
+% 	}
+% 	description
+% \end{docKeys}
+% \tcbdocmarginnote{\tcbdocnew{2025-01-01}}
+% \tcbdocmarginnote{\tcbdocupdated{2025-01-01}}
+% \refKey{suggestCLI}
+
 \paragraph{\TeX}
-% | engine | engine=engine | e=engine | - |
-% | engine_executable | engine-executable=engine_executable | - | - |
-% | tex_option | tex-option=tex_option | - | - |
-% | tex_options | tex-options=tex_options | - | - |
-% | dvipdfmx_option | dvipdfmx-option=dvipdfmx_option | - | - |
-% | dvipdfmx_options | dvipdfmx-options=dvipdfmx_options | - | - |
-% | interaction | interaction=interaction | - | - |
-% | jobname | jobname=jobname | - | - |
-% | output | output=output | o=output | - |
-% | shell_escape | shell-escape | - | - |
-% | synctex | synctex=synctex | - | - |
-% | shell_restricted | shell-restricted | - | - |
-% | halt_on_error | halt-on-error | - | - |
-% | fmt | fmt=fmt | - | - |
-% | file_line_error | file-line-error | - | - |
+\begin{docKeys}[
+		doc parameter={=\meta{engine}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=engine,
+			doc description={default: none, initial: none, \textcolor{CtpRed}{\bfseries\sffamily required}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=config,
+			doc name=engine,
+			doc description={default: none, initial: none, \textcolor{CtpRed}{\bfseries\sffamily required}},
+		},
+	}
+	Set which \TeX\ engine/format to use.
+	\metavar{ENGINE} is one of the following:
+	\begin{multicols}{3}
+		\begin{itemize}
+			\item \texttt{pdflatex}
+			\item \texttt{pdftex}
+			\item \texttt{lualatex}
+			\item \texttt{luatex}
+			\item \texttt{luajittex}
+			\item \texttt{xelatex}
+			\item \texttt{xetex}
+			\item \texttt{latex}
+			\item \texttt{etex}
+			\item \texttt{tex}
+			\item \texttt{platex}
+			\item \texttt{eptex}
+			\item \texttt{ptex}
+			\item \texttt{uplatex}
+			\item \texttt{euptex}
+			\item \texttt{uptex}
+			\item[]
+			\item[]
+		\end{itemize}
+	\end{multicols}
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{engine\_executable}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=engine-executable,
+			doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=config,
+			doc name=engine_executable,
+			doc description={default: none, initial: none},
+		},
+	}
+	\Todo{what for?}
+\end{docKeys}
+\begin{docKeys}{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=tex-option,
+			doc description={default: none, initial: none},
+			doc parameter={=\meta{tex\_option}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=tex-options,
+			doc description={default: none, initial: none},
+			doc parameter={=\meta{tex\_options}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=config,
+			doc name=tex_option,
+			doc description={default: none, initial: none},
+			doc parameter={=\meta{tex\_option}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=config,
+			doc name=tex_options,
+			doc description={default: none, initial: none},
+			doc parameter={=\meta{tex\_options}},
+		},
+	}
+	Pass extra options to \TeX.
+\end{docKeys}
+\begin{docKeys}{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=dvipdfmx-option,
+			doc description={default: none, initial: none},
+			doc parameter={=\meta{dvipdfmx\_option}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=dvipdfmx-options,
+			doc description={default: none, initial: none},
+			doc parameter={=\meta{dvipdfmx\_options}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=config,
+			doc name=dvipdfmx_option,
+			doc description={default: none, initial: none},
+			doc parameter={=\meta{dvipdfmx\_option}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=config,
+			doc name=dvipdfmx_options,
+			doc description={default: none, initial: none},
+			doc parameter={=\meta{dvipdfmx\_options}},
+		},
+	}
+	Pass extra options to \texttt{dvipdfmx}.
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{interaction}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=interaction,
+			doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=config,
+			doc name=interaction,
+			doc description={default: none, initial: none},
+		},
+	}
+	\meta{interaction} is one of
+	\begin{multicols}{3}
+		\begin{itemize}
+			\item \texttt{batchmode}
+			\item \texttt{nonstopmode}
+			\item \texttt{scrollmode}
+			\item \texttt{errorstopmode}
+			\item[]
+			\item[]
+		\end{itemize}
+	\end{multicols}
+	% Default: \texttt{nonstopmode}
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{jobname}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=jobname,
+			doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=config,
+			doc name=jobname,
+			doc description={default: none, initial: none},
+		},
+	}
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{output}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=output,
+			doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=config,
+			doc name=output,
+			doc description={default: none, initial: \texttt{\meta{jobname}.\meta{format}}},
+		},
+	}
+	Set output file name.
+\end{docKeys}
+\begin{docKeys}[
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=shell-escape,
+			doc description={enables when passed, initial: \texttt{false}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=no-shell-escape,
+			doc description={disables when passed},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=config,
+			doc name=shell_escape,
+			doc description={initial: \texttt{false}},
+		},
+	}
+	\Todo{}
+	% This option cannot be combined with \refKey{/config/shell_restricted}/\refKey{/cli/shell-restricted}.
+\end{docKeys}
+\begin{docKeys}[
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=shell-restricted,
+			doc description={enables when passed, initial: \texttt{false}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=no-shell-restricted,
+			doc description={disables when passed},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=config,
+			doc name=shell_restricted,
+			doc description={initial: \texttt{false}},
+		},
+	}
+	\Todo{}
+	% This option cannot be combined with \refKey{/config/shell_escape}/\refKey{/cli/shell-escape}.
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{synctex}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=synctex,
+			doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=config,
+			doc name=synctex,
+			doc description={default: none, initial: none},
+		},
+	}
+	Generate Sync\TeX\ file.
+	Note that \texttt{.synctex.gz} is created alongside the final \texttt{.pdf}.
+	\Todo{See \autoref{sec:synctex} for details -- reall in new section?}.
+\end{docKeys}
+\begin{docKeys}[
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=halt-on-error,
+			doc description={enables when passed, initial: \texttt{false}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=no-halt-on-error,
+			doc description={disables when passed, initial: \texttt{false}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=config,
+			doc name=halt_on_error,
+			doc description={initial: \texttt{false}},
+		},
+	}
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{fmt}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=fmt,
+			doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=config,
+			doc name=fmt,
+			doc description={default: none, initial: none},
+		},
+	}
+\end{docKeys}
+\begin{docKeys}[
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=file-line-error,
+			doc description={enables when passed, initial: \texttt{false}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=no-file-line-error,
+			doc description={disables when passed, initial: \texttt{false}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=config,
+			doc name=file_line_error,
+			doc description={initial: \texttt{false}},
+		},
+	}
+\end{docKeys}
 
 \paragraph{\CluttealTeX}
-% | version | version | v | - |
-% | output_format | output-format=output_format | - | - |
-% | check_driver | check-driver=check_driver | - | - |
+\begin{docKeys}[
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=version,
+			doc description={short: v},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=config,
+			doc name=version,
+			doc description={},
+		},
+	}
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{output\_format}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=output-format,
+			doc description={default: none, initial: \texttt{pdf}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=config,
+			doc name=output_format,
+			doc description={default: none, initial: \texttt{pdf}},
+		},
+	}
+	Set output format.
+	Possible values are
+	\begin{multicols}{3}
+		\begin{itemize}
+			\item \texttt{pdf}
+			\item \texttt{dvi}
+			\item[]
+		\end{itemize}
+	\end{multicols}
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{check\_driver}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=check-driver,
+			doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=config,
+			doc name=check_driver,
+			doc description={default: none, initial: none},
+		},
+	}
+	Check that the correct driver file is loaded for certain packages.
+	Is one of
+	\begin{multicols}{3}
+		\begin{itemize}
+			\item \texttt{dvipdfmx}
+			\item \texttt{dvips}
+			\item \texttt{dvisvgm}
+		\end{itemize}
+	\end{multicols}
+	Can only be used with \refKey{/cli/output-format}\texttt{=dvi}.
+\end{docKeys}
 
-% compilation
-% | start_with_draft | start-with-draft | - | - |
-% | skip_first | skip-first | - | - |
-% | max_iterations | max-iterations=max_iterations | - | - |
-% | fresh | fresh | - | - |
+\subparagraph{Compilation}
+\begin{docKeys}[
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=start-with-draft,
+			doc description={enables when passed, initial: \texttt{false}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=no-start-with-draft,
+			doc description={disables when passed, initial: \texttt{false}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=config,
+			doc name=start_with_draft,
+			doc description={initial: \texttt{false}},
+		},
+	}
+	\Todo{}
+\end{docKeys}
+\begin{docKeys}[
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=skip-first,
+			doc description={enables when passed, initial: \texttt{false}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=no-skip-first,
+			doc description={disables when passed, initial: \texttt{false}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=config,
+			doc name=skip_first,
+			doc description={initial: \texttt{false}},
+		},
+	}
+	\Todo{}
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{max\_iterations}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=max-iterations,
+			doc description={default: none, initial: 3},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=config,
+			doc name=max_iterations,
+			doc description={default: none, initial: 3},
+		},
+	}
+	Set maximum number of run, for resolving cross-references and etc.
+\end{docKeys}
+\begin{docKeys}[
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=fresh,
+			doc description={enables when passed, initial: \texttt{false}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=no-fresh,
+			doc description={disables when passed, initial: \texttt{false}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=config,
+			doc name=fresh,
+			doc description={initial: \texttt{false}},
+		},
+	}
+	Clean auxiliary files before run.
+	Cannot be used in conjunction with \refKey{/cli/output-directory}.
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{includeonly}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=includeonly,
+			doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=config,
+			doc name=includeonly,
+			doc description={default: none, initial: none},
+		},
+	}
+	Insert \cs{includeonly}\marg{\meta{includeonly}}.
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{make\_depends}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=make-depends,
+			doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=config,
+			doc name=make_depends,
+			doc description={default: none, initial: none},
+		},
+	}
+	Write Makefile-style dependencies information to \meta{make\_depends}.
+	\Todo{more docs on this (somewhere else)?}
+\end{docKeys}
 
-% | includeonly | includeonly=includeonly | - | - |
-% | make_depends | make-depends=make_depends | - | - |
-
+\subparagraph{Console output}
 % console output
 % | help | help | h | - |
 % | color | color[=color] | - | always |
@@ -324,16 +909,6 @@ The following sections will explain the various options in detail, grouped by ca
 % TODO rewrite from here
 \subsubsection{Basic options}
 \begin{description}
-\item[\texttt{-e}, \texttt{--engine=\metavar{ENGINE}}]
-  Set which \TeX\ engine/format to use.
-  \metavar{ENGINE} is one of the following:
-  \texttt{pdflatex}, \texttt{pdftex},
-  \texttt{lualatex}, \texttt{luatex}, \texttt{luajittex},
-  \texttt{xelatex}, \texttt{xetex},
-  \texttt{latex}, \texttt{etex}, \texttt{tex},
-  \texttt{platex}, \texttt{eptex}, \texttt{ptex},
-  \texttt{uplatex}, \texttt{euptex}, or \texttt{uptex}.
-  Required.
 \item[\texttt{-o}, \texttt{--output=\metavar{FILE}}]
   Set output file name.
   Default: \texttt{\metavar{JOBNAME}.\metavar{FORMAT}}
@@ -446,8 +1021,6 @@ The following sections will explain the various options in detail, grouped by ca
 \item[\texttt{--[no-]halt-on-error}]
   Default: Yes
 \item[\texttt{--interaction=\metavar{STRING}}]
-  \metavar{STRING} is one of \texttt{batchmode}, \texttt{nonstopmode}, \texttt{scrollmode}, or \texttt{errorstopmode}.
-  Default: \texttt{nonstopmode}
 \item[\texttt{--jobname=\metavar{STRING}}]
 \item[\texttt{--fmt=\metavar{FORMAT}}]
 \item[\texttt{--output-directory=\metavar{DIR}}]
