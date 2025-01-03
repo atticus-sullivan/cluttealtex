@@ -27,6 +27,7 @@ jobs:
           luatex
           microtype
           todo
+          csquotes
 
     - name: Install lua
       uses: jkl1337/gh-actions-lua@v11
