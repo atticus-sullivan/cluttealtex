@@ -14,7 +14,12 @@ jobs:
 
     - name: install make deps
       run: |
-        sudo apt install fd-find texlive-latex-extra
+        sudo apt install fd-find
+
+    - uses: teatimeguest/setup-texlive-action@v3
+      with:
+        packages: |
+            luatex
 
     - name: Install lua
       uses: jkl1337/gh-actions-lua@v11
