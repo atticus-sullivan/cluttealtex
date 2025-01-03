@@ -19,6 +19,7 @@ jobs:
     - uses: teatimeguest/setup-texlive-action@v3
       with:
         packages: |
+          scheme-basic
           l3build
           catppuccinpalette
           tcolorbox
