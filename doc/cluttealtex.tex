@@ -79,6 +79,7 @@
 	{€}{{\euro}}1 {£}{{\pounds}}1 {«}{{\guillemotleft}}1
 	{»}{{\guillemotright}}1 {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {¿}{{?`}}1
 }
+\lstdefinelanguage{none}{identifierstyle=}
 
 % ----- Settings -----
 \KOMAoptions{
@@ -98,8 +99,10 @@
 % ----- Commands -----
 \newcommand\eg{e.\,g.\xspace}
 \newcommand\tos{$\to$\xspace}
+\let\TeXold\TeX
 \newcommand\CluttealTeX{ClutTeal\TeX\xspace}
 \providecommand\BibTeX{\textsc{Bib}\TeX\xspace}
+\renewcommand\TeX{\TeXold\xspace}
 
 \newtcolorbox{boxcmd}{fontupper=\ttfamily}
 
@@ -111,6 +114,12 @@
 \NewTCBListing{boxcodemake}{}{%
 	listing options={style=tcblatex,language={make},basicstyle=\ttfamily\scriptsize},
 	listing only,
+}
+
+\NewTotalTCBox{\iboxcmd}{v}{%
+	verbatim,colupper=CtpBase,colback=CtpText,colframe=black,left=0mm,right=0mm,
+}{%
+	\rule[-2.5pt]{0pt}{.85em}\lstinline[basicstyle=\ttfamily\normalsize,language=none,keywordstyle=\color{CtpMauve}\bfseries]^#1^%
 }
 
 \newcommand\texcmd[1]{\texttt{\textbackslash #1}}
@@ -449,14 +458,14 @@ Combining multiple short options, like \texttt{-Ve pdflatex}, is not supported.
 			% doc updated=2025-01-01,
 			doc keypath=cli,
 			doc name=interaction,
-			doc description={default: none, initial: none},
+			doc description={default: none, initial: \texttt{nonstopmode}},
 		},
 		{
 			% doc new=2025-01-01,
 			% doc updated=2025-01-01,
 			doc keypath=cfg,
 			doc name=interaction,
-			doc description={default: none, initial: none},
+			doc description={default: none, initial: \texttt{nonstopmode}},
 		},
 	}
 	\meta{interaction} is one of
@@ -593,14 +602,14 @@ Combining multiple short options, like \texttt{-Ve pdflatex}, is not supported.
 			% doc updated=2025-01-01,
 			doc keypath=cli,
 			doc name=halt-on-error,
-			doc description={bool-opt, initial: \texttt{false}},
+			doc description={bool-opt, initial: \texttt{true}},
 		},
 		{
 			% doc new=2025-01-01,
 			% doc updated=2025-01-01,
 			doc keypath=cfg,
 			doc name=halt_on_error,
-			doc description={initial: \texttt{false}},
+			doc description={initial: \texttt{true}},
 		},
 	}
 \end{docKeys}
@@ -630,14 +639,14 @@ Combining multiple short options, like \texttt{-Ve pdflatex}, is not supported.
 			% doc updated=2025-01-01,
 			doc keypath=cli,
 			doc name=file-line-error,
-			doc description={bool-opt, initial: \texttt{false}},
+			doc description={bool-opt, initial: \texttt{true}},
 		},
 		{
 			% doc new=2025-01-01,
 			% doc updated=2025-01-01,
 			doc keypath=cfg,
 			doc name=file_line_error,
-			doc description={initial: \texttt{false}},
+			doc description={initial: \texttt{true}},
 		},
 	}
 \end{docKeys}
@@ -994,14 +1003,14 @@ Combining multiple short options, like \texttt{-Ve pdflatex}, is not supported.
 			% doc updated=2025-01-01,
 			doc keypath=cli,
 			doc name=output-directory,
-			doc description={},
+			doc description={default: none, initial: none},
 		},
 		{
 			% doc new=2025-01-01,
 			% doc updated=2025-01-01,
 			doc keypath=cfg,
 			doc name=output_directory,
-			doc description={},
+			doc description={default: none, initial: none},
 		},
 	}
 	Set output directory for *\TeX engine.
@@ -1094,10 +1103,18 @@ Combining multiple short options, like \texttt{-Ve pdflatex}, is not supported.
 			doc parameter={=\meta{path}},
 			doc description={default: none, initial: none},
 		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=watch_inc_exc,
+			doc parameter={=lua-table},
+			doc description={default: none, initial: none},
+		},
 	}
 	Filter the list of watched files by these rules.
 	This is important as some watching engines have an upper limit of how many files can be watched at once (inotifywait for instance seems to only be able to watch at most 1024\footnote{\url{https://github.com/inotify-tools/inotify-tools/blob/210b019fb621d32fd6986b512508fc845f6c9fcb/src/common.cpp\#L18C20-L18C24}} files).
-	See \cref{sec:watch-mode} for details.
+	See \cref{sec:watch-mode} for details, particularly on the structure of the \texttt{lua-table}.
 
 	\begin{itemize}
 		\item[Note:] The order of the argument matters.
@@ -1195,14 +1212,14 @@ Combining multiple short options, like \texttt{-Ve pdflatex}, is not supported.
 			% doc updated=2025-01-01,
 			doc keypath=cli,
 			doc name=glossaries,
-			doc description={default: \texttt{makeindex:main.glo:main.gls:main.glg}, initial: none},
+			doc description={initial:none, default: \\\texttt{makeindex:glo:gls:glg}},
 		},
 		{
 			% doc new=2025-01-01,
 			% doc updated=2025-01-01,
 			doc keypath=cfg,
 			doc name=glossaries,
-			doc description={default: \texttt{makeindex:main.glo:main.gls:main.glg}, initial: none},
+			doc description={initial:none, default: \\\texttt{makeindex:glo:gls:glg}},
 		},
 	}
 	Similar to \refKey{/cli/makeindex} but more flexible.
@@ -1339,62 +1356,160 @@ On other platforms, an auxiliary program \texttt{fswatch}\footnote{\url{http://e
 The auxiliary program will be detected automatically, but you can also select one specific tool via the paramter of the \refKey{/cmd/watch} option.
 
 \subsubsection{Filter watched files}
-\Todo{explain how watch-\{not-\}\{ext,path\}} works.
+The \texttt{watch*} options are constructed systematically with two building blocks \emph{rules} and \emph{matchers} (in this order).
 
-\subsubsection{Glossaries} \label{sec:glossaries}
-\Todo{rewrite? + note how the table works in the config file}
+There are the following \emph{rules}:
+\begin{itemize}
+	\item \iboxcmd{not} files matching this rule will be excluded
+	\item \iboxcmd{only} files matching this rule will be included
+\end{itemize}
+and the following \emph{matchers}:
+\begin{itemize}
+	\item \iboxcmd{path} matches all files contained in the subtree of this path
+	\item \iboxcmd{ext} matches all files having this extension
+\end{itemize}
+
+This is what happens to each file that is being a candidate for being watched:
+\begin{enumerate}
+	\item If no filter is defined the file is being watched and nothing noted be below happens.
+	\item The file always begins as being marked as \emph{not watched}
+	\item Then it traverses all filters and might change (multiple times, no stopping if one filter matches\footnote{
+		This enables you to use \texttt{--watch-only-path=/} to change the default easily
+	}) its state.
+\end{enumerate}
+
+\paragraph{Using the Table Option \texttt{watch\_inc\_exc} to specify Filters}
+In the lua table we can make options accumulating, then we pass an array instead of a table.
+But this alone does not help in this case as the option is split across multiple options.
+In this case the ordering in particularly is important.
+So we would need to specify the order in which what filter of which option should be applied.
+This is tedious and error prone to configure.
+Thus for configuring the filters in the config file all filters are defined in a single table.
+
+\begin{docKey}[config][
+		% doc new=2025-01-01,
+		% doc updated=2025-01-01,
+	]{watch_inc_exc[].type}{=\meta{type}}{}
+	Sets the type of the filter. Can be
+	\begin{multicols}{4}
+		\begin{itemize}
+			\item \texttt{not\_ext}
+			\item \texttt{only\_ext}
+			\item \texttt{not\_path}
+			\item \texttt{only\_path}
+		\end{itemize}
+	\end{multicols}
+\end{docKey}
+\begin{docKey}[config][
+		% doc new=2025-01-01,
+		% doc updated=2025-01-01,
+	]{watch_inc_exc[].param}{=\meta{param}}{}
+	Sets the parameter (\texttt{ext}\,/\,\texttt{path}) of the filter
+\end{docKey}
+
+\begin{itemize}
+	\item[Note:] the \texttt{[]} marks the array used to store the sequence of the filters
+	\item[Note:] the \texttt{.} denotes drilling into the table used to represent one single filter
+\end{itemize}
+
+\subsection{Glossaries} \label{sec:glossaries}
 For more complex setups of indices you can use the \texttt{glossaries} option.
-Its parameter takes the form \texttt{type:outputExt:inputExt:logExt:pathToCommand:commandArgs} (colons need to be escaped with \texttt{\textbackslash{}:}).
+Its parameter takes the form\\
+\iboxcmd{type:outputExt:inputExt:logExt:pathToCommand:commandArgs} (colons need to be escaped with \iboxcmd{\:}).
 
 You might obmit trailing arguments which you do not need.
 
-\begin{tabularx}{\linewidth}{cX}
-	\texttt{type} &
-	type of the glossary, used to determine which tool to run (e.g. \texttt{makeindex})
-	\newline
-	(this or \texttt{pathToCommand} are mandatory)
+For the documentation of the keys please see the keys as defined in \cref{sec:glossary-table}.
+How arguments are automatically derived when missing works exactly the same as described there.
+
+\begin{tabularx}{\linewidth}{rX}
+	\texttt{type} & \refKey{/config/glossaries[].type}
 	\\
-	\texttt{outputExt} &
-	extension of the output file of the tool being run. The actual output file will
-	be the tex-file you passed to \CluttealTeX{} with the extension replaced
-	with this argument.
-	\newline
-	Same procedure is applied to the other extensions you pass (optionally) here.
-	\newline
-	(mandatory)
+	\texttt{outputExt} & \refKey{/config/glossaries[].out}
 	\\
-	\texttt{inputExt} &
-	file generated by \LaTeX which then is being read by the tool being run
-	\newline
-	(optional -- generated from \texttt{outputExt} by using \texttt{.XXs} as extension)
+	\texttt{inputExt} & \refKey{/config/glossaries[].inp}
 	\\
-	\texttt{logExt} &
-	log file of the tool being run
-	(optional -- generated from \texttt{outputExt} by using \texttt{.XXl} as extension)
+	\texttt{logExt} & \refKey{/config/glossaries[].log}
 	\\
-	\texttt{pathToCommand} &
-	specify an exact path to the tool which shall be run to avoid needing to
-	put it in your \texttt{PATH}
-	\newline
-	(this or \texttt{pathToCommand} are mandatory)
+	\texttt{pathToCommand} & \refKey{/config/glossaries[].path}
 	\\
-	\texttt{commandArgs} &
-	additional argument for the tool being run
+	\texttt{commandArgs} & \refKey{/config/glossaries[].cmd}
 \end{tabularx}
 
 Examples:
 \begin{itemize}
-	\item  \texttt{makeindex:main.acr:main.acn:main.alg}
+	\item  \texttt{makeindex:acr:acn:alg}
 		\newline
 		default setup for
 		acronyms with the glossaries package
-	\item \texttt{makeindex:main.glo:main.gls:main.glg}
+	\item \texttt{makeindex:glo:gls:glg}
 		\newline
 		default setup for the
 		normal glossary with the glossaries package
 		\newline
 		(default if no argument is givent to the \texttt{glossaries} option)
 \end{itemize}
+
+\paragraph{Using the Table Option of \texttt{glossaries}} \label{sec:glossary-table}
+This basically lets you directly set the keys in the table representing the glossary without all the splitting and parsing described above.
+After the parsing and splitting, the cli parameter is put in the same structure described here.
+
+\begin{itemize}
+	\item[Note:] Some parameters only specify the \emph{extension}.
+		The actual file passed to the selected tool will be the tex-file passed to \CluttealTeX with the extension replaced to the one specified here.
+	\item[Note:] the \texttt{[]} marks the array used to store the sequence of registered glossaries
+	\item[Note:] the \texttt{.} denotes drilling into the table used to represent one single glossary
+\end{itemize}
+
+\begin{docKey}[config][
+		% doc new=2025-01-01,
+		% doc updated=2025-01-01,
+	]{glossaries[].type}{=\meta{param}}{mandatory\\(or \refKey{/config/glossaries[].path})}
+	Type of the glossary, used to determine which tool to run.
+	Can be
+	\begin{multicols}{2}
+		\begin{itemize}
+			\item \texttt{makeindex}
+			\item \texttt{xindy}
+		\end{itemize}
+	\end{multicols}
+\end{docKey}
+\begin{docKey}[config][
+		% doc new=2025-01-01,
+		% doc updated=2025-01-01,
+	]{glossaries[].out}{=\meta{param}}{\textcolor{CtpRed}{\bfseries\sffamily required}}
+	Extension of the output file of the tool being run.
+\end{docKey}
+\begin{docKey}[config][
+		% doc new=2025-01-01,
+		% doc updated=2025-01-01,
+	]{glossaries[].inp}{=\meta{param}}{can be derived from \\\refKey{/config/glossaries[].out}}
+	Extension of the file generated by *\TeX which then is being read by the selected tool.
+	\\
+	(optional -- derived from \refKey{/config/glossaries[].out} by using \texttt{.XXs} as extension)
+\end{docKey}
+\begin{docKey}[config][
+		% doc new=2025-01-01,
+		% doc updated=2025-01-01,
+	]{glossaries[].log}{=\meta{param}}{can be derived from \\\refKey{/config/glossaries[].out}}
+	Extension of the log file of the selected tool
+	\\
+	(optional -- derived from \refKey{/config/glossaries[].out} by using \texttt{.XXl} as extension)
+\end{docKey}
+\begin{docKey}[config][
+		% doc new=2025-01-01,
+		% doc updated=2025-01-01,
+	]{glossaries[].path}{=\meta{param}}{mandatory\\(or \refKey{/config/glossaries[].type})}
+	This allows to specify an exact path to the tool which shall be run to avoid needing to put it in your \texttt{PATH}.
+	\\
+	(this or \texttt{pathToCommand} are mandatory)
+\end{docKey}
+\begin{docKey}[config][
+		% doc new=2025-01-01,
+		% doc updated=2025-01-01,
+	]{glossaries[].cmd}{=\meta{param}}{optional}
+	Additional argument for the selected tool
+\end{docKey}
 
 \subsection{For writing a large document}
 When writing a large document with \LaTeX, you usually split the \TeX files with \cs{include} command.
@@ -1467,7 +1582,7 @@ clean:
 	\item[Note:] The use of a temporary directory means, the auxiliary files may be cleared when the computer is rebooted.
 \end{itemize}
 
-\subsubsection{Recomendation}
+\subsubsection{Recommendations}
 I personally recoment using \refKey{/cli/change-directory}.
 This option uses \texttt{cd} to change into the directory where the compilation should take place.
 Therefore this avoids some of the troubles referenced in \cref{sec:supp-pkg}.
