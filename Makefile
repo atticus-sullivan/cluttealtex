@@ -16,7 +16,7 @@ build: clean checkAll
 	make -f Makefile.cluttealtex
 
 genArgs: build
-	LUA_PATH="./src_lua/?.lua;$$LUA_PATH" lua utils/print_args.lua > args.md 2> doc/args.tex
+	LUA_PATH="./src_lua/?.lua;$$LUA_PATH" texlua utils/print_args.lua > args.md 2> doc/args.tex
 
 clean:
 	$(RM) -r src_lua
