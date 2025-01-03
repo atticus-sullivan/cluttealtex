@@ -22,7 +22,7 @@
 | makeindex | makeindex[=makeindex] | - | makeindex |
 | max_iterations | max-iterations=max_iterations | - | - |
 | memoize | memoize[=memoize] | - | perl |
-| memoize_opt | memoize_opt=memoize_opt | - | - |
+| memoize_opt | memoize-opt=memoize_opt | - | - |
 | output | output=output | o=output | - |
 | output_directory | output-directory=output_directory | - | - |
 | output_format | output-format=output_format | - | - |
@@ -40,6 +40,7 @@
 | verbose | verbose | V | - |
 | version | version | v | - |
 | watch | watch[=watch] | - | auto |
+| watch_inc_exc | - | - | - |
 | watch_not_ext | watch-not-ext=watch_not_ext | - | - |
 | watch_not_path | watch-not-path=watch_not_path | - | - |
 | watch_only_ext | watch-only-ext=watch_only_ext | - | - |
