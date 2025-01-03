@@ -14,7 +14,15 @@ jobs:
 
     - name: install make deps
       run: |
-        sudo apt install fd-find texlive-latex-extra
+        sudo apt install fd-find
+
+    - uses: teatimeguest/setup-texlive-action@v3
+      with:
+      packages: |
+        l3build
+        catppuccinpalette
+        tcolorbox
+        koma-script
 
     - name: Install lua
       uses: jkl1337/gh-actions-lua@v11
@@ -28,10 +36,6 @@ jobs:
         luarocks install --dev tl
         luarocks install cyan
         luarocks install lester
-
-    - name: obtain LaTeX dependencies not (yet) included in the installed texlive version
-      run: |
-        curl "https://github.com/catppuccin/latex/releases/download/v1.1.0/catppuccinpalette.sty" -o catppuccinpalette.sty
 
     - name: make
       run: make FD=fdfind build doc
