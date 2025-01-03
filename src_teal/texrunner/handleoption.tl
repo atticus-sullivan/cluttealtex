@@ -181,11 +181,16 @@ end
 -- Function to handle setting default values for options from .cluttealtexrc.lua
 local function handle_config_defaults(defaults: {string: string})
 	for optname, default in pairs(defaults) do
-		if option_spec[optname] then
+		if not optname is string or not default is string then
+			message.error(("Default for options '%s' needs to be passed as string"):format(optname))
+			exit(-1)
+		elseif not option_spec[optname] then
+			message.warn(("Option '%s' from .cluttealtexrc.lua unknown. Not setting the default for this option"):format(optname))
+		elseif not option_spec[optname].param then
+			message.warn(("Option '%s' does not have a parameter. Setting a default value does not make sense"):format(optname))
+		else
 			-- Set default if option exists
 			option_spec[optname].default = default
-		else
-			message.warn(("Option '%s' from .cluttealtexrc.lua unknown. Not setting the default for this option"):format(optname))
 		end
 	end
 end
@@ -251,6 +256,12 @@ local function parse_config_file(): options.Options, string
 				}
 		end)()
 
+		-- Process additional CLI options
+		add_custom_cli_options(cfg.add_cli_options or {})
+
+		-- Process default options
+		handle_config_defaults(cfg.defaults or {})
+
 		-- Process the options key in the config
 		for optname, opt in pairs(cfg.options or {}) do
 			if optname == "file" then
@@ -261,11 +272,6 @@ local function parse_config_file(): options.Options, string
 			end
 		end
 
-		-- Process default options
-		handle_config_defaults(cfg.defaults or {})
-
-		-- Process additional CLI options
-		add_custom_cli_options(cfg.add_cli_options or {})
 	end
 	return options, inputfile
 end
