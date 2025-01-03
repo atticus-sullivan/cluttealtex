@@ -26,6 +26,7 @@ jobs:
           koma-script
           luatex
           microtype
+          todo
 
     - name: Install lua
       uses: jkl1337/gh-actions-lua@v11
