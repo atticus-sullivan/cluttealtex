@@ -26,6 +26,7 @@ local TexEngine   = require "texrunner.tex_engine"
 local message     = require "texrunner.message"
 local fsutil      = require "texrunner.fsutil"
 local option_spec = require "texrunner.option_spec".spec
+local init_hooks  = require "texrunner.option_spec".init_hooks
 local usage = require "texrunner.option_spec".usage
 local read_cfg = require "texrunner.read_cfg".read_cfg
 
@@ -81,17 +82,45 @@ local function query_options(name:string, kind:string): Option,string,boolean
 	return option_spec[key], key, no
 end
 
+local function merge_hook_type(ht:string, hs:{number:any}, ret:{string:any})
+	local hooks = ret["hooks"] as {string:{number:any}}
+	if ht:find("^suggestion") then
+		-- hooks are enabled by default
+		-- disable hooks not set in the next options
+		for k,_ in pairs(hooks[ht]) do
+			if not hs[k] then
+				hooks[ht][k] = nil
+			end
+		end
+	else
+		-- hooks are disabled by default
+		-- enable hooks set in the next options
+		for k,v in pairs(hs) do
+			hooks[ht][k] = v
+		end
+	end
+end
+
 -- Function to merge multiple option tables into one
 -- first table has highest priority etc.
 local function merge_options(...: options.Options): options.Options
 	-- Table to hold merged options
 	local ret:{string:any} = {}
+	local first = true
 	-- Iterate over each passed options table
 	for _, i in ipairs{...} do
 		for k,v in pairs(i as {string:any}) do
-			-- Add each option from the table to the result
-			ret[k] = v
+			if k == "hooks" and not first then
+				-- hooks need t be handled specially
+				for ht, hs in pairs(v as {string:{number:any}}) do
+					merge_hook_type(ht, hs, ret)
+				end
+			else
+				-- Add each option from the table to the result
+				ret[k] = v
+			end
 		end
+		first = false
 	end
 	-- Return the merged options table
 	return ret as options.Options
@@ -356,17 +385,20 @@ end
 local function handle_cluttealtex_options(arg: {string}): string, TexEngine.Engine, options.Options
 	-- Define default options
 	local default_options:options.Options = {
-			tex_extraoptions = {},
+			-- important default values because these options need to be tables
+			-- (otherwise iterating over them fails)
+			tex_extraoptions      = {},
 			dvipdfmx_extraoptions = {},
-			package_support = {},
+			package_support       = {},
 			-- ordinary default values
-			max_iterations = 3,
-			skip_first = false,
-			interaction = "nonstopmode",
-			file_line_error = true,
-			halt_on_error = true,
-			output_format = "pdf",
+			max_iterations        = 3,
+			skip_first            = false,
+			interaction           = "nonstopmode",
+			file_line_error       = true,
+			halt_on_error         = true,
+			output_format         = "pdf",
 	}
+	init_hooks(default_options, option_spec)
 
 	-- Parse configuration and command-line options
 	local config_options, inputfile = parse_config_file()
@@ -436,6 +468,7 @@ local record Module
 		parse_command_line_options: function(arg: {string}): options.Options, integer
 		parse_config_file:          function(): options.Options, string
 		query_options:              function(name:string, kind:string): Option,string,boolean
+		merge_hook_type:            function(ht:string, hs:{number:any}, ret:{string:any})
 	end
 end
 
@@ -455,6 +488,7 @@ if CLUTTEALTEX_TEST_ENV then
 		parse_command_line_options = parse_command_line_options,
 		parse_config_file          = parse_config_file,
 		query_options              = query_options,
+		merge_hook_type            = merge_hook_type,
 	}
 end
 return _M
