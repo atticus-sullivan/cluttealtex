@@ -35,6 +35,8 @@ jobs:
           listings
           tikzfill
           marginnote
+          pgfopts
+          xcolor
 
     - name: Install lua
       uses: jkl1337/gh-actions-lua@v11
