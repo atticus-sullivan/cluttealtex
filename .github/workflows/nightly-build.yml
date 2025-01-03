@@ -30,8 +30,7 @@ jobs:
           csquotes
           pdflscape
           cleveref
-          tabularx
-          ltxtable
+          tools
           booktabs
           listings
 
