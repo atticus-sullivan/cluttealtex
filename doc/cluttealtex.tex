@@ -215,71 +215,17 @@ The general usage is as follows:
 
 I encourage you to also read \cref{sec:output-dir} for a discussion on where *\TeX is executed (there are two options both with pros and cons).
 
-In case you are only using CLI options, you can skip to \cref{sec:opt-doc}.
-
-Also \CluttealTeX will search your current working directory for a file called \texttt{.cluttealtexrc.lua}.
-If it finds such a file, it will execute it and use the returned table for the options as well.
+\CluttealTeX also supports specifying options via a config file (to avoid having to repeat them over and over again).
 This way, you can achieve it that you can build your document by only executing
 \begin{boxcmd}
 	cluttealtex
 \end{boxcmd}
 without any options.
 
-The config file can contain all kinds of tables.
-If one is missing \CluttealTeX will use an empty table (having no effect) instead.
-Also note that arguments passed via the CLI always have a higher priority than arguments passed via the config file.
+Apart from this, the config file also offers some advanced features like changing\,/\,setting default values or defining new options (only for advanced users).
 In the future some options might only be available via the config file as setting them via CLI is too complicated\,/\,not feasible (like \eg adding a hook which gets called after every successful compilation).
 
-A fully populated config file looks as follows:
-\begin{boxcodelua}
-return {
-	options = {
-		file = "main.tex",
-		output_directory = "tex-aux",
-		change_directory = true,
-		engine = "pdflatex",
-		biber = true, -- uses the default value of biber
-		-- could also be an array of these tables to configure multiple glossaries
-		-- equivalent to "--glossaries=makeindex:acr:acn:alg"
-		glossaries = {
-			type="makeindex",
-			out="acr",
-			inp="acn",
-			log="alg"
-		},
-		-- just something high to disable this upper limit
-		max_iterations = "50",
-		quiet = "0",
-	},
-	-- Change/Set the default value of an option. Only has an effect on cli arguments.
-	defaults = {
-		-- now if you pass --watch, "inofity" will be passed by default instead of "auto"
-		watch = "inotify",
-	},
-	-- for the experts:
-	add_cli_options = {
-		-- adds a new cli argument which can set arbitrary other options
-		my_own_option = {
-			-- short = "m",
-			long = "my-own-option",
-			param = true,
-			default = "my default value",
-			boolean = false,
-			-- passing this multiple times accumulates the values
-			-- (only has a readl effect when reading options from config file)
-			accumulate = true,
-			handle_cli = function(options, param)
-				-- my code, checking the passed parameter and setting some options accordingly
-				-- of course here you need to be careful not to leave "options" in an invalid state
-			end,
-		}
-	}
-}
-\end{boxcodelua}
-
-Generally in the config, but particularly for the passed functions, you can write arbitrary Lua code.
-The environment of the config and the environment of \CluttealTeX is partially shared.
-When the config accesses a global variable, it gets passed a (deep) copy of that value to avoid the config intervening with the execution of \CluttealTeX.
+For further documentation on the config file see \cref{sec:config-file}
 
 \subsubsection{About how Options are documented} \label{sec:opt-doc}
 
@@ -1624,14 +1570,59 @@ Currently, the list of supported packages are
 The check is always done with PDF mode.
 To check the driver with DVI mode, use \refKey{/cli/check-driver} option.
 
-\subsection{Configuration file}
-When calling \CluttealTeX, it will search for a file named \verb|.cluttealtexrc.lua| in the current working directory. If it finds such a file, \CluttealTeX will load that lua file and use the tables defined there as configuration options. Options set via the cli will always have a higher priority and overwrite anything that was set via the configuration file.
+\subsection{Configuration file} \label{sec:config-file}
+When calling \CluttealTeX, it will search for a file named \verb|.cluttealtexrc.lua| in the current working directory.
+If it finds such a file, \CluttealTeX will execute that lua file and use the return value as configuration.
+This returned value should be a table of a certain structure, definely shortly after this.
+Options set via the cli will always have a higher priority and overwrite anything that was set via the configuration file.
 
 \begin{itemize}
 	\item[Note:] The configuration file must return the table used to configure \CluttealTeX
+	\item[Note:] Missing keys\,/\,tables will be replaced with an empty table so they simply have no effect
+	\item[Note:] Options passed via the CLI always take precedence over those defined in the config file
+	\item[Note:]
+		Generally in the config, but particularly for the passed functions, you can write arbitrary Lua code.
+		You can even use \texttt{require} to load additional (lua) libraries.
+		The environment of the config and the environment of \CluttealTeX is partially shared.
+		When the config accesses a global variable, it gets passed a (deep) copy of that value to avoid the config intervening with the execution of \CluttealTeX.
+		This makes functions in the config \emph{powerful but also dangerous}, so \emph{be careful with that}.
 \end{itemize}
 
-An example looks like this:
+These three keys of the retured table are actually processed by \CluttealTeX (in the order like specified):
+\begin{docKey}[configFile][
+		% doc new=2025-01-01,
+		% doc updated=2025-01-01,
+	]{add_cli_options}{=lua-table}{advanced usecases}
+	Allows to define own options that can be passed (on the CLI and\,/\,or via the config file).
+	The structure (and types) of the table that needs to be passed here is defined in \texttt{cluttealtex/src\_lua/texrunner/option.tl} (see the \texttt{Option} record).
+	Together with the hooking mechanism 
+	\begin{description}
+		\item[\textcolor{CtpRed}{\bfseries\sffamily Caution:}] Complete lua-functions can be (and are intended to be) passed here.
+			These functions can tamper real bad with the internal options table used by \CluttealTeX as well as install hooks which are executed at certain points in the \CluttealTeX execution.
+			Since the environment of the config file is not constraint, these functions can execute anything (this is intended in order to provide maximal flexibility).
+			This reaches from \enquote{normal} lua-code to \texttt{os.execute} (equivalent to \texttt{system()}).
+			Be careful here, you might break things!
+	\end{description}
+\end{docKey}
+\begin{docKey}[configFile][
+		% doc new=2025-01-01,
+		% doc updated=2025-01-01,
+	]{defaults}{=lua-table}{}
+	Some options have a default value that comes into effect if no parameter was passed to the option.
+	With this table, you can modify the default values.
+	The keys being used are the same as defined throughout this document.
+	Currently, default values always need to be strings (like parameters passed on the CLI).
+\end{docKey}
+\begin{docKey}[configFile][
+		% doc new=2025-01-01,
+		% doc updated=2025-01-01,
+	]{options}{=lua-table}{}
+	Equivalent to passing options on the CLI.
+	Keys are defined throughout this document and in the end there is a table summarizing all available options, denoted as CLI option as well as table key.
+\end{docKey}
+
+\subsubsection{Examples}
+A rather small example setting some options and setting a default value:
 \begin{boxcodelua}
 return {
 	options = {
@@ -1650,8 +1641,57 @@ return {
 }
 \end{boxcodelua}
 
-For now refer to \url{https://github.com/atticus-sullivan/cluttealtex/pull/22} for further details.
-\Todo{The docs will be rewritten soon and this option described in more detail.}
+An example for a config file I used for one document:
+\begin{boxcodelua}
+return {
+	options = {
+		file = "main.tex",
+		output_directory = "tex-aux",
+		change_directory = true,
+		engine = "pdflatex",
+		biber = true, -- uses the default value of biber
+		-- could also be an array of these tables to configure multiple glossaries
+		-- equivalent to "--glossaries=makeindex:acr:acn:alg"
+		glossaries = {
+			type="makeindex",
+			out="acr",
+			inp="acn",
+			log="alg"
+		},
+		-- just something high to disable this upper limit
+		max_iterations = "50",
+		quiet = "0",
+	},
+	-- Change/Set the default value of an option. Only has an effect on cli arguments.
+	defaults = {
+		-- now if you pass --watch, "inofity" will be passed by default instead of "auto"
+		watch = "inotify",
+	},
+}
+\end{boxcodelua}
+
+Example for an \emph{advanced usecase} adding a new option which can be passed via the CLI (and the \texttt{options} key in the config file):
+\begin{boxcodelua}
+return {
+	-- probably setting some options also here
+	cli_options = {
+		echo_after_build = {
+			long = "echo-after-build",
+			handle_cli = function(options, _)
+			io.stderr:write("hello world\n") -- printed when the argument is handled
+			options.hooks.post_build[1] = {function(_)
+				io.stderr:write("finished building =====================\n") -- only printed when the build succeeded
+			end, "testing post_build hook"}
+			end
+		},
+	}
+}
+\end{boxcodelua}
+You can see this allows you to register arbitrary code after the document was completely built.
+This can be used to \eg sync the final output to some other location.
+It can also break \CluttealTeX.
+But this can also add code to \CluttealTeX you \emph{do not want} in it!
+So be careful with this feature and only use it if you \emph{know what you are doing!}
 
 \begin{landscape}
 \section{Summary of all available Options} \label{sec:listOpt}
