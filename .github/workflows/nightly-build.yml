@@ -18,11 +18,11 @@ jobs:
 
     - uses: teatimeguest/setup-texlive-action@v3
       with:
-      packages: |
-        l3build
-        catppuccinpalette
-        tcolorbox
-        koma-script
+        packages: |
+          l3build
+          catppuccinpalette
+          tcolorbox
+          koma-script
 
     - name: Install lua
       uses: jkl1337/gh-actions-lua@v11
