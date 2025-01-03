@@ -12,7 +12,7 @@
 | file_line_error | file-line-error | - | - |
 | fmt | fmt=fmt | - | - |
 | fresh | fresh | - | - |
-| glossaries | glossaries[=glossaries] | - | makeindex:main.glo:main.gls:main.glg |
+| glossaries | glossaries[=glossaries] | - | makeindex:glo:gls:glg |
 | halt_on_error | halt-on-error | - | - |
 | help | help | h | - |
 | includeonly | includeonly=includeonly | - | - |
