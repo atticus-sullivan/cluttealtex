@@ -25,6 +25,7 @@ jobs:
           tcolorbox
           koma-script
           luatex
+          microtype
 
     - name: Install lua
       uses: jkl1337/gh-actions-lua@v11
