@@ -30,6 +30,10 @@ jobs:
           csquotes
           pdflscape
           cleverref
+          tabularx
+          ltxtable
+          booktabs
+          listings
 
     - name: Install lua
       uses: jkl1337/gh-actions-lua@v11
