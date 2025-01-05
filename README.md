@@ -15,6 +15,36 @@ will use `l3build` to install the script to your `TEXMFHOME`.
 - eventually I'll also publish this on ctan.org, but currently I feel this is
 mostly a duplicate of `cluttex` which is already published there.
 
+### Guide: Manual installation (on Linux)
+<details><summary>Click to expand</summary>
+
+An example how a basic installation on Linux could look like (using the latest release, not the nightly build):
+```bash
+V="v0.9.1" # select the version to download
+baseurl="https://github.com/atticus-sullivan/cluttealtex/releases/download/${V}"
+
+curl -o "/usr/local/bin/cluttealtex" "${baseurl}/cluttealtex"
+```
+
+This might be the simplest way of installing manually, though nicer is to setup your local \texttt{TEXMFHOME} and place the executable there.
+For Linux again this could look like this:
+```bash
+V="v0.9.1" # select the version to download
+kpsewhich --var-value TEXMFHOME # should be set to be set -> see https://tug.org/texlive/doc/texlive-en/texlive-en.html#x1-350003.4.6
+baseurl="https://github.com/atticus-sullivan/cluttealtex/releases/download/${V}"
+dir="$(kpsewhich --var-value TEXMFHOME)"
+
+# install the executable
+make -p "${dir}/scripts/cluttealtex"
+curl -o "${dir}/scripts/cluttealtex/cluttealtex" "${baseurl}/cluttealtex"
+
+# install the documentation -> `texdoc cluttealtex` brings up the documentation in your pdf viewer
+make -p "${dir}/doc/latex/cluttealtex"
+curl -o "${dir}/doc/latex/cluttealtex/cluttealtex.pdf" "${baseurl}/cluttealtex.pdf"
+```
+
+</details>
+
 ## Features
 - written in / generated with teal/tl => no external dependencies, (tex)lua should
   be included in texlive.
