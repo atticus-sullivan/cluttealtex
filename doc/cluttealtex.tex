@@ -104,28 +104,16 @@
 \providecommand\BibTeX{\textsc{Bib}\TeX\xspace}
 \renewcommand\TeX{\TeXold\xspace}
 
-\newtcolorbox{boxcmd}{fontupper=\ttfamily}
-
-\NewTCBListing{boxcodelua}{}{%
-	listing options={style=tcblatex,language={[5.3]Lua},basicstyle=\ttfamily\scriptsize},
-	listing only,
-}
-
-\NewTCBListing{boxcodemake}{}{%
-	listing options={style=tcblatex,language={make},basicstyle=\ttfamily\scriptsize},
-	listing only,
+\NewTCBListing{boxcode}{O{none}O{\scriptsize}}{%
+	listing options={style=tcblatex,language={#1},basicstyle=\ttfamily#2},%
+	listing only,%
 }
 
 \NewTotalTCBox{\iboxcmd}{v}{%
-	verbatim,colupper=CtpBase,colback=CtpText,colframe=black,left=0mm,right=0mm,
+	verbatim,colupper=CtpBase,colback=CtpText,colframe=black,left=0mm,right=0mm,%
 }{%
 	\rule[-2.5pt]{0pt}{.85em}\lstinline[basicstyle=\ttfamily\normalsize,language=none,keywordstyle=\color{CtpMauve}\bfseries]^#1^%
 }
-
-\newcommand\texcmd[1]{\texttt{\textbackslash #1}}
-\newcommand\texenv[1]{\texttt{#1}}
-\newcommand\texpkg[1]{\texttt{#1}}
-\newcommand\metavar[1]{\textnormal{\textsf{#1}}}
 
 \title{\CluttealTeX manual\\(Version 0.8.0)} % TODO(release) update
 \author{%
@@ -195,34 +183,34 @@ You can also build \CluttealTeX yourself:
 
 \subsection{Quickstart}
 For building a simple (pdf)\LaTeX document running:
-\begin{boxcmd}
+\begin{boxcode}[none][\normalsize]
   cluttealtex main.tex
-\end{boxcmd}
+\end{boxcode}
 
 If you need a different \TeX engine like Lua\LaTeX or Xe\LaTeX, you can specify this as well:
-\begin{boxcmd}
+\begin{boxcode}[none][\normalsize]
   cluttealtex -e ENGINE main.tex
-\end{boxcmd}
+\end{boxcode}
 
 Similarly if your main file is not called \texttt{main.tex} you only have to adjust this parameter:
-\begin{boxcmd}
+\begin{boxcode}[none][\normalsize]
   cluttealtex -e ENGINE MAINFILE.tex
-\end{boxcmd}
+\end{boxcode}
 
 \subsection{Usage}
 The general usage is as follows:
-\begin{boxcmd}
-  cluttealtex -e ENGINE OPTIONs [--] path\_to\_main\_input.tex
-\end{boxcmd}
+\begin{boxcode}[none][\normalsize]
+cluttealtex -e ENGINE OPTIONs [--] path_to_main_input.tex
+\end{boxcode}
 
 I encourage you to also read \cref{sec:output-dir} for a discussion on where *\TeX is executed (there are two options both with pros and cons).
 
 \CluttealTeX also supports specifying options via a config file (to avoid having to repeat them over and over again).
 This config file must be located in the current working directory and must be called \texttt{.cluttealtexrc.lua}.
 This way, you can achieve it that you can build your document by only executing
-\begin{boxcmd}
+\begin{boxcode}[none][\normalsize]
 	cluttealtex
-\end{boxcmd}
+\end{boxcode}
 without any options.
 
 Apart from this, the config file also offers some advanced features like changing\,/\,setting default values or defining new options (only for advanced users).
@@ -283,7 +271,7 @@ Combining multiple short options, like \texttt{-Ve pdflatex}, is not supported.
 		},
 	}
 	Set which \TeX\ engine/format to use.
-	\metavar{ENGINE} is one of the following:
+	\meta{ENGINE} is one of the following:
 	\begin{multicols}{3}
 		\begin{itemize}
 			\item \texttt{pdflatex}
@@ -1482,7 +1470,7 @@ It stops \CluttealTeX from processing the document multiple times, which may tak
 \subsection{Using Makefile}\label{sec:makefile-example}
 You can create Makefile to avoid writing \CluttealTeX options each time.
 Example:
-\begin{boxcodemake}
+\begin{boxcode}[make]
 main.pdf: main.tex chap1.tex chap2.tex
     cluttealtex -e lualatex -o $@ --makeindex=mendex $<
 
@@ -1494,22 +1482,22 @@ chap1-preview.pdf: main.tex chap1.tex
 
 chap2-preview.pdf: main.tex chap2.tex
     cluttealtex -e lualatex -o $@ --max-iterations=1 --includeonly=chap2 $<
-\end{boxcodemake}
+\end{boxcode}
 
 With \refKey{/cli/make-depends} option, you can let \CluttealTeX infer sub-files and omit them from Makefile.
 Example:
 
-\begin{boxcodemake}
+\begin{boxcode}[make]
 main.pdf: main.tex
     cluttealtex -e lualatex -o $@ --make-depends=main.pdf.dep $<
 
 -include main.pdf.dep
-\end{boxcodemake}
+\end{boxcode}
 
 After initial \texttt{make} run, \texttt{main.pdf.dep} will contain something like this:
-\begin{boxcodemake}
+\begin{boxcode}[make]
 main.pdf: ... main.tex ... chap1.tex chap2.tex
-\end{boxcodemake}
+\end{boxcode}
 
 \begin{itemize}
 	\item[Note:] \refKey{/cli/make-depends} option is still experimental, and may not work well with other options like \refKey{/cli/makeindex}.
@@ -1526,10 +1514,10 @@ The directory name depends on the following three parameters:
 
 If you need to know the exact location of the automatically-generated output directory, you can invoke \CluttealTeX with \refKey{/cli/print-output-directory}.
 For example, \texttt{clean} target of your Makefile could be written as:
-\begin{boxcodemake}
+\begin{boxcode}[make]
 clean:
     -rm -rf $(shell cluttealtex -e pdflatex --print-output-directory main.tex)
-\end{boxcodemake}
+\end{boxcode}
 
 \begin{itemize}
 	\item[Note:] \CluttealTeX itself doesn't erase the auxiliary files, unless \refKey{/cli/fresh} option is set.
@@ -1551,12 +1539,12 @@ In general, packages that execute external commands (shell-escape) don't work we
 Therefore, they don't work well with \CluttealTeX.
 
 However, some packages provide a package option to let them know the location of \texttt{-output-directory}.
-For example, \texpkg{minted} provides \texttt{outputdir}, and \texpkg{epstopdf} provides \texttt{outdir}.
+For example, \refPkg{minted} provides \texttt{outputdir}, and \refPkg{epstopdf} provides \texttt{outdir}.
 
 \CluttealTeX can supply them the appropriate options, but only if it knows that the package is going to be used.
 To let \CluttealTeX know what packages are going to be used, use the \texttt{--package-support} option.
 
-For example, if you want to typeset a document that uses \texpkg{minted}, run the following:
+For example, if you want to typeset a document that uses \refPkg{minted}, run the following:
 \begin{verbatim}
 cluttealtex -e pdflatex --shell-escape --package-support=minted document.tex
 \end{verbatim}
@@ -1631,7 +1619,7 @@ These three keys of the retured table are actually processed by \CluttealTeX (in
 
 \subsubsection{Examples}
 A rather small example setting some options and setting a default value:
-\begin{boxcodelua}
+\begin{boxcode}[{[5.3]Lua}]
 return {
 	options = {
 		file = "main.tex",
@@ -1647,10 +1635,10 @@ return {
 		watch = "inotify", -- changes the default value of this option. Only has an effect on cli arguments 
 	}
 }
-\end{boxcodelua}
+\end{boxcode}
 
 An example for a config file I used for one document:
-\begin{boxcodelua}
+\begin{boxcode}[{[5.3]Lua}]
 return {
 	options = {
 		file = "main.tex",
@@ -1676,10 +1664,10 @@ return {
 		watch = "inotify",
 	},
 }
-\end{boxcodelua}
+\end{boxcode}
 
 Example for an \emph{advanced usecase} adding a new option which can be passed via the CLI (and the \texttt{options} key in the config file):
-\begin{boxcodelua}
+\begin{boxcode}[{[5.3]Lua}]
 return {
 	-- probably setting some options also here
 	cli_options = {
@@ -1694,7 +1682,7 @@ return {
 		},
 	}
 }
-\end{boxcodelua}
+\end{boxcode}
 You can see this allows you to register arbitrary code after the document was completely built.
 This can be used to \eg sync the final output to some other location.
 It can also break \CluttealTeX.
