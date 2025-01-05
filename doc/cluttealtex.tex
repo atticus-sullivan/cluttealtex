@@ -143,12 +143,12 @@
 \CluttealTeX is an automation tool for \LaTeX\ document processing.
 Basic features are,
 \begin{itemize}
-	\item Does not clutter your working directory with \enquote{extra} files, like \texttt{.aux} or \texttt{.log}.
-	\item If multiple runs are required to generate correct document, do so.
+	\item Does not clutter your working directory with \enquote{auxiliary} files, like \texttt{.aux} or \texttt{.log}.
+	\item If multiple runs are required to generate the correct final document (with all references resolved etc), do so.
 	\item Watch input files, and re-process documents if changes are detected\footnote{needs an external program if you are on a Unix system}.
 	\item Run MakeIndex, \BibTeX, Biber, and some other tools if requested and necessary.
-	\item Produces a PDF, even if the engine (e.g.\ p\TeX) does not suport direct PDF generation.
-		If you want a DVI file, use \texttt{--output-format=dvi} option.
+	\item Produces a PDF, even if the engine (e.g.\ p\TeX) does not support direct PDF generation.
+		If you want a DVI file, use the \texttt{--output-format=dvi} option.
 	\item No external dependencies, \CluttealTeX only uses \texttt{texlua} which should come with TeXLive
 \end{itemize}
 
@@ -175,7 +175,7 @@ Installing manually:
 	\item copy \texttt{bin/cluttealtex} or \texttt{bin/cluttealtex.bat} to somewhere in your \texttt{PATH}
 \end{enumerate}
 
-Installing via CTAN (\eg \texttt{tlmgr}) currently is not possible, but uploading this as CTAN package is planned in the near future.
+Installing via CTAN (\eg \texttt{tlmgr}) currently is not possible, but uploading this as CTAN package is planned in the near future\footnote{see \url{https://github.com/atticus-sullivan/cluttealtex/issues/5} for tracking}.
 
 \subsubsection{Building}
 You can also build \CluttealTeX yourself:
@@ -210,7 +210,7 @@ Similarly if your main file is not called \texttt{main.tex} you only have to adj
 \subsection{Usage}
 The general usage is as follows:
 \begin{boxcmd}
-  cluttealtex -e ENGINE OPTIONs [--] INPUT.tex
+  cluttealtex -e ENGINE OPTIONs [--] path\_to\_main\_input.tex
 \end{boxcmd}
 
 I encourage you to also read \cref{sec:output-dir} for a discussion on where *\TeX is executed (there are two options both with pros and cons).
@@ -232,8 +232,8 @@ For further documentation on the config file see \cref{sec:config-file}
 You find a complete list of all available options at the end of this documentation in \cref{sec:listOpt}.
 The following sections will explain the various options in detail, grouped by category.
 
-The following sections show the options similar to how keys in pgf/tikz are described.
-The path \texttt{/cmd/} refers to CLI arguments (multi-letter \tos two/one hyphens, single-letter \tos one hyphen).
+The following sections show the options similar to how keys in pgf\,/\,tikz are described.
+The path \texttt{/cmd/} refers to CLI arguments (multi-letter \tos two\,/\,one hyphens, single-letter \tos one hyphen).
 The path \texttt{/cfg/} refers to how to use the option in the config file.
 
 Most of the options have \texttt{default} and \texttt{initial} associated with them.
@@ -1169,7 +1169,7 @@ Combining multiple short options, like \texttt{-Ve pdflatex}, is not supported.
 		},
 	}
 	Similar to \refKey{/cli/makeindex} but more flexible.
-	In case you are not using normal indices but \eg abbreviations instead, the files to watch differ from the standard case.
+	In case you are not using a classical index but \eg abbreviations instead, the files to watch differ from the standard case.
 	Thus, this needs to be setup differently.
 
 	This option allows you to freely build your \emph{makeindex}\,/\,\emph{xindy} command.
@@ -1546,7 +1546,7 @@ However, some packages provide a package option to let them know the location of
 For example, \texpkg{minted} provides \texttt{outputdir}, and \texpkg{epstopdf} provides \texttt{outdir}.
 
 \CluttealTeX can supply them the appropriate options, but only if it knows that the package is going to be used.
-To let \CluttealTeX know what packages are going to be used, use \texttt{--package-support} option.
+To let \CluttealTeX know what packages are going to be used, use the \texttt{--package-support} option.
 
 For example, if you want to typeset a document that uses \texpkg{minted}, run the following:
 \begin{verbatim}
@@ -1571,7 +1571,7 @@ The check is always done with PDF mode.
 To check the driver with DVI mode, use \refKey{/cli/check-driver} option.
 
 \subsection{Configuration file} \label{sec:config-file}
-When calling \CluttealTeX, it will search for a file named \verb|.cluttealtexrc.lua| in the current working directory.
+When calling \CluttealTeX, it will search for a file named \texttt{.cluttealtexrc.lua} in the current working directory.
 If it finds such a file, \CluttealTeX will execute that lua file and use the return value as configuration.
 This returned value should be a table of a certain structure, definely shortly after this.
 Options set via the cli will always have a higher priority and overwrite anything that was set via the configuration file.
