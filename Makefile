@@ -1,4 +1,4 @@
-.PHONY: all checkAll doc install build clean genArgs release
+.PHONY: all checkAll doc install build clean genArgs release genDemo
 
 FD ?= fd
 
@@ -17,6 +17,9 @@ build: clean checkAll
 
 genArgs: build
 	LUA_PATH="./src_lua/?.lua;$$LUA_PATH" texlua utils/print_args.lua > args.md 2> doc/args.tex
+
+genDemo: build
+	cd demo && vhs main.tape
 
 clean:
 	$(RM) -r src_lua

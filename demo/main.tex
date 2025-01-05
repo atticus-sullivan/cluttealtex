@@ -1,0 +1,56 @@
+%!TeX program = lualatex
+\documentclass[a4paper, 12pt]{scrartcl}
+
+
+% ----- Packages -----
+\usepackage{xspace}
+\newcommand{\zB}{z.\,B.\xspace}
+\newcommand{\tos}{$\to$\xspace}
+\usepackage{scrlayer-scrpage}                 % header and footer
+\usepackage[ngerman]{babel}                   % translate fixed strings and load german hyphenation
+
+\usepackage{microtype}
+\usepackage{fontspec}
+\usepackage[colorlinks=false,breaklinks=true]{hyperref}       % make e.g. toc clickable
+\usepackage{cleveref}
+% \usepackage{showframe}                      % show page boundaries to check if lines are too long
+\usepackage[german=quotes]{csquotes}      % pick always the right quotation marks
+
+% \usepackage{multicol} % use \begin{multicols}{num} text \end{multicols} and the text will be automatically distributed
+
+\usepackage{todo}               % to enter todos in the document
+% \usepackage{subcaption}       % for subfigures
+
+% \usepackage[ngerman]{isodate} % localized date formatting
+
+\usepackage{catppuccinpalette}
+\usepackage{graphicx}         % include graphics
+\usepackage{tabularx}         % better configuration of tables
+\usepackage{ltxtable}         % use tabularx as longtable (\LTXtable{width}{pathToTable}) where the table referenced to contains of \begin{longtable}{preamble}content\end{longtable}
+\usepackage{booktabs}         % more nice rules (headrule/midrule/crule/bottomrule)
+
+\usepackage{xcolor}
+
+% \usepackage{pifont} % special characters (insert via \ding{num})
+
+% ----- Settings -----
+\KOMAoptions{
+	paper=a4,           % set papersize
+	fontsize=12pt,      % set fontsize to 12pt
+	parskip=half,       % half a line will seperate paragraphs
+	headings=normal,    % headings in normalsize
+	BCOR=0cm,           % no space for binding
+	DIV=calc,           % calculare margins automatically, the calculated values can be found in the log file or use \areaset[BCOR]{width}{height}} to explicitly specify the textarea
+	twoside=false,      % onesided document
+	twocolumn=false,    % one columned pages
+	draft=false,         % show additional information
+	numbers=autoendperiod, % automatic punctuation in outline
+}
+
+% \parskip5pt
+% \parindent0pt
+
+\begin{document}
+
+\todos
+\end{document}

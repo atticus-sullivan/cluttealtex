@@ -5,6 +5,8 @@ using teal to transpile typed lua to classic lua.**
 
 See `-h` and/or the documentation in `pdf` format.
 
+![Example run of a simple document using cluttealtex](./demo/main.gif)
+
 ## How to install
 You can either
 - download the executable form the current release (`cluttealtex` or `cluttealtex.bat`)
@@ -38,7 +40,7 @@ option you don't have to specify a value. Like with usual CLI arguments, you can
 pass a custom value either seperated with a space \eg `--engine lualatex`
 (or seperated with an equal sign)
 
-## For developers
+## For developers / advanced users
 <details><summary>Click to expand</summary>
 
 ### Hooking
