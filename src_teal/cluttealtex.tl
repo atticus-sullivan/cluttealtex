@@ -30,7 +30,7 @@ local os = require"os_"
 local filesys = require "lfs"
 
 -- custom modules
-local reruncheck                   = require "texrunner.reruncheck"
+local common_t                     = require "texrunner.common_types"
 local handle_cluttealtex_options   = require "texrunner.handleoption".handle_cluttealtex_options
 local watcher                      = require"texrunner.watcher"
 local get_typesetter               = require"texrunner.typeset".get_typesetter
@@ -83,7 +83,7 @@ local do_typeset = get_typesetter{
 }
 
 -- Variables to track success status and file lists produced during typesetting.
-local success, filelist: boolean, {reruncheck.Filemap_ele}
+local success, filelist: boolean, {common_t.Filemap_ele}
 local _: any -- Placeholder for unused return values.
 
 if options.watch then

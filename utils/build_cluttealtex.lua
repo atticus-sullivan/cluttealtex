@@ -125,6 +125,14 @@ local modules = {
 		path = "texrunner/typeset.lua",
 	},
 	{
+		name = "texrunner.typeset_hooks",
+		path = "texrunner/typeset_hooks.lua",
+	},
+	{
+		name = "texrunner.common_types",
+		path = "texrunner/common_types.lua",
+	},
+	{
 		name = "texrunner.watcher",
 		path = "texrunner/watcher.lua",
 	},

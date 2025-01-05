@@ -21,7 +21,7 @@ local assert = assert
 local ipairs = ipairs
 local pathutil = require "texrunner.pathutil"
 local message = require "texrunner.message"
-local reruncheck = require"texrunner.reruncheck"
+local common_t = require"texrunner.common_types"
 
 -- Record definition for expected driver values
 local record Values
@@ -237,7 +237,7 @@ local mismatch_output:{string:function} = {
 
 -- Main function to check drivers based on expected driver and loaded files
 -- @param expected_driver: one of "dvips", "dvipdfmx", "dvisvgm", "pdftex", "xetex", "luatex"
-local function checkdriver(expected_driver: string, filelist: {reruncheck.Filemap_ele}): {string}
+local function checkdriver(expected_driver: string, filelist: {common_t.Filemap_ele}): {string}
 	if CLUTTEALTEX_VERBOSITY >= 1 then
 		message.info("checkdriver: expects ", expected_driver)
 	end

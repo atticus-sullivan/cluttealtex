@@ -20,13 +20,11 @@ along with CluttealTeX.  If not, see <http://www.gnu.org/licenses/>.
 
 -- External libraries (included in texlua)
 local md5     = require "md5"
-local filesys = require "lfs"
 
 local os                           = require"os_"
 local pathutil                     = require "texrunner.pathutil"
-local checkdriver                  = require "texrunner.checkdriver".checkdriver
 local shellutil                    = require "texrunner.shellutil"
-local options                      = require "texrunner.option_type"
+local options                      = require "texrunner.option_type" -- legacy import
 local message                      = require "texrunner.message"
 local reruncheck                   = require "texrunner.reruncheck"
 local fsutil                       = require "texrunner.fsutil"
@@ -34,6 +32,9 @@ local engine_t                     = require "texrunner.tex_engine"
 local extract_bibtex_from_aux_file = require "texrunner.auxfile".extract_bibtex_from_aux_file
 local safename                     = require "texrunner.safename"
 local recoverylib                  = require "texrunner.recovery"
+
+local common_t                     = require "texrunner.common_types"
+local ts_hooks                     = require "texrunner.typeset_hooks"
 
 local exit: function(code:integer)
 global CLUTTEALTEX_TEST_ENV: boolean
@@ -44,9 +45,9 @@ else
 end
 
 local record Module
-	get_typesetter: function(args: Module.typesetArgs): (function(): boolean, string, integer, {reruncheck.Filemap_ele})
+	get_typesetter: function(args: Module.typesetArgs): (function(): boolean, string, integer, {common_t.Filemap_ele})
 	record typesetArgs
-		auxstatus:{string:reruncheck.Status}
+		auxstatus:{string:common_t.Status}
 		iteration:integer
 		path_in_output_directory: function(string): string
 		recorderfile: string
@@ -64,7 +65,6 @@ end
 -- should_rerun, newauxstatus = single_run([auxstatus])
 -- This function should be run in a coroutine.
 local function single_run_coroutine(args: Module.typesetArgs): boolean|string
-	local minted, epstopdf = false, false
 	local bibtex_aux_hash:string = nil
 	local mainauxfile = args.path_in_output_directory("aux")
 	if fsutil.isfile(args.recorderfile) then
@@ -74,14 +74,11 @@ local function single_run_coroutine(args: Module.typesetArgs): boolean|string
 			filelist, filemap = reruncheck.parse_recorder_file(args.recorderfile2, args.options, filelist, filemap)
 		end
 		args.auxstatus = reruncheck.collectfileinfo(filelist, args.auxstatus)
-		for _,fileinfo in ipairs(filelist) do
-			if string.match(fileinfo.path, "minted/minted%.sty$") then
-				minted = true
-			end
-			if string.match(fileinfo.path, "epstopdf%.sty$") then
-				epstopdf = true
-			end
-		end
+
+		-- emits suggestsions to the user which options might be usefull
+		-- does nothing except potentially message.diag -> no return needed
+		ts_hooks.apply_suggestion_file_based(args.options.hooks.suggestion_file_based, filelist)
+
 		if args.options.bibtex then
 			local biblines = extract_bibtex_from_aux_file(mainauxfile, args.options.output_directory)
 			if #biblines > 0 then
@@ -103,50 +100,10 @@ local function single_run_coroutine(args: Module.typesetArgs): boolean|string
 		args.auxstatus = {}
 	end
 
-	local tex_injection = ""
+	local tex_injection = args.tex_options.tex_injection or ""
 
-	if args.options.includeonly then
-		tex_injection = string.format("%s\\includeonly{%s}", args.tex_options.tex_injection or "", args.options.includeonly)
-	end
-
-	if minted or args.options.package_support["minted"] then
-		local outdir = args.options.output_directory
-		if os.type == "windows" then
-			outdir = string.gsub(outdir, "\\", "/") -- Use forward slashes
-		end
-		tex_injection = string.format("%s\\PassOptionsToPackage{outputdir=%s}{minted}", tex_injection or "", outdir)
-		if not args.options.package_support["minted"] then
-			message.diag("You may want to use --package-support=minted option.")
-		end
-	end
-	if epstopdf or args.options.package_support["epstopdf"] then
-		local outdir = args.options.output_directory
-		if os.type == "windows" then
-			outdir = string.gsub(outdir, "\\", "/") -- Use forward slashes
-		end
-		if string.sub(outdir, -1, -1) ~= "/" then
-			outdir = outdir.."/" -- Must end with a directory separator
-		end
-		tex_injection = string.format("%s\\PassOptionsToPackage{outdir=%s}{epstopdf}", tex_injection or "", outdir)
-		if not args.options.package_support["epstopdf"] then
-			message.diag("You may want to use --package-support=epstopdf option.")
-		end
-	end
-	if args.options.memoize then
-		tex_injection = string.format("%s\\PassOptionsToPackage{no memo dir,extract=no}{memoize}", tex_injection or "")
-	end
-	if args.options.memoize_opts then
-		tex_injection = string.format("%s\\PassOptionsToPackage{%s}{memoize}", tex_injection or "", table.concat(args.options.memoize_opts, ","))
-	end
-	if args.options.quiet then
-		if args.options.quiet >= 1 then
-			tex_injection = string.format("%s\\AddToHook{begindocument/end}[quietX]{\\hbadness=99999 \\hfuzz=9999pt}", tex_injection or "")
-		end
-		if args.options.quiet >= 2 then
-			args.tex_options.interaction = "batchmode"
-			tex_injection = string.format("%s\\AddToHook{begindocument/end}[quiet]{\\nonstopmode}\\AddToHook{enddocument/info}[quiet]{\\batchmode}", tex_injection or "")
-		end
-	end
+	-- run tex_injection hooks
+	tex_injection = ts_hooks.apply_tex_injection(args.options.hooks.tex_injection, args.options, args.tex_options, tex_injection)
 
 	local inputline = tex_injection .. safename.safeinput(args.inputfile, args.engine)
 
@@ -202,208 +159,15 @@ local function single_run_coroutine(args: Module.typesetArgs): boolean|string
 		logfile:close()
 	end
 
-	if args.options.check_driver ~= nil then
-		checkdriver(args.options.check_driver, filelist)
-	end
+	ts_hooks.apply_post_compile(args.options.hooks.post_compile, args.options, {
+		filelist                 = filelist,
+		auxstatus                = args.auxstatus,
+		path_in_output_directory = args.path_in_output_directory,
+		bibtex_aux_hash          = bibtex_aux_hash,
+		original_wd              = args.original_wd,
+	})
 
-	if args.options.makeindex then
-		-- Look for .idx files and run MakeIndex
-		for _,file in ipairs(filelist) do
-			if pathutil.ext(file.path) == "idx" then
-				-- Run makeindex if the .idx file is new or updated
-				local idxfileinfo = {path = file.path, abspath = file.abspath, kind = "auxiliary"}
-				local output_ind = pathutil.replaceext(file.abspath, "ind")
-				if reruncheck.comparefileinfo({idxfileinfo}, args.auxstatus) or reruncheck.comparefiletime(file.abspath, output_ind, args.auxstatus) then
-					local idx_dir = pathutil.dirname(file.abspath)
-					local makeindex_command = {
-						"cd", shellutil.escape(idx_dir), "&&",
-						args.options.makeindex, -- Do not escape options.makeindex to allow additional options
-						"-o", pathutil.basename(output_ind),
-						pathutil.basename(file.abspath)
-					}
-					coroutine.yield(table.concat(makeindex_command, " "))
-					table.insert(filelist, {path = output_ind, abspath = output_ind, kind = "auxiliary"})
-				else
-					local succ, err = filesys.touch(output_ind)
-					if not succ then
-						message.warn("Failed to touch " .. output_ind .. " (" .. err .. ")")
-					end
-				end
-			end
-		end
-	else
-		-- Check log file
-		if string.find(execlog, "No file [^\n]+%.ind%.") then
-			message.diag("You may want to use --makeindex option.")
-		end
-	end
-
-	if args.options.glossaries then
-		-- Look for configured files and run makeindex/xindy
-		for _,file in ipairs(filelist) do
-			for _, cfg in ipairs(args.options.glossaries) do
-				if pathutil.ext(file.path) == cfg.inp then
-					-- Run xindy/makeindex if the specified input-file is new or updated
-					local inputfileinfo = {path = file.path, abspath = file.abspath, kind = "auxiliary"}
-					local outputfile = args.path_in_output_directory(cfg.out)
-					if reruncheck.comparefileinfo({inputfileinfo}, args.auxstatus) or reruncheck.comparefiletime(file.abspath, outputfile, args.auxstatus) then
-						print(cfg.cmd(args.path_in_output_directory))
-						coroutine.yield(cfg.cmd(args.path_in_output_directory))
-						table.insert(filelist, {path = outputfile, abspath = outputfile, kind = "auxiliary"})
-					else
-						local succ, err = filesys.touch(outputfile)
-						if not succ then
-							message.warn("Failed to touch " .. outputfile .. " (" .. err .. ")")
-						end
-					end
-				end
-			end
-		end
-	end
-
-	if args.options.bibtex then
-		local biblines2 = extract_bibtex_from_aux_file(mainauxfile, args.options.output_directory)
-		local bibtex_aux_hash2: string
-		if #biblines2 > 0 then
-			bibtex_aux_hash2 = md5.sum(table.concat(biblines2, "\n"))
-		end
-		local output_bbl = args.path_in_output_directory("bbl")
-		if bibtex_aux_hash ~= bibtex_aux_hash2 or reruncheck.comparefiletime(pathutil.abspath(mainauxfile), output_bbl, args.auxstatus) then
-			-- The input for BibTeX command has changed...
-			-- os.execute("pwd")
-			-- os.execute("echo $BIBINPUTS")
-			local bibtex_command = {
-				"cd", shellutil.escape(args.options.output_directory), "&&",
-				args.options.bibtex,
-				pathutil.basename(mainauxfile)
-			}
-			coroutine.yield(table.concat(bibtex_command, " "))
-		else
-			if CLUTTEALTEX_VERBOSITY >= 1 then
-				message.info("No need to run BibTeX.")
-			end
-			local succ, err = filesys.touch(output_bbl)
-			if not succ then
-				message.warn("Failed to touch " .. output_bbl .. " (" .. err .. ")")
-			end
-		end
-	elseif args.options.biber then
-		for _,file in ipairs(filelist) do
-			-- usual compilation with biber
-			-- tex     -> pdflatex tex -> aux,bcf,pdf,run.xml
-			-- bcf     -> biber bcf    -> bbl
-			-- tex,bbl -> pdflatex tex -> aux,bcf,pdf,run.xml
-			if pathutil.ext(file.path) == "bcf" then
-				-- Run biber if the .bcf file is new or updated
-				local bcffileinfo = {path = file.path, abspath = file.abspath, kind = "auxiliary"}
-				local output_bbl = pathutil.replaceext(file.abspath, "bbl")
-				local updated_dot_bib = false
-				-- get the .bib files, the bcf uses as input
-				for l in io.lines(file.abspath) do
-					local bib = string.match(l, "<bcf:datasource .*>(.*)</bcf:datasource>") -- might be unstable if biblatex adds e.g. a linebreak
-					if bib then
-						local bibfile = pathutil.join(args.original_wd, bib)
-						local succ, err = io.open(bibfile, "r") -- check if file is present, don't use touch to avoid triggering a rerun
-						if succ then
-							succ:close()
-							local updated_dot_bib_tmp = not reruncheck.comparefiletime(pathutil.abspath(mainauxfile), bibfile, args.auxstatus)
-							if updated_dot_bib_tmp then
-								message.info(bibfile.." is newer than aux")
-							end
-							updated_dot_bib = updated_dot_bib_tmp or updated_dot_bib
-						else
-							message.warn(bibfile .. " is not accessible (" .. err .. ")")
-						end
-					end
-				end
-				if updated_dot_bib or reruncheck.comparefileinfo({bcffileinfo}, args.auxstatus) or reruncheck.comparefiletime(file.abspath, output_bbl, args.auxstatus) then
-					local biber_command = {
-						args.options.biber, -- Do not escape options.biber to allow additional options
-						"--output-directory", shellutil.escape(args.options.output_directory),
-						pathutil.basename(file.abspath)
-					}
-					coroutine.yield(table.concat(biber_command, " "))
-					-- watch for changes in the bbl
-					table.insert(filelist, {path = output_bbl, abspath = output_bbl, kind = "auxiliary"})
-				else
-					local succ, err = filesys.touch(output_bbl)
-					if not succ then
-						message.warn("Failed to touch " .. output_bbl .. " (" .. err .. ")")
-					end
-				end
-			end
-		end
-	else
-		-- Check log file
-		if string.find(execlog, "No file [^\n]+%.bbl%.") then
-			message.diag("You may want to use --bibtex or --biber option.")
-		end
-	end
-
-	if args.options.memoize then
-		for _,file in ipairs(filelist) do
-			-- usual compilation with memoize
-			-- tex      -> pdflatex tex    -> aux,pdf,mmz
-			-- mmz,pdf  -> memoize-extract -> pdf,pdf
-			-- tex      -> pdflatex tex    -> aux,pdf
-			if pathutil.ext(file.path) == "mmz" then
-				local must_extract = false
-				for l in io.lines(file.abspath) do
-					local newExtern = string.match(l, "^\\mmzNewExtern")
-					must_extract = must_extract or newExtern ~= nil
-				end
-				if must_extract then
-					local extract_command = {
-						args.options.memoize, -- Do not escape options.memoize to allow additional options
-						pathutil.basename(pathutil.replaceext(file.abspath, "tex"))
-					}
-					coroutine.yield(table.concat(extract_command, " "))
-					-- ensure document gets recompiled afterwards
-					local succ, err = filesys.touch(file.path)
-					if not succ then
-						message.warn("Failed to touch " .. file.path .. " (" .. err .. ")")
-					end
-				end
-			end
-		end
-	else
-		-- Check log file
-		if string.find(execlog, "Package memoize Warning") then
-			message.diag("You may want to use --memoize option.")
-		end
-	end
-
-	if args.options.sagetex then
-		for _,file in ipairs(filelist) do
-			-- usual compilation with sagetex
-			-- tex      -> pdflatex tex -> aux,pdf,sage
-			-- sage     -> sage sage    -> sout (eps)
-			-- tex,sout -> pdflatex tex -> aux,pdf,sage
-			local output_sout = pathutil.replaceext(file.abspath, "sout")
-			if pathutil.ext(file.path) == "sage" then
-				local sagefileinfo = {path = file.path, abspath = file.abspath, kind = "auxiliary"}
-				if reruncheck.comparefileinfo({sagefileinfo}, args.auxstatus) then
-					local sage_command = {
-						args.options.sagetex, -- Do not escape options.sagetex to allow additional options
-						pathutil.basename(file.abspath)
-					}
-					coroutine.yield(table.concat(sage_command, " "))
-					-- watch for changes in .sage
-					table.insert(filelist, {path = output_sout, abspath = output_sout, kind = "auxiliary"})
-				else
-					local succ, err = filesys.touch(output_sout)
-					if not succ then
-						message.warn("Failed to touch " .. output_sout .. " (" .. err .. ")")
-					end
-				end
-			end
-		end
-	else
-		-- Check log file
-		if string.find(execlog, "Run Sage on") then
-			message.diag("You may want to use --sagetex option.")
-		end
-	end
+	ts_hooks.apply_suggestion_excelog_based(args.options.hooks.suggestion_execlog_based, execlog, args.options)
 
 	if string.find(execlog, "No pages of output.") then
 		return "No pages of output."
@@ -491,6 +255,8 @@ local function do_typeset_coroutine(args:Module.typesetArgs): string, function
 		f:write("\n")
 		f:close()
 	end
+
+	ts_hooks.apply_post_build(args.options.hooks.post_build, args.options)
 end
 
 local function do_typeset(args: Module.typesetArgs): boolean, string, integer
@@ -520,9 +286,9 @@ local function do_typeset(args: Module.typesetArgs): boolean, string, integer
 	return true
 end
 
-local function get_typesetter(args: Module.typesetArgs): (function(): boolean, string, integer, {reruncheck.Filemap_ele})
-	local filelist, filemap: {reruncheck.Filemap_ele}, {string: reruncheck.Filemap_ele}
-	return function(): boolean, string, integer, {reruncheck.Filemap_ele}
+local function get_typesetter(args: Module.typesetArgs): (function(): boolean, string, integer, {common_t.Filemap_ele})
+	local filelist, filemap: {common_t.Filemap_ele}, {string: common_t.Filemap_ele}
+	return function(): boolean, string, integer, {common_t.Filemap_ele}
 		local success, termination, status = do_typeset(args)
 		-- TODO: filenames here can be UTF-8 if command_line_encoding=utf-8
 

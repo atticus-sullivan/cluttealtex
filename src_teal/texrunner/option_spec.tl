@@ -16,13 +16,49 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ]]
 
-local Option    = require "texrunner.option".Option
-local shellutil = require "texrunner.shellutil"
-local option_t  = require"texrunner.option_type"
-local pathutil  = require "texrunner.pathutil"
-local message   = require "texrunner.message"
+local Option        = require "texrunner.option".Option
+local shellutil     = require "texrunner.shellutil"
+local option_t      = require"texrunner.option_type"
+local pathutil      = require "texrunner.pathutil"
+local message       = require "texrunner.message"
+local typeset_hooks = require "texrunner.typeset_hooks"
+local common_t      = require "texrunner.common_types"
 
 global CLUTTEALTEX_VERSION:string
+
+local record Module
+	spec:{string:Option}
+	usage:function({string})
+	init_hooks: function(option_t.Options, {string:Option})
+	_internal: Internal
+	record Internal
+		split: function(opt:string): {string}
+		parse_glossaries_option_from_table: function(opt:{string:string|nil}): option_t.Glos, string
+		parse_glossaries_option_from_string: function(opt:string): option_t.Glos, string
+	end
+end
+local _M:Module = {}
+
+local function init_hooks(o:option_t.Options, spec:{string:Option})
+	o.hooks = o.hooks or {}
+
+	o.hooks.tex_injection            = {}
+	-- o.hooks.pre_compile              = {}
+	o.hooks.post_compile             = {}
+	-- o.hooks.pre_build                = {}
+	o.hooks.post_build               = {}
+	o.hooks.suggestion_file_based    = {}
+	o.hooks.suggestion_execlog_based = {}
+
+	for _,v in pairs(spec) do
+		if v.suggestion_handlers and v.suggestion_handlers.file_based then
+			v.suggestion_handlers.file_based(o)
+		end
+		if v.suggestion_handlers and v.suggestion_handlers.execlog_based then
+			v.suggestion_handlers.execlog_based(o)
+		end
+	end
+end
 
 local function split(opt:string): {string}
 	local ret,builder,state = {},{},0
@@ -224,7 +260,7 @@ Options:
 end
 
 
-local option_spec:{string:Option} = {
+local spec = {
 	-- Options for CluttealTeX
 	engine = {
 		short = "e",
@@ -433,6 +469,8 @@ local option_spec:{string:Option} = {
 			assert(options.includeonly == nil, "multiple --includeonly options")
 			if param is string then
 				options.includeonly = param
+				if not options.hooks then init_hooks(options, _M.spec) end
+				options.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.includeonly)] = {typeset_hooks.includeonly, "includeonly"}
 			else
 				error("invalid param type")
 			end
@@ -465,12 +503,44 @@ local option_spec:{string:Option} = {
 		long = "package-support",
 		param = true,
 		accumulate = true,
+		suggestion_handlers = {
+			file_based = function(o:option_t.Options)
+				o.hooks.suggestion_file_based[assert(option_t.hook_prios.suggestion_file_based.package_support)+0.1] = {
+					function(fileinfo:common_t.Filemap_ele): boolean
+							return string.find(fileinfo.path, "minted/minted%.sty$") ~= nil
+					end,
+					"You may want to use --package-support=minted option."
+				}
+				o.hooks.suggestion_file_based[assert(option_t.hook_prios.suggestion_file_based.package_support)+0.2] = {
+					function(fileinfo:common_t.Filemap_ele): boolean
+							return string.find(fileinfo.path, "epstopdf%.sty$") ~= nil
+					end,
+					"You may want to use --package-support=epstopdf option."
+				}
+			end
+		},
 		handle_cli = function(options:option_t.Options, param:string|boolean)
-			local known_packages:{string:boolean} = {["minted"] = true, ["epstopdf"] = true}
+			local known_packages:{string:function(option_t.Options)} = {
+				-- minted uses offset 0.1 in hooks
+				minted = function(o: option_t.Options)
+					if not o.hooks then init_hooks(o, _M.spec) end
+					o.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.package_support)+0.1] = {typeset_hooks.ps_minted, "package_support minted"}
+					o.hooks.suggestion_file_based[assert(option_t.hook_prios.suggestion_file_based.package_support)+0.1] = nil
+				end,
+				-- epstopdf uses offset 0.2 in hooks
+				epstopdf = function(o: option_t.Options)
+					if not o.hooks then init_hooks(o, _M.spec) end
+					o.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.package_support)+0.2] = {typeset_hooks.ps_epstopdf, "package_support epstopdf"}
+					o.hooks.suggestion_file_based[assert(option_t.hook_prios.suggestion_file_based.package_support)+0.2] = nil
+				end,
+			}
 			if param is string then
 				for pkg in string.gmatch(param, "[^,%s]+") do
 					options.package_support[pkg] = true
-					if not known_packages[pkg] and CLUTTEALTEX_VERBOSITY >= 1 then
+					if known_packages[pkg] then
+						-- register the corresponding hook
+						known_packages[pkg](options)
+					elseif CLUTTEALTEX_VERBOSITY >= 1 then
 						message.warn("CluttealTeX provides no special support for '"..pkg.."'.")
 					end
 				end
@@ -487,6 +557,8 @@ local option_spec:{string:Option} = {
 			assert(param == "dvipdfmx" or param == "dvips" or param == "dvisvgm", "wrong value for --check-driver option")
 			if param is string then
 				options.check_driver = param
+				if not options.hooks then init_hooks(options, _M.spec) end
+				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.check_driver)] = {typeset_hooks.check_driver, "check_driver"}
 			else
 				assert(param is string, "invalid param type")
 			end
@@ -496,11 +568,24 @@ local option_spec:{string:Option} = {
 		long = "makeindex",
 		param = true,
 		default = "makeindex",
+		suggestion_handlers = {
+			execlog_based = function(o:option_t.Options)
+				o.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.makeindex)] = {
+					function(execlog:string, _:option_t.Options): boolean
+						return string.find(execlog, "No file [^\n]+%.ind%.") ~= nil
+					end,
+					"You may want to use --makeindex option."
+				}
+			end
+		},
 		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(not options.glossaries, "'makeindex' cannot be used together with 'glossaries'\nUse e.g. --glossaries='makeindex:main.ind:main.idx:main.ilg' instead of makeindex")
 			assert(options.makeindex == nil, "multiple --makeindex options")
 			if param is string then
 				options.makeindex = param
+				if not options.hooks then init_hooks(options, _M.spec) end
+				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.makeindex)] = {typeset_hooks.makeindex, "makeindex"}
+				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.makeindex)] = nil
 			else
 				error("invalid param type")
 			end
@@ -510,11 +595,24 @@ local option_spec:{string:Option} = {
 		long = "bibtex",
 		param = true,
 		default = "bibtex",
+		suggestion_handlers = {
+			execlog_based = function(o:option_t.Options)
+				o.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.bibtex)] = {
+					function(execlog:string, o:option_t.Options): boolean
+						return string.find(execlog, "No file [^\n]+%.bbl%.") ~= nil and not o.biber
+					end,
+					"You may want to use --bibtex or --biber option."
+				}
+			end
+		},
 		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.bibtex == nil, "multiple --bibtex options")
 			assert(options.biber == nil, "multiple --bibtex/--biber options")
 			if param is string then
 				options.bibtex = param
+				if not options.hooks then init_hooks(options, _M.spec) end
+				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.bibtex)] = {typeset_hooks.bibtex, "bibtex"}
+				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.bibtex)] = nil
 			else
 				error("invalid param type")
 			end
@@ -524,11 +622,24 @@ local option_spec:{string:Option} = {
 		long = "biber",
 		param = true,
 		default = "biber",
+		suggestion_handlers = {
+			execlog_based = function(o:option_t.Options)
+				o.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.biber)] = {
+					function(execlog:string, o:option_t.Options): boolean
+						return string.find(execlog, "No file [^\n]+%.bbl%.") ~= nil and not o.bibtex
+					end,
+					"You may want to use --bibtex or --biber option."
+				}
+			end
+		},
 		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.biber == nil, "multiple --biber options")
 			assert(options.bibtex == nil, "multiple --bibtex/--biber options")
 			if param is string then
 				options.biber = param
+				if not options.hooks then init_hooks(options, _M.spec) end
+				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.biber)] = {typeset_hooks.biber, "biber"}
+				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.biber)] = nil
 			else
 				error("invalid param type")
 			end
@@ -538,10 +649,23 @@ local option_spec:{string:Option} = {
 		long = "sagetex",
 		param = true,
 		default = "sage",
+		suggestion_handlers = {
+			execlog_based = function(o:option_t.Options)
+				o.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.sagetex)] = {
+					function(execlog:string, _:option_t.Options): boolean
+						return string.find(execlog, "Run Sage on") ~= nil
+					end,
+					"You may want to use --sagetex option."
+				}
+			end
+		},
 		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.sagetex == nil, "multiple --sagetex options")
 			if param is string then
 				options.sagetex = param
+				if not options.hooks then init_hooks(options, _M.spec) end
+				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.sagetex)] = {typeset_hooks.sagetex, "sagetex"}
+				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.sagetex)] = nil
 			else
 				error("invalid param type")
 			end
@@ -560,6 +684,8 @@ local option_spec:{string:Option} = {
 			if param is string then
 				options.glossaries = options.glossaries or {}
 				table.insert(options.glossaries, assert(parse_glossaries_option_from_string(param)))
+				if not options.hooks then init_hooks(options, _M.spec) end
+				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.glossaries)] = {typeset_hooks.glossaries, "glossaries"}
 			else
 				error("invalid param type")
 			end
@@ -600,12 +726,24 @@ local option_spec:{string:Option} = {
 
 			options.glossaries = options.glossaries or {}
 			table.insert(options.glossaries, assert(parse_glossaries_option_from_table(param)))
+			if not options.hooks then init_hooks(options, _M.spec) end
+			options.hooks.post_compile[assert(option_t.hook_prios.post_compile.glossaries)] = {typeset_hooks.glossaries, "glossaries"}
 		end,
 	},
 	memoize = {
 		long = "memoize",
 		param = true,
 		default = "perl",
+		suggestion_handlers = {
+			execlog_based = function(o:option_t.Options)
+				o.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.memoize)] = {
+					function(execlog:string, _:option_t.Options): boolean
+						return string.find(execlog, "Package memoize Warning") ~= nil
+					end,
+					"You may want to use --memoize option."
+				}
+			end
+		},
 		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.memoize == nil, "multiple --memoize options")
 			if param is string then
@@ -616,6 +754,10 @@ local option_spec:{string:Option} = {
 				else
 					options.memoize = param
 				end
+				if not options.hooks then init_hooks(options, _M.spec) end
+				options.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.memoize+0.1)] = {typeset_hooks.memoize, "memoize"}
+				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.memoize)] = {typeset_hooks.memoize_run, "memoize"}
+				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.memoize)] = nil
 			else
 				error("invalid param type")
 			end
@@ -628,6 +770,8 @@ local option_spec:{string:Option} = {
 			if param is string then
 				options.memoize_opts = options.memoize_opts or {}
 				table.insert(options.memoize_opts, param)
+				if not options.hooks then init_hooks(options, _M.spec) end
+				options.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.memoize-0.2)] = {typeset_hooks.memoize_opts, "memoize_opts"}
 			else
 				error("invalid param type")
 			end
@@ -641,6 +785,8 @@ local option_spec:{string:Option} = {
 			assert(options.quiet == nil, "multiple --quiet options")
 			if param is string then
 				options.quiet = assert(tonumber(param) as integer, "parameter must be an integer")
+				if not options.hooks then init_hooks(options, _M.spec) end
+				options.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.quiet)] = {typeset_hooks.quiet, "quiet"}
 			else
 				error("invalid param type")
 			end
@@ -822,7 +968,17 @@ local option_spec:{string:Option} = {
 	},
 }
 
-return {
-	spec = option_spec,
-	usage = usage,
-}
+_M.init_hooks = init_hooks
+_M.spec = spec
+_M.usage = usage
+
+
+if CLUTTEALTEX_TEST_ENV then
+	_M._internal = {
+		split                               = split,
+		parse_glossaries_option_from_table  = parse_glossaries_option_from_table,
+		parse_glossaries_option_from_string = parse_glossaries_option_from_string,
+	}
+end
+
+return _M
