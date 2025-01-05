@@ -34,7 +34,9 @@ arguments/options](args.md).
 - `optname` refers to the name of the option when passing it via the
 config file (`.cluttealtexrc.lua`)
 - arguments containing `[=...]` all have a default value, so when passing this
-option you don't have to specify a value
+option you don't have to specify a value. Like with usual CLI arguments, you can
+pass a custom value either seperated with a space \eg `--engine lualatex`
+(or seperated with an equal sign)
 
 ## For developers
 <details><summary>Click to expand</summary>
