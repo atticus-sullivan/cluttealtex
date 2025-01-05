@@ -1315,9 +1315,14 @@ and the following \emph{matchers}:
 	\item \iboxcmd{ext} matches all files having this extension
 \end{itemize}
 
+\begin{itemize}
+	\item[Note:] A file continues to traverse the filters even if it was matched.
+		So for example \texttt{watch-only-ext="tex" watch-not-path="/usr/local/texlive"} will watch all \texttt{tex} files except the ones located in \texttt{/usr/local/texlive}.
+\end{itemize}
+
 This is what happens to each file that is being a candidate for being watched:
 \begin{enumerate}
-	\item If no filter is defined the file is being watched and nothing noted be below happens.
+	\item (In case you did not define any filtering (none of \texttt{watch-\{not,only\}-\{path,ext\}} passed), the file is marked was being watched and the following steps are skipped)
 	\item The file always begins as being marked as \emph{not watched}
 	\item Then it traverses all filters and might change (multiple times, no stopping if one filter matches\footnote{
 		This enables you to use \texttt{--watch-only-path=/} to change the default easily
