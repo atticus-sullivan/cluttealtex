@@ -1040,7 +1040,7 @@ Combining multiple short options, like \texttt{-Ve pdflatex}, is not supported.
 			% doc new=2025-01-01,
 			% doc updated=2025-01-01,
 			doc keypath=cli,
-			doc name=watch-not-ext,
+			doc name=watch-exc-ext,
 			doc parameter={=\meta{ext}},
 			doc description={default: none, initial: none},
 		},
@@ -1048,7 +1048,7 @@ Combining multiple short options, like \texttt{-Ve pdflatex}, is not supported.
 			% doc new=2025-01-01,
 			% doc updated=2025-01-01,
 			doc keypath=cli,
-			doc name=watch-not-path,
+			doc name=watch-exc-path,
 			doc parameter={=\meta{path}},
 			doc description={default: none, initial: none},
 		},
@@ -1056,7 +1056,7 @@ Combining multiple short options, like \texttt{-Ve pdflatex}, is not supported.
 			% doc new=2025-01-01,
 			% doc updated=2025-01-01,
 			doc keypath=cli,
-			doc name=watch-ext,
+			doc name=watch-inc-ext,
 			doc parameter={=\meta{ext}},
 			doc description={default: none, initial: none},
 		},
@@ -1064,7 +1064,7 @@ Combining multiple short options, like \texttt{-Ve pdflatex}, is not supported.
 			% doc new=2025-01-01,
 			% doc updated=2025-01-01,
 			doc keypath=cli,
-			doc name=watch-path,
+			doc name=watch-inc-path,
 			doc parameter={=\meta{path}},
 			doc description={default: none, initial: none},
 		},
@@ -1084,8 +1084,8 @@ Combining multiple short options, like \texttt{-Ve pdflatex}, is not supported.
 	\begin{itemize}
 		\item[Note:] The order of the argument matters.
 		\item[Note:] No matter which of these options you use, the default is always to not watch a file.
-			So by only using \texttt{--watch-not-path=./aux/} you will end up by not watching any path.
-			You can of course change this by specifying \texttt{--watch-only-path=/} before.
+			So by only using \texttt{--watch-exc-path=./aux/} you will end up by not watching any path.
+			You can of course change this by specifying \texttt{--watch-inc-path=/} before.
 	\end{itemize}
 \end{docKeys}
 
@@ -1325,8 +1325,8 @@ The \texttt{watch*} options are constructed systematically with two building blo
 
 There are the following \emph{rules}:
 \begin{itemize}
-	\item \iboxcmd{not} files matching this rule will be excluded
-	\item \iboxcmd{only} files matching this rule will be included
+	\item \iboxcmd{exc} files matching this rule will be excluded
+	\item \iboxcmd{inc} files matching this rule will be included
 \end{itemize}
 and the following \emph{matchers}:
 \begin{itemize}
@@ -1336,15 +1336,15 @@ and the following \emph{matchers}:
 
 \begin{itemize}
 	\item[Note:] A file continues to traverse the filters even if it was matched.
-		So for example \texttt{watch-only-ext="tex" watch-not-path="/usr/local/texlive"} will watch all \texttt{tex} files except the ones located in \texttt{/usr/local/texlive}.
+		So for example \texttt{watch-inc-ext="tex" watch-exc-path="/usr/local/texlive"} will watch all \texttt{tex} files except the ones located in \texttt{/usr/local/texlive}.
 \end{itemize}
 
 This is what happens to each file that is being a candidate for being watched:
 \begin{enumerate}
-	\item (In case you did not define any filtering (none of \texttt{watch-\{not,only\}-\{path,ext\}} passed), the file is marked was being watched and the following steps are skipped)
+	\item (In case you did not define any filtering (none of \texttt{watch-\{inc,exc\}-\{path,ext\}} passed), the file is marked was being watched and the following steps are skipped)
 	\item The file always begins as being marked as \emph{not watched}
 	\item Then it traverses all filters and might change (multiple times, no stopping if one filter matches\footnote{
-		This enables you to use \texttt{--watch-only-path=/} to change the default easily
+		This enables you to use \texttt{--watch-inc-path=/} to change the default easily
 	}) its state.
 \end{enumerate}
 

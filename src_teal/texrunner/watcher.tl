@@ -35,7 +35,7 @@ else
 end
 
 -- Helper function to determine whether a file should be watched based on user-specified filters
-local function should_watch_file(fileinfo:common_t.Filemap_ele, filters: {options.WatchIncExc}): boolean
+local function should_watch_file(fileinfo:common_t.Filemap_ele, filters: {options.WatchFilter}): boolean
 	if not filters then
 		-- If no filters are provided, watch all files by default
 		return true
@@ -43,22 +43,22 @@ local function should_watch_file(fileinfo:common_t.Filemap_ele, filters: {option
 	local watch = false
 	-- Loop through all filters and apply the inclusion/exclusion rules
 	for _,v in ipairs(filters) do
-		if v.type == "only_path" then
+		if v.type == "inc_path" then
 			-- Watch only files with a matching path prefix
 			if string.sub(fileinfo.abspath, 1, #v.param) == v.param then
 				watch = true
 			end
-		elseif v.type == "only_ext" then
+		elseif v.type == "inc_ext" then
 			-- Watch only files with a matching extension
 			if pathutil.ext(fileinfo.abspath) == v.param then
 				watch = true
 			end
-		elseif v.type == "not_path" then
+		elseif v.type == "exc_path" then
 			-- Exclude files with a matching path prefix
 			if string.sub(fileinfo.abspath, 1, #v.param) == v.param then
 				watch = false
 			end
-		elseif v.type == "not_ext" then
+		elseif v.type == "exc_ext" then
 			-- Exclude files with a matching extension
 			if pathutil.ext(fileinfo.abspath) == v.param then
 				watch = false
@@ -74,7 +74,7 @@ local function gather_input_files_to_watch(max_watches: integer, options: option
 	-- Iterate over the file list to determine files eligible for watching
 	for _,fileinfo in ipairs(filelist) do
 		if fileinfo.kind == "input" then
-			if should_watch_file(fileinfo, options.watch_inc_exc) then
+			if should_watch_file(fileinfo, options.watch_filter) then
 				table.insert(input_files_to_watch, fileinfo.abspath)
 			end
 		end
