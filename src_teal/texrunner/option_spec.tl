@@ -29,17 +29,18 @@ global CLUTTEALTEX_VERSION:string
 local record Module
 	spec:{string:Option}
 	usage:function({string})
-	init_hooks: function(option_t.Options, {string:Option})
+	init_hooks: function(option_t.Options)
 	_internal: Internal
 	record Internal
 		split: function(opt:string): {string}
 		parse_glossaries_option_from_table: function(opt:{string:string|nil}): option_t.Glos, string
 		parse_glossaries_option_from_string: function(opt:string): option_t.Glos, string
+		usage_ele: function(optname:string, opt:Option, alignment:alignRec):outRec
 	end
 end
 local _M:Module = {}
 
-local function init_hooks(o:option_t.Options, spec:{string:Option})
+function _M.init_hooks(o:option_t.Options)
 	o.hooks = o.hooks or {}
 
 	o.hooks.tex_injection            = {}
@@ -50,7 +51,7 @@ local function init_hooks(o:option_t.Options, spec:{string:Option})
 	o.hooks.suggestion_file_based    = {}
 	o.hooks.suggestion_execlog_based = {}
 
-	for _,v in pairs(spec) do
+	for _,v in pairs(_M.spec) do
 		if v.suggestion_handlers and v.suggestion_handlers.file_based then
 			v.suggestion_handlers.file_based(o)
 		end
@@ -152,115 +153,7 @@ local function parse_glossaries_option_from_string(opt:string): option_t.Glos, s
 	return parse_glossaries_option_from_table{type=s[1], out=s[2], inp=s[3], log=s[4], path=s[5], cmd_args=s[6]}
 end
 
-local function usage(arg:{string})
-	io.write(string.format([[
-ClutteakTeX: Process TeX files without cluttering your working directory
-
-Usage:
-  %s [options] [--] FILE.tex
-
-Options:
-  -e, --engine=ENGINE          Specify which TeX engine to use.
-                                 ENGINE is one of the following:
-                                     pdflatex, pdftex,
-                                     lualatex, luatex, luajittex,
-                                     xelatex, xetex, latex, etex, tex,
-                                     platex, eptex, ptex,
-                                     uplatex, euptex, uptex,
-      --engine-executable=COMMAND+OPTIONs
-                               The actual TeX command to use.
-                                 [default: ENGINE]
-  -q, --quiet[=LEVEL]          Reduce output from TeX command.
-                                 Level 0: show all
-                                 Level 1: avoid over-/underfull boxes (to some extend)
-                                 Level 2: only show output generated inside document environment
-                                 [default: 1]
-  -o, --output=FILE            The name of output file.
-                                 [default: JOBNAME.pdf or JOBNAME.dvi]
-      --fresh                  Clean intermediate files before running TeX.
-                                 Cannot be used with --output-directory.
-      --max-iterations=N       Maximum number of running TeX to resolve
-                                 cross-references.  [default: 3]
-      --skip-first             Skip first run if possible [default: false]
-      --start-with-draft       Start with draft mode.
-      --[no-]change-directory  Change directory before running TeX.
-      --watch[=ENGINE]         Watch input files for change.  Requires fswatch
-                                 or inotifywait to be installed. ENGINE is one of
-                                 `fswatch', `inotifywait' or `auto' [default: `auto']
-      --watch-only-path=PATH   Only watch input files that reside beneath the specified path
-                                 precedence follows the order of specified arguments
-                                 using this option automatically makes NOT watching files the default
-      --watch-not-path=PATH    Don't watch input files that reside beneath the specified path
-                                 precedence follows the order of specified arguments
-                                 using this option automatically makes NOT watching files the default
-                                 (consider using --watch-only-path=/ first if you don't want this)
-      --watch-only-ext=EXT     Only watch input files with the specified extension
-                                 precedence follows the order of specified arguments
-                                 using this option automatically makes NOT watching files the default
-      --watch-not-ext=EXT      Don't watch input files with the specified extension
-                                 precedence follows the order of specified arguments
-                                 using this option automatically makes NOT watching files the default
-                                 (consider using --watch-only-path=/ first if you don't want this)
-      --tex-option=OPTION      Pass OPTION to TeX as a single option.
-      --tex-options=OPTIONs    Pass OPTIONs to TeX as multiple options.
-      --dvipdfmx-option[s]=OPTION[s]  Same for dvipdfmx.
-      --makeindex=COMMAND+OPTIONs   Command to generate index, such as
-                                     `makeindex' or `mendex'.
-      --bibtex=COMMAND+OPTIONs      Command for BibTeX, such as
-                                     `bibtex' or `pbibtex'.
-      --biber[=COMMAND+OPTIONs]     Command for Biber.
-      --sagetex[=COMMAND+OPTIONS]   Command for sagetex
-      --memoize[=python/perl/path]  Command which shall be used for memoize
-      --memoize-opt=PACKAGE_OPT     Additional package option for memoize
-      --glossaries=[CONFIGURATION]  Configuration can contain
-                                    "type:outputFile:inputFile:logFile:pathToCommand:commandArgs" (":" can be escaped with "\").
-                                    Only the outputFile and either type or pathToCommand
-                                    are required, the other options will be infered
-                                    automatically (does not work always for inputFile and
-                                    logFile). If commandArgs is being specified,
-                                    these will be the only arguments passed to the
-                                    command. If type is unspecified commandArgs must be
-                                    specified. As types we support makeindex and xindy.
-                                    Specify this option multiple times to register multiple
-                                    glossaries. The default value works for a
-                                    configuration with the usual glossary (glo,gls,glg)
-                                    A typical example is
-                                    "makeindex:acr:acn:alg" or
-                                    "makeindex:glo:gls:glg" (default)
-  -h, --help                   Print this message and exit.
-  -v, --version                Print version information and exit.
-  -V, --verbose                Be more verbose.
-      --color[=WHEN]           Make CluttealTeX's message colorful. WHEN is one of
-                                 `always', `auto', or `never'.
-                                 [default: `auto' if --color is omitted,
-                                           `always' if WHEN is omitted]
-      --includeonly=NAMEs      Insert '\includeonly{NAMEs}'.
-      --make-depends=FILE      Write dependencies as a Makefile rule.
-      --print-output-directory  Print the output directory and exit.
-      --package-support=PKG1[,PKG2,...]
-                               Enable special support for some shell-escaping
-                                 packages.
-                               Currently supported: minted, epstopdf
-      --check-driver=DRIVER    Check that the correct driver file is loaded.
-                               DRIVER is one of `dvipdfmx', `dvips', `dvisvgm'.
-
-      --[no-]shell-escape
-      --shell-restricted
-      --synctex=NUMBER
-      --fmt=FMTNAME
-      --[no-]file-line-error   [default: yes]
-      --[no-]halt-on-error     [default: yes]
-      --interaction=STRING     [default: nonstopmode]
-      --jobname=STRING
-      --output-directory=DIR   [default: somewhere in the temporary directory]
-      --output-format=FORMAT   FORMAT is `pdf' or `dvi'.  [default: pdf]
-
-%s
-]], arg[0] or 'texlua cluttealtex.lua', COPYRIGHT_NOTICE))
-end
-
-
-local spec = {
+_M.spec = {
 	-- Options for CluttealTeX
 	engine = {
 		short = "e",
@@ -274,6 +167,11 @@ local spec = {
 				error("invalid param type")
 			end
 		end,
+		help = {
+			ordering = 1,
+			param = "ENGINE",
+			text = "TeX engine\n  (Supported: pdflatex, pdftex, lualatex, luatex, luajittex, xelatex, xetex,\n   latex, etex, tex, platex, eptex, ptex, uplatex, euptex, uptex)",
+		},
 	},
 	engine_executable = {
 		long = "engine-executable",
@@ -286,6 +184,31 @@ local spec = {
 				error("invalid param type")
 			end
 		end,
+		help = {
+			ordering = 2,
+			param = "COMMAND+OPTIONs",
+			text = "TeX command [initial: ENGINE]",
+		},
+	},
+	quiet = {
+		long = "quiet",
+		param = true,
+		default = "1",
+		handle_cli = function(options:option_t.Options, param:string|boolean)
+			assert(options.quiet == nil, "multiple --quiet options")
+			if param is string then
+				options.quiet = assert(tonumber(param) as integer, "parameter must be an integer")
+				if not options.hooks then _M.init_hooks(options) end
+				options.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.quiet)] = {typeset_hooks.quiet, "quiet"}
+			else
+				error("invalid param type")
+			end
+		end,
+		help = {
+			ordering = 3,
+			param = "LEVEL",
+			text = "Reduce output from TeX command (Supported: 0, 1, 2) [initial: 0]",
+		},
 	},
 	output = {
 		short = "o",
@@ -299,6 +222,11 @@ local spec = {
 				error("invalid param type")
 			end
 		end,
+		help = {
+			ordering = 4,
+			param = "FILE",
+			text = "Output filename [initial: JOBNAME.pdf/dvi]",
+		},
 	},
 	fresh = {
 		long = "fresh",
@@ -310,6 +238,11 @@ local spec = {
 				error("invalid param type")
 			end
 		end,
+		help = {
+			ordering = 5,
+			param = "COMMAND+OPTIONs",
+			text = "Clean output directory before running TeX. Rules out --output-directory",
+		},
 	},
 	max_iterations = {
 		long = "max-iterations",
@@ -319,6 +252,11 @@ local spec = {
 			options.max_iterations = assert(tonumber(param) as integer, "invalid value for --max-iterations option")
 			assert(options.max_iterations >= 1, "invalid value for --max-iterations option")
 		end,
+		help = {
+			ordering = 6,
+			param = "N",
+			text = "Max number of TeX runs [initial: 3]",
+		},
 	},
 	skip_first = {
 		long = "skip-first",
@@ -326,6 +264,10 @@ local spec = {
 			assert(options.skip_first == nil, "multiple --skip-first options")
 			options.skip_first = true
 		end,
+		help = {
+			ordering = 7,
+			text = "Skip running TeX when already up-to-date [initial: false]",
+		},
 	},
 	start_with_draft = {
 		long = "start-with-draft",
@@ -333,6 +275,10 @@ local spec = {
 			assert(options.start_with_draft == nil, "multiple --start-with-draft options")
 			options.start_with_draft = true
 		end,
+		help = {
+			ordering = 8,
+			text = "Start with draft mode [initial: false]",
+		},
 	},
 	change_directory = {
 		long = "change-directory",
@@ -345,6 +291,10 @@ local spec = {
 					error("invalid param type")
 				end
 			end,
+		help = {
+			ordering = 9,
+			text = "Change directory before running TeX [initial: false]",
+		},
 	},
 	watch = {
 		long = "watch",
@@ -358,6 +308,11 @@ local spec = {
 				error("invalid param type")
 			end
 		end,
+		help = {
+			ordering = 10,
+			param = "ENGINE",
+			text = "Watch input files for change (Supported: auto, fswatch, inotifywait)\n[initial: auto]",
+		},
 	},
 	watch_only_path = {
 		long = "watch-only-path",
@@ -371,6 +326,11 @@ local spec = {
 				error("invalid param type")
 			end
 		end,
+		help = {
+			ordering = 11,
+			param = "PATH",
+			text = "Add filter to which files are being watched",
+		},
 	},
 	watch_not_path = {
 		long = "watch-not-path",
@@ -384,6 +344,11 @@ local spec = {
 				error("invalid param type")
 			end
 		end,
+		help = {
+			ordering = 12,
+			param = "PATH",
+			text = "Add filter to which files are not being watched",
+		},
 	},
 	watch_only_ext = {
 		long = "watch-only-ext",
@@ -397,6 +362,11 @@ local spec = {
 				error("invalid param type")
 			end
 		end,
+		help = {
+			ordering = 13,
+			param = "EXT",
+			text = "Add filter to which extensions are being watched",
+		},
 	},
 	watch_not_ext = {
 		long = "watch-not-ext",
@@ -410,6 +380,11 @@ local spec = {
 				error("invalid param type")
 			end
 		end,
+		help = {
+			ordering = 14,
+			param = "PATH",
+			text = "Add filter to which extensions are not being watched",
+		},
 	},
 	watch_inc_exc = {
 		no_cli = true,
@@ -421,146 +396,6 @@ local spec = {
 						table.insert(options.watch_inc_exc, i)
 					end
 				end
-			end
-		end
-	},
-	help = {
-		short = "h",
-		long = "help",
-		allow_single_hyphen = true,
-		handle_cli = function(options:option_t.Options, param:string|boolean)
-			usage(arg)
-			os.exit(0)
-		end,
-	},
-	version = {
-		short = "v",
-		long = "version",
-		handle_cli = function(options:option_t.Options, param:string|boolean)
-			io.stderr:write("cluttealtex ",CLUTTEALTEX_VERSION,"\n")
-			os.exit(0)
-		end,
-	},
-	verbose = {
-		short = "V",
-		long = "verbose",
-		handle_cli = function(options:option_t.Options, param:string|boolean)
-			CLUTTEALTEX_VERBOSITY = CLUTTEALTEX_VERBOSITY + 1
-		end,
-	},
-	color = {
-		long = "color",
-		param = true,
-		default = "always",
-		handle_cli = function(options:option_t.Options, param:string|boolean)
-			assert(options.color == nil, "multiple --color options")
-			if param is string then
-				options.color = param
-			else
-				error("invalid param type")
-			end
-			message.set_colors(options.color)
-		end,
-	},
-	includeonly = {
-		long = "includeonly",
-		param = true,
-		handle_cli = function(options:option_t.Options, param:string|boolean)
-			assert(options.includeonly == nil, "multiple --includeonly options")
-			if param is string then
-				options.includeonly = param
-				if not options.hooks then init_hooks(options, _M.spec) end
-				options.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.includeonly)] = {typeset_hooks.includeonly, "includeonly"}
-			else
-				error("invalid param type")
-			end
-		end,
-	},
-	make_depends = {
-		long = "make-depends",
-		param = true,
-		handle_cli = function(options:option_t.Options, param:string|boolean)
-			assert(options.make_depends == nil, "multiple --make-depends options")
-			if param is string then
-				options.make_depends = param
-			else
-				error("invalid param type")
-			end
-		end,
-	},
-	print_output_directory = {
-		long = "print-output-directory",
-		handle_cli = function(options:option_t.Options, param:string|boolean)
-			assert(options.print_output_directory == nil, "multiple --print-output-directory options")
-			if param is string then
-				options.print_output_directory = true
-			else
-				error("invalid param type")
-			end
-		end,
-	},
-	package_support = {
-		long = "package-support",
-		param = true,
-		accumulate = true,
-		suggestion_handlers = {
-			file_based = function(o:option_t.Options)
-				o.hooks.suggestion_file_based[assert(option_t.hook_prios.suggestion_file_based.package_support)+0.1] = {
-					function(fileinfo:common_t.Filemap_ele): boolean
-							return string.find(fileinfo.path, "minted/minted%.sty$") ~= nil
-					end,
-					"You may want to use --package-support=minted option."
-				}
-				o.hooks.suggestion_file_based[assert(option_t.hook_prios.suggestion_file_based.package_support)+0.2] = {
-					function(fileinfo:common_t.Filemap_ele): boolean
-							return string.find(fileinfo.path, "epstopdf%.sty$") ~= nil
-					end,
-					"You may want to use --package-support=epstopdf option."
-				}
-			end
-		},
-		handle_cli = function(options:option_t.Options, param:string|boolean)
-			local known_packages:{string:function(option_t.Options)} = {
-				-- minted uses offset 0.1 in hooks
-				minted = function(o: option_t.Options)
-					if not o.hooks then init_hooks(o, _M.spec) end
-					o.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.package_support)+0.1] = {typeset_hooks.ps_minted, "package_support minted"}
-					o.hooks.suggestion_file_based[assert(option_t.hook_prios.suggestion_file_based.package_support)+0.1] = nil
-				end,
-				-- epstopdf uses offset 0.2 in hooks
-				epstopdf = function(o: option_t.Options)
-					if not o.hooks then init_hooks(o, _M.spec) end
-					o.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.package_support)+0.2] = {typeset_hooks.ps_epstopdf, "package_support epstopdf"}
-					o.hooks.suggestion_file_based[assert(option_t.hook_prios.suggestion_file_based.package_support)+0.2] = nil
-				end,
-			}
-			if param is string then
-				for pkg in string.gmatch(param, "[^,%s]+") do
-					options.package_support[pkg] = true
-					if known_packages[pkg] then
-						-- register the corresponding hook
-						known_packages[pkg](options)
-					elseif CLUTTEALTEX_VERBOSITY >= 1 then
-						message.warn("CluttealTeX provides no special support for '"..pkg.."'.")
-					end
-				end
-			else
-				error("invalid param type")
-			end
-		end,
-	},
-	check_driver = {
-		long = "check-driver",
-		param = true,
-		handle_cli = function(options:option_t.Options, param:string|boolean)
-			assert(options.check_driver == nil, "multiple --check-driver options")
-			assert(param == "dvipdfmx" or param == "dvips" or param == "dvisvgm", "wrong value for --check-driver option")
-			if param is string then
-				options.check_driver = param
-				if not options.hooks then init_hooks(options, _M.spec) end
-				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.check_driver)] = {typeset_hooks.check_driver, "check_driver"}
-			else
-				assert(param is string, "invalid param type")
 			end
 		end,
 	},
@@ -583,93 +418,18 @@ local spec = {
 			assert(options.makeindex == nil, "multiple --makeindex options")
 			if param is string then
 				options.makeindex = param
-				if not options.hooks then init_hooks(options, _M.spec) end
+				if not options.hooks then _M.init_hooks(options) end
 				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.makeindex)] = {typeset_hooks.makeindex, "makeindex"}
 				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.makeindex)] = nil
 			else
 				error("invalid param type")
 			end
 		end,
-	},
-	bibtex = {
-		long = "bibtex",
-		param = true,
-		default = "bibtex",
-		suggestion_handlers = {
-			execlog_based = function(o:option_t.Options)
-				o.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.bibtex)] = {
-					function(execlog:string, o:option_t.Options): boolean
-						return string.find(execlog, "No file [^\n]+%.bbl%.") ~= nil and not o.biber
-					end,
-					"You may want to use --bibtex or --biber option."
-				}
-			end
+		help = {
+			ordering = 17,
+			param = "COMMAND+OPTIONs",
+			text = "Run makeindex (provide command for generation)",
 		},
-		handle_cli = function(options:option_t.Options, param:string|boolean)
-			assert(options.bibtex == nil, "multiple --bibtex options")
-			assert(options.biber == nil, "multiple --bibtex/--biber options")
-			if param is string then
-				options.bibtex = param
-				if not options.hooks then init_hooks(options, _M.spec) end
-				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.bibtex)] = {typeset_hooks.bibtex, "bibtex"}
-				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.bibtex)] = nil
-			else
-				error("invalid param type")
-			end
-		end,
-	},
-	biber = {
-		long = "biber",
-		param = true,
-		default = "biber",
-		suggestion_handlers = {
-			execlog_based = function(o:option_t.Options)
-				o.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.biber)] = {
-					function(execlog:string, o:option_t.Options): boolean
-						return string.find(execlog, "No file [^\n]+%.bbl%.") ~= nil and not o.bibtex
-					end,
-					"You may want to use --bibtex or --biber option."
-				}
-			end
-		},
-		handle_cli = function(options:option_t.Options, param:string|boolean)
-			assert(options.biber == nil, "multiple --biber options")
-			assert(options.bibtex == nil, "multiple --bibtex/--biber options")
-			if param is string then
-				options.biber = param
-				if not options.hooks then init_hooks(options, _M.spec) end
-				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.biber)] = {typeset_hooks.biber, "biber"}
-				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.biber)] = nil
-			else
-				error("invalid param type")
-			end
-		end,
-	},
-	sagetex = {
-		long = "sagetex",
-		param = true,
-		default = "sage",
-		suggestion_handlers = {
-			execlog_based = function(o:option_t.Options)
-				o.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.sagetex)] = {
-					function(execlog:string, _:option_t.Options): boolean
-						return string.find(execlog, "Run Sage on") ~= nil
-					end,
-					"You may want to use --sagetex option."
-				}
-			end
-		},
-		handle_cli = function(options:option_t.Options, param:string|boolean)
-			assert(options.sagetex == nil, "multiple --sagetex options")
-			if param is string then
-				options.sagetex = param
-				if not options.hooks then init_hooks(options, _M.spec) end
-				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.sagetex)] = {typeset_hooks.sagetex, "sagetex"}
-				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.sagetex)] = nil
-			else
-				error("invalid param type")
-			end
-		end,
 	},
 	glossaries = {
 		long = "glossaries",
@@ -684,7 +444,7 @@ local spec = {
 			if param is string then
 				options.glossaries = options.glossaries or {}
 				table.insert(options.glossaries, assert(parse_glossaries_option_from_string(param)))
-				if not options.hooks then init_hooks(options, _M.spec) end
+				if not options.hooks then _M.init_hooks(options) end
 				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.glossaries)] = {typeset_hooks.glossaries, "glossaries"}
 			else
 				error("invalid param type")
@@ -726,9 +486,110 @@ local spec = {
 
 			options.glossaries = options.glossaries or {}
 			table.insert(options.glossaries, assert(parse_glossaries_option_from_table(param)))
-			if not options.hooks then init_hooks(options, _M.spec) end
+			if not options.hooks then _M.init_hooks(options) end
 			options.hooks.post_compile[assert(option_t.hook_prios.post_compile.glossaries)] = {typeset_hooks.glossaries, "glossaries"}
 		end,
+		help = {
+			ordering = 18,
+			param = "type:outputFile:inputFile:logFile:pathToCommand:commandArgs",
+			text = "Configure a specific index (needed e.g. for abbreviations)",
+			longLine = true,
+		},
+	},
+	bibtex = {
+		long = "bibtex",
+		param = true,
+		default = "bibtex",
+		suggestion_handlers = {
+			execlog_based = function(o:option_t.Options)
+				o.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.bibtex)] = {
+					function(execlog:string, o:option_t.Options): boolean
+						return string.find(execlog, "No file [^\n]+%.bbl%.") ~= nil and not o.biber
+					end,
+					"You may want to use --bibtex or --biber option."
+				}
+			end
+		},
+		handle_cli = function(options:option_t.Options, param:string|boolean)
+			assert(options.bibtex == nil, "multiple --bibtex options")
+			assert(options.biber == nil, "multiple --bibtex/--biber options")
+			if param is string then
+				options.bibtex = param
+				if not options.hooks then _M.init_hooks(options) end
+				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.bibtex)] = {typeset_hooks.bibtex, "bibtex"}
+				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.bibtex)] = nil
+			else
+				error("invalid param type")
+			end
+		end,
+		help = {
+			ordering = 19,
+			param = "COMMAND+OPTIONs",
+			text = "Run bibtex (provide command for generation)",
+		},
+	},
+	biber = {
+		long = "biber",
+		param = true,
+		default = "biber",
+		suggestion_handlers = {
+			execlog_based = function(o:option_t.Options)
+				o.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.biber)] = {
+					function(execlog:string, o:option_t.Options): boolean
+						return string.find(execlog, "No file [^\n]+%.bbl%.") ~= nil and not o.bibtex
+					end,
+					"You may want to use --bibtex or --biber option."
+				}
+			end
+		},
+		handle_cli = function(options:option_t.Options, param:string|boolean)
+			assert(options.biber == nil, "multiple --biber options")
+			assert(options.bibtex == nil, "multiple --bibtex/--biber options")
+			if param is string then
+				options.biber = param
+				if not options.hooks then _M.init_hooks(options) end
+				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.biber)] = {typeset_hooks.biber, "biber"}
+				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.biber)] = nil
+			else
+				error("invalid param type")
+			end
+		end,
+		help = {
+			ordering = 20,
+			param = "COMMAND+OPTIONs",
+			text = "Run biber (provide command for generation)",
+		},
+	},
+	sagetex = {
+		long = "sagetex",
+		param = true,
+		default = "sage",
+		suggestion_handlers = {
+			execlog_based = function(o:option_t.Options)
+				o.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.sagetex)] = {
+					function(execlog:string, _:option_t.Options): boolean
+						return string.find(execlog, "Run Sage on") ~= nil
+					end,
+					"You may want to use --sagetex option."
+				}
+			end
+		},
+		handle_cli = function(options:option_t.Options, param:string|boolean)
+			assert(options.sagetex == nil, "multiple --sagetex options")
+			if param is string then
+				options.sagetex = param
+				if not options.hooks then _M.init_hooks(options) end
+				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.sagetex)] = {typeset_hooks.sagetex, "sagetex"}
+				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.sagetex)] = nil
+			else
+				error("invalid param type")
+			end
+		end,
+		help = {
+			ordering = 21,
+			param = "COMMAND+OPTIONs",
+			text = "Run sage (provide command for generation)",
+		},
 	},
 	memoize = {
 		long = "memoize",
@@ -754,7 +615,7 @@ local spec = {
 				else
 					options.memoize = param
 				end
-				if not options.hooks then init_hooks(options, _M.spec) end
+				if not options.hooks then _M.init_hooks(options) end
 				options.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.memoize+0.1)] = {typeset_hooks.memoize, "memoize"}
 				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.memoize)] = {typeset_hooks.memoize_run, "memoize"}
 				options.hooks.suggestion_execlog_based[assert(option_t.hook_prios.suggestion_execlog_based.memoize)] = nil
@@ -762,6 +623,11 @@ local spec = {
 				error("invalid param type")
 			end
 		end,
+		help = {
+			ordering = 22,
+			param = "TYPE",
+			text = "Run memoize (supports: python, pearl or specifying a custom path)",
+		},
 	},
 	memoize_opt = {
 		long = "memoize-opt",
@@ -770,29 +636,229 @@ local spec = {
 			if param is string then
 				options.memoize_opts = options.memoize_opts or {}
 				table.insert(options.memoize_opts, param)
-				if not options.hooks then init_hooks(options, _M.spec) end
+				if not options.hooks then _M.init_hooks(options) end
 				options.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.memoize-0.2)] = {typeset_hooks.memoize_opts, "memoize_opts"}
 			else
 				error("invalid param type")
 			end
 		end,
+		help = {
+			ordering = 23,
+			param = "PACKAGE_OPT",
+			text = "Pass more package options to the memoize package",
+		},
 	},
-	quiet = {
-		long = "quiet",
-		param = true,
-		default = "1",
+	help = {
+		short = "h",
+		long = "help",
+		allow_single_hyphen = true,
 		handle_cli = function(options:option_t.Options, param:string|boolean)
-			assert(options.quiet == nil, "multiple --quiet options")
+			_M.usage(arg)
+			os.exit(0)
+		end,
+		help = {
+			ordering = 25,
+			text = "Print this help output and exit",
+		},
+	},
+	version = {
+		short = "v",
+		long = "version",
+		handle_cli = function(options:option_t.Options, param:string|boolean)
+			io.stderr:write("cluttealtex ",CLUTTEALTEX_VERSION,"\n")
+			os.exit(0)
+		end,
+		help = {
+			ordering = 26,
+			text = "Print version information and exit",
+		},
+	},
+	verbose = {
+		short = "V",
+		long = "verbose",
+		handle_cli = function(options:option_t.Options, param:string|boolean)
+			CLUTTEALTEX_VERBOSITY = CLUTTEALTEX_VERBOSITY + 1
+		end,
+		help = {
+			ordering = 27,
+			text = "Be more verbose (can be passed multiple times)",
+		},
+	},
+	color = {
+		long = "color",
+		param = true,
+		default = "always",
+		handle_cli = function(options:option_t.Options, param:string|boolean)
+			assert(options.color == nil, "multiple --color options")
 			if param is string then
-				options.quiet = assert(tonumber(param) as integer, "parameter must be an integer")
-				if not options.hooks then init_hooks(options, _M.spec) end
-				options.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.quiet)] = {typeset_hooks.quiet, "quiet"}
+				options.color = param
+			else
+				error("invalid param type")
+			end
+			message.set_colors(options.color)
+		end,
+		help = {
+			ordering = 28,
+			param = "WHEN",
+			text = "When should CluttealTeX print in color? (Supported: always, auto, never)\n  [initial: auto]",
+		},
+	},
+	includeonly = {
+		long = "includeonly",
+		param = true,
+		handle_cli = function(options:option_t.Options, param:string|boolean)
+			assert(options.includeonly == nil, "multiple --includeonly options")
+			if param is string then
+				options.includeonly = param
+				if not options.hooks then _M.init_hooks(options) end
+				options.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.includeonly)] = {typeset_hooks.includeonly, "includeonly"}
 			else
 				error("invalid param type")
 			end
 		end,
+		help = {
+			ordering = 30,
+			param = "NAMEs",
+			text = "Inject '\\includeonly{NAMEs}'",
+		},
+	},
+	make_depends = {
+		long = "make-depends",
+		param = true,
+		handle_cli = function(options:option_t.Options, param:string|boolean)
+			assert(options.make_depends == nil, "multiple --make-depends options")
+			if param is string then
+				options.make_depends = param
+			else
+				error("invalid param type")
+			end
+		end,
+		help = {
+			ordering = 31,
+			param = "FILE",
+			text = "Write dependencies as a Makefile rule to FILE",
+		},
+	},
+	print_output_directory = {
+		long = "print-output-directory",
+		handle_cli = function(options:option_t.Options, param:string|boolean)
+			assert(options.print_output_directory == nil, "multiple --print-output-directory options")
+			if param is string then
+				options.print_output_directory = true
+			else
+				error("invalid param type")
+			end
+		end,
+		help = {
+			ordering = 32,
+			text = "Print the output directory and exit",
+		},
+	},
+	package_support = {
+		long = "package-support",
+		param = true,
+		accumulate = true,
+		suggestion_handlers = {
+			file_based = function(o:option_t.Options)
+				o.hooks.suggestion_file_based[assert(option_t.hook_prios.suggestion_file_based.package_support)+0.1] = {
+					function(fileinfo:common_t.Filemap_ele): boolean
+							return string.find(fileinfo.path, "minted/minted%.sty$") ~= nil
+					end,
+					"You may want to use --package-support=minted option."
+				}
+				o.hooks.suggestion_file_based[assert(option_t.hook_prios.suggestion_file_based.package_support)+0.2] = {
+					function(fileinfo:common_t.Filemap_ele): boolean
+							return string.find(fileinfo.path, "epstopdf%.sty$") ~= nil
+					end,
+					"You may want to use --package-support=epstopdf option."
+				}
+			end
+		},
+		handle_cli = function(options:option_t.Options, param:string|boolean)
+			local known_packages:{string:function(option_t.Options)} = {
+				-- minted uses offset 0.1 in hooks
+				minted = function(o: option_t.Options)
+					if not o.hooks then _M.init_hooks(o) end
+					o.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.package_support)+0.1] = {typeset_hooks.ps_minted, "package_support minted"}
+					o.hooks.suggestion_file_based[assert(option_t.hook_prios.suggestion_file_based.package_support)+0.1] = nil
+				end,
+				-- epstopdf uses offset 0.2 in hooks
+				epstopdf = function(o: option_t.Options)
+					if not o.hooks then _M.init_hooks(o) end
+					o.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.package_support)+0.2] = {typeset_hooks.ps_epstopdf, "package_support epstopdf"}
+					o.hooks.suggestion_file_based[assert(option_t.hook_prios.suggestion_file_based.package_support)+0.2] = nil
+				end,
+			}
+			if param is string then
+				for pkg in string.gmatch(param, "[^,%s]+") do
+					options.package_support[pkg] = true
+					if known_packages[pkg] then
+						-- register the corresponding hook
+						known_packages[pkg](options)
+					elseif CLUTTEALTEX_VERBOSITY >= 1 then
+						message.warn("CluttealTeX provides no special support for '"..pkg.."'.")
+					end
+				end
+			else
+				error("invalid param type")
+			end
+		end,
+		help = {
+			ordering = 33,
+			param = "PKG1,...",
+			text = "Special support for some packages (Supported: minted, epstopdf)",
+		},
+	},
+	check_driver = {
+		long = "check-driver",
+		param = true,
+		handle_cli = function(options:option_t.Options, param:string|boolean)
+			assert(options.check_driver == nil, "multiple --check-driver options")
+			assert(param == "dvipdfmx" or param == "dvips" or param == "dvisvgm", "wrong value for --check-driver option")
+			if param is string then
+				options.check_driver = param
+				if not options.hooks then _M.init_hooks(options) end
+				options.hooks.post_compile[assert(option_t.hook_prios.post_compile.check_driver)] = {typeset_hooks.check_driver, "check_driver"}
+			else
+				assert(param is string, "invalid param type")
+			end
+		end,
+		help = {
+			ordering = 34,
+			param = "DRIVER",
+			text = "Check the correct driver file is loaded (Supported: dvipdfmx, dvips, dvisvgm)",
+		},
 	},
 	-- Options for TeX
+	shell_escape = {
+		long = "shell-escape",
+		boolean = true,
+		allow_single_hyphen = true,
+		handle_cli = function(options:option_t.Options, param:string|boolean)
+			assert(options.shell_escape == nil and options.shell_restricted == nil, "multiple --(no-)shell-escape or --shell-restricted options")
+			if param is boolean then
+				options.shell_escape = param
+			else
+				assert(param is string, "invalid param type")
+			end
+		end,
+		help = {
+			ordering = 35,
+			text = "",
+		},
+	},
+	shell_restricted = {
+		long = "shell-restricted",
+		allow_single_hyphen = true,
+		handle_cli = function(options:option_t.Options, param:string|boolean)
+			assert(options.shell_escape == nil and options.shell_restricted == nil, "multiple --(no-)shell-escape or --shell-restricted options")
+			options.shell_restricted = true
+		end,
+		help = {
+			ordering = 36,
+			text = "",
+		},
+	},
 	synctex = {
 		long = "synctex",
 		param = true,
@@ -805,6 +871,29 @@ local spec = {
 				error("invalid param type")
 			end
 		end,
+		help = {
+			ordering = 37,
+			param = "NUMBER",
+			text = "", -- TODO
+		},
+	},
+	fmt = {
+		long = "fmt",
+		param = true,
+		allow_single_hyphen = true,
+		handle_cli = function(options:option_t.Options, param:string|boolean)
+			assert(options.fmt == nil, "multiple --fmt options")
+			if param is string then
+				options.fmt = param
+			else
+				error("invalid param type")
+			end
+		end,
+		help = {
+			ordering = 38,
+			param = "FMTNAME",
+			text = "",
+		},
 	},
 	file_line_error = {
 		long = "file-line-error",
@@ -817,6 +906,27 @@ local spec = {
 				assert(param is string, "invalid param type")
 			end
 		end,
+		help = {
+			ordering = 39,
+			text = "[initial: true]",
+		},
+	},
+	halt_on_error = {
+		long = "halt-on-error",
+		boolean = true,
+		allow_single_hyphen = true,
+		handle_cli = function(options:option_t.Options, param:string|boolean)
+			if param is boolean then
+				options.halt_on_error = param
+			else
+				assert(param is string, "invalid param type")
+			end
+		end,
+		help = {
+			ordering = 40,
+			param = "COMMAND+OPTIONs",
+			text = "[initial: true]",
+		},
 	},
 	interaction = {
 		long = "interaction",
@@ -831,39 +941,11 @@ local spec = {
 				error("invalid param type")
 			end
 		end,
-	},
-	halt_on_error = {
-		long = "halt-on-error",
-		boolean = true,
-		allow_single_hyphen = true,
-		handle_cli = function(options:option_t.Options, param:string|boolean)
-			if param is boolean then
-				options.halt_on_error = param
-			else
-				assert(param is string, "invalid param type")
-			end
-		end,
-	},
-	shell_escape = {
-		long = "shell-escape",
-		boolean = true,
-		allow_single_hyphen = true,
-		handle_cli = function(options:option_t.Options, param:string|boolean)
-			assert(options.shell_escape == nil and options.shell_restricted == nil, "multiple --(no-)shell-escape or --shell-restricted options")
-			if param is boolean then
-				options.shell_escape = param
-			else
-				assert(param is string, "invalid param type")
-			end
-		end,
-	},
-	shell_restricted = {
-		long = "shell-restricted",
-		allow_single_hyphen = true,
-		handle_cli = function(options:option_t.Options, param:string|boolean)
-			assert(options.shell_escape == nil and options.shell_restricted == nil, "multiple --(no-)shell-escape or --shell-restricted options")
-			options.shell_restricted = true
-		end,
+		help = {
+			ordering = 41,
+			param = "STRING",
+			text = "[initial: nonstopmode]",
+		},
 	},
 	jobname = {
 		long = "jobname",
@@ -877,20 +959,13 @@ local spec = {
 				error("invalid param type")
 			end
 		end,
+		help = {
+			ordering = 42,
+			param = "JOBNAME",
+			text = "",
+		},
 	},
-	fmt = {
-		long = "fmt",
-		param = true,
-		allow_single_hyphen = true,
-		handle_cli = function(options:option_t.Options, param:string|boolean)
-			assert(options.fmt == nil, "multiple --fmt options")
-			if param is string then
-				options.fmt = param
-			else
-				error("invalid param type")
-			end
-		end,
-	},
+
 	output_directory = {
 		long = "output-directory",
 		param = true,
@@ -903,6 +978,11 @@ local spec = {
 				error("invalid param type")
 			end
 		end,
+		help = {
+			ordering = 43,
+			param = "DIR",
+			text = "Where to produce the outputs [initial: somewhere a temp dir]",
+		},
 	},
 	output_format = {
 		long = "output-format",
@@ -917,6 +997,11 @@ local spec = {
 				assert(param is string, "invalid param type")
 			end
 		end,
+		help = {
+			ordering = 44,
+			param = "FORMAT",
+			text = "Supported: pdf, dvi [initial: pdf]",
+		},
 	},
 	tex_option = {
 		long = "tex-option",
@@ -929,6 +1014,11 @@ local spec = {
 				error("invalid param type")
 			end
 		end,
+		help = {
+			ordering = 45,
+			param = "OPTION",
+			text = "Pass OPTION to TeX as a single option",
+		},
 	},
 	tex_options = {
 		long = "tex-options",
@@ -941,6 +1031,11 @@ local spec = {
 				error("invalid param type")
 			end
 		end,
+		help = {
+			ordering = 46,
+			param = "OPTIONs",
+			text = "Pass OPTIONs to TeX as multiple options.",
+		},
 	},
 	dvipdfmx_option = {
 		long = "dvipdfmx-option",
@@ -953,6 +1048,11 @@ local spec = {
 				error("invalid param type")
 			end
 		end,
+		help = {
+			ordering = 47,
+			param = "OPTION",
+			text = "Same for dvipdfmx.",
+		},
 	},
 	dvipdfmx_options = {
 		long = "dvipdfmx-options",
@@ -965,12 +1065,132 @@ local spec = {
 				error("invalid param type")
 			end
 		end,
+		help = {
+			ordering = 48,
+			param = "OPTIONs",
+			text = "Same for dvipdfmx.",
+		},
 	},
 }
 
-_M.init_hooks = init_hooks
-_M.spec = spec
-_M.usage = usage
+local record outRec
+	short:    string
+	long:     string
+	text:     string
+	longLine: boolean
+	ordering: number
+end
+local record alignRec
+	short:    integer
+	long:     integer
+	ordering: number
+end
+
+local function usage_ele(optname:string, opt:Option, alignment:alignRec):outRec
+	if not opt.long and not opt.short then
+		return nil
+	end
+	opt.help = opt.help or {text="", param=optname, ordering=nil, longLine=false}
+	local long:string = ""
+	if opt.long then
+		if opt.boolean then
+			long = "--[no-]"..opt.long
+		else
+			long = "--"..opt.long
+		end
+		if opt.param and opt.default then
+			long = long.."[="..opt.help.param.."]"
+		elseif opt.param then
+			long = long.."="..opt.help.param
+		end
+	end
+
+	local short:string = "  "
+	if opt.short then
+		short = "-"..opt.short
+	end
+
+	if long ~= "" and short ~= "  " then
+		short = short..","
+	else
+		short = short.." "
+	end
+
+	if not opt.help.longLine then
+		alignment.long  = math.max(alignment.long, #long+2)
+	end
+	alignment.short = math.max(alignment.short, #short+1)
+
+	if opt.help.ordering then
+		alignment.ordering = math.max(alignment.ordering, opt.help.ordering)
+	end
+
+	return {
+		short    = short,
+		long     = long,
+		text     = opt.help.text,
+		longLine = opt.help.longLine,
+		ordering = opt.help.ordering,
+	}
+end
+
+function _M.usage(arg:{string})
+	local alignment = {
+		short    = 0,
+		long     = 0,
+		ordering = 0,
+	}
+	local output:{outRec} = {}
+	for optname, opt in pairs(_M.spec) do
+		local x = usage_ele(optname, opt, alignment)
+		local _ = x and table.insert(output, x)
+	end
+
+	do
+		local i = alignment.ordering+1
+		for j,k in ipairs(output) do
+			if not k.ordering then
+				output[j].ordering = i
+				i = i+1
+			end
+		end
+	end
+	alignment.short = 4
+
+	table.sort(output, function(a:outRec,b:outRec):boolean return a.ordering < b.ordering end)
+
+	io.write(([[CluttealTeX: Process TeX files without cluttering your working directory
+
+Usage:
+  %s [options] [--] FILE.tex
+
+Options:
+]]):format(arg[0] or "texlua cluttealtex.lua"))
+	local last_order = 0.0
+	for _,opt in ipairs(output) do
+		local short = opt.short
+		short = short..(" "):rep(alignment.short - #short)
+
+		local long = opt.long
+		local text = opt.text
+		if opt.longLine then
+			text = "\n"..text
+		else
+			long = long..(" "):rep(alignment.long - #long)
+		end
+		text = text:gsub("\n", "\n"..(" "):rep(2+alignment.short+alignment.long))
+
+		if math.abs(last_order - opt.ordering) > 1 then
+			io.write("\n")
+		end
+		io.write(("  %s%s%s\n"):format(short, long, text))
+
+		last_order = opt.ordering
+	end
+	io.write("\n\n", ([[For a more detailed reference see 'texdoc cluttealtex' or
+    'https://github.com/atticus-sullivan/cluttealtex/releases/download/%s/cluttealtex.pdf'
+]]):format(CLUTTEALTEX_VERSION))
+end
 
 
 if CLUTTEALTEX_TEST_ENV then
@@ -978,6 +1198,7 @@ if CLUTTEALTEX_TEST_ENV then
 		split                               = split,
 		parse_glossaries_option_from_table  = parse_glossaries_option_from_table,
 		parse_glossaries_option_from_string = parse_glossaries_option_from_string,
+		usage_ele                           = usage_ele,
 	}
 end
 

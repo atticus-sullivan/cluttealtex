@@ -47,6 +47,13 @@ local record Module
 		no_cli:              boolean
 		no_cfg:              boolean
 		suggestion_handlers: SuggestionHandlers
+		help:                Help
+	end
+	record Help
+		param:    string
+		text:     string
+		longLine: boolean
+		ordering: number
 	end
 	record SuggestionHandlers
 		file_based:    function(option_t.Options)
