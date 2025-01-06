@@ -1,6 +1,6 @@
--- SPDX-FileCopyrightText: 2024 - 2025 Lukas Heindl
---
--- SPDX-License-Identifier: GPL-3.0-or-later
+<!-- SPDX-FileCopyrightText: 2024 - 2025 Lukas Heindl -->
+<!---->
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 
 **Note: This is a fork of [cluttex](https://github.com/minoki/cluttex) which is
 using teal to transpile typed lua to classic lua.**
