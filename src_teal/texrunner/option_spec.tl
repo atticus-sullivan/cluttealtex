@@ -230,17 +230,17 @@ _M.spec = {
 	},
 	fresh = {
 		long = "fresh",
+		boolean = true,
 		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.fresh == nil, "multiple --fresh options")
-			if param is string then
-				options.fresh = true
+			if param is boolean then
+				options.fresh = param
 			else
 				error("invalid param type")
 			end
 		end,
 		help = {
 			ordering = 5,
-			param = "COMMAND+OPTIONs",
 			text = "Clean output directory before running TeX. Rules out --output-directory",
 		},
 	},
@@ -260,9 +260,14 @@ _M.spec = {
 	},
 	skip_first = {
 		long = "skip-first",
+		boolean = true,
 		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.skip_first == nil, "multiple --skip-first options")
-			options.skip_first = true
+			if param is boolean then
+				options.skip_first = param
+			else
+				error("invalid param type")
+			end
 		end,
 		help = {
 			ordering = 7,
@@ -270,10 +275,15 @@ _M.spec = {
 		},
 	},
 	start_with_draft = {
+		boolean = true,
 		long = "start-with-draft",
 		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.start_with_draft == nil, "multiple --start-with-draft options")
-			options.start_with_draft = true
+			if param is boolean then
+				options.start_with_draft = param
+			else
+				error("invalid param type")
+			end
 		end,
 		help = {
 			ordering = 8,
@@ -676,6 +686,7 @@ _M.spec = {
 	verbose = {
 		short = "V",
 		long = "verbose",
+		accumulate = true,
 		handle_cli = function(options:option_t.Options, param:string|boolean)
 			CLUTTEALTEX_VERBOSITY = CLUTTEALTEX_VERBOSITY + 1
 		end,
@@ -741,10 +752,11 @@ _M.spec = {
 	},
 	print_output_directory = {
 		long = "print-output-directory",
+		boolean = true,
 		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.print_output_directory == nil, "multiple --print-output-directory options")
-			if param is string then
-				options.print_output_directory = true
+			if param is boolean then
+				options.print_output_directory = param
 			else
 				error("invalid param type")
 			end
@@ -850,6 +862,7 @@ _M.spec = {
 	shell_restricted = {
 		long = "shell-restricted",
 		allow_single_hyphen = true,
+		-- not a boolean option!
 		handle_cli = function(options:option_t.Options, param:string|boolean)
 			assert(options.shell_escape == nil and options.shell_restricted == nil, "multiple --(no-)shell-escape or --shell-restricted options")
 			options.shell_restricted = true
