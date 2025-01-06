@@ -1189,6 +1189,9 @@ Options:
 	end
 	io.write("\n\n", ([[For a more detailed reference see 'texdoc cluttealtex' or
     'https://github.com/atticus-sullivan/cluttealtex/releases/download/%s/cluttealtex.pdf'
+
+When run, cluttealtex checks for a config file named '.cluttealtexrc.lua' in your current working directory
+(see the detailed docs for more information on how this works)
 ]]):format(CLUTTEALTEX_VERSION))
 end
 
