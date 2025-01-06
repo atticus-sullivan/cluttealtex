@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2024 - 2025 Lukas Heindl
+--
+-- SPDX-License-Identifier: GPL-3.0-or-later
+
 return {
 	source_dir = "src_teal",
 	build_dir = "src_lua",
