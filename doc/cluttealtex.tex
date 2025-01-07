@@ -1072,7 +1072,7 @@ Combining multiple short options, like \texttt{-Ve pdflatex}, is not supported.
 			% doc new=2025-01-01,
 			% doc updated=2025-01-01,
 			doc keypath=cfg,
-			doc name=watch_inc_exc,
+			doc name=watch_filter,
 			doc parameter={=lua-table},
 			doc description={default: none, initial: none},
 		},
@@ -1348,7 +1348,7 @@ This is what happens to each file that is being a candidate for being watched:
 	}) its state.
 \end{enumerate}
 
-\paragraph{Using the Table Option \texttt{watch\_inc\_exc} to specify Filters}
+\paragraph{Using the Table Option \texttt{watch\_filter} to specify Filters}
 In the lua table we can make options accumulating, then we pass an array instead of a table.
 But this alone does not help in this case as the option is split across multiple options.
 In this case the ordering in particularly is important.
@@ -1359,7 +1359,7 @@ Thus for configuring the filters in the config file all filters are defined in a
 \begin{docKey}[config][
 		% doc new=2025-01-01,
 		% doc updated=2025-01-01,
-	]{watch_inc_exc[].type}{=\meta{type}}{}
+	]{watch_filter[].type}{=\meta{type}}{}
 	Sets the type of the filter. Can be
 	\begin{multicols}{4}
 		\begin{itemize}
@@ -1373,7 +1373,7 @@ Thus for configuring the filters in the config file all filters are defined in a
 \begin{docKey}[config][
 		% doc new=2025-01-01,
 		% doc updated=2025-01-01,
-	]{watch_inc_exc[].param}{=\meta{param}}{}
+	]{watch_filter[].param}{=\meta{param}}{}
 	Sets the parameter (\texttt{ext}\,/\,\texttt{path}) of the filter
 \end{docKey}
 
