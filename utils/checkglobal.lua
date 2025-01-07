@@ -1,6 +1,6 @@
-# SPDX-FileCopyrightText: 2016 - 2024 ARATA Mizuki
-#
-# SPDX-License-Identifier: GPL-3.0-or-later
+-- SPDX-FileCopyrightText: 2016 - 2024 ARATA Mizuki
+--
+-- SPDX-License-Identifier: GPL-3.0-or-later
 
 if #arg == 0 then
 	io.stderr:write[[
