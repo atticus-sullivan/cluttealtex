@@ -1,8 +1,8 @@
-# SPDX-FileCopyrightText: 2024 - 2025 Lukas Heindl
+# SPDX-FileCopyrightText: 2025 Lukas Heindl
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-name: run tests
+name: check argument/option documentation
 
 on:
   push:
@@ -43,7 +43,17 @@ jobs:
       run: |
         luarocks install --dev tl
         luarocks install cyan
-        luarocks install lester
 
     - name: make
-      run: make FD=fdfind build test
+      run: make FD=fdfind build genArgs
+
+    - name: Check if argument docs are up-to-date
+      run: |
+          # check if it matches the one present in the repository
+          if ! git diff --exit-code doc/args.tex args.md ; then
+              # Failure: lua definitions file is not up-to-date
+              echo "Error: generated argument documentations do not match the commited ones"
+              exit 1
+          fi
+          echo "Success: argument documentations are up-to-date"
+          exit 0

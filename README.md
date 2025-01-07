@@ -1,5 +1,12 @@
+<!-- SPDX-FileCopyrightText: 2024 - 2025 Lukas Heindl -->
+<!---->
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+
 **Note: This is a fork of [cluttex](https://github.com/minoki/cluttex) which is
 using teal to transpile typed lua to classic lua.**
+
+[![REUSE status](https://api.reuse.software/badge/github.com/atticus-sullivan/cluttealtex)](https://api.reuse.software/info/github.com/atticus-sullivan/cluttealtex)
+[![.github/workflows/run_tests.yaml](https://github.com/atticus-sullivan/cluttealtex/actions/workflows/run_tests.yaml/badge.svg)](https://github.com/atticus-sullivan/cluttealtex/actions/workflows/run_tests.yaml)
 
 # clutealtex
 
@@ -26,7 +33,7 @@ baseurl="https://github.com/atticus-sullivan/cluttealtex/releases/download/${V}"
 curl -o "/usr/local/bin/cluttealtex" "${baseurl}/cluttealtex"
 ```
 
-This might be the simplest way of installing manually, though nicer is to setup your local \texttt{TEXMFHOME} and place the executable there.
+This might be the simplest way of installing manually, though nicer is to setup your local `TEXMFHOME` and place the executable there.
 For Linux again this could look like this:
 ```bash
 V="v0.9.1" # select the version to download
@@ -68,11 +75,38 @@ arguments/options](args.md).
 config file (`.cluttealtexrc.lua`)
 - arguments containing `[=...]` all have a default value, so when passing this
 option you don't have to specify a value. Like with usual CLI arguments, you can
-pass a custom value either seperated with a space \eg `--engine lualatex`
+pass a custom value either seperated with a space e.g. `--engine lualatex`
 (or seperated with an equal sign)
 
 ## For developers / advanced users
 <details><summary>Click to expand</summary>
+
+### Setup development environment
+#### teal/lua packages
+Like you can see in the GitHub-Actions, we are trying to use the most recent
+version of teal since usually there are quite some improvements in the language.
+
+To install teal (and related lua packages) just use the same commands like in
+the GitHub-Actions:
+```bash
+luarocks install --dev tl # teal
+luarocks install cyan     # build system for teal
+luarocks install lester   # for running tests in lua
+```
+I really recomend using `luarocks` to install these packages as this is just the
+easiest way. But as long as the packages are available everything will work out
+as well.
+
+#### pre-commit
+Currently only for REUSE compliance, but maybe in the future also for more
+related things, we are using [pre-commit](https://pre-commit.com/) to run hooks
+before committing. This is supposed to ensure some constraints on commited code
+already locally (without the need of running the GitHub-Action).
+
+Still you need to
+1. Install the `pre-commit` tool (it's python so you can also use a `venv` for
+   this)
+2. Activate it in this repository: `pre-commit install`
 
 ### Hooking
 For some parts, cluttealtex makes use of a hooking mechanism. The initial idea

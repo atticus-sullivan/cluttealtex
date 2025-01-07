@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2024 - 2025 Lukas Heindl
+--
+-- SPDX-License-Identifier: GPL-3.0-or-later
+
 local record md5
    sum: function(message: string): string  -- #res == 8
    sumhexa: function(message: string): string  -- #res == 16 (hex chars)
