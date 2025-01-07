@@ -1,0 +1,59 @@
+# SPDX-FileCopyrightText: 2025 Lukas Heindl
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+name: check argument/option documentation
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: install make deps
+      run: |
+        sudo apt-get install fd-find
+
+    - uses: teatimeguest/setup-texlive-action@v3
+      with:
+        packages: |
+            luatex
+            l3build
+
+    - name: Install lua
+      uses: jkl1337/gh-actions-lua@v11
+      with:
+        luaVersion: "5.4.7"
+    - name: Install LuaRocks (latest)
+      uses: jkl1337/gh-actions-luarocks@v5
+
+    - name: install luarocks deps
+      run: |
+        luarocks install --dev tl
+        luarocks install cyan
+
+    - name: make
+      run: make FD=fdfind build genArgs
+
+    - name: Check if argument docs are up-to-date
+      run: |
+          # check if it matches the one present in the repository
+          if ! git diff --exit-code doc/args.tex args.md ; then
+              # Failure: lua definitions file is not up-to-date
+              echo "Error: generated argument documentations do not match the commited ones"
+              exit 1
+          fi
+          echo "Success: argument documentations are up-to-date"
+          exit 0
