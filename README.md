@@ -46,8 +46,9 @@ curl -o "${dir}/doc/latex/cluttealtex/cluttealtex.pdf" "${baseurl}/cluttealtex.p
 </details>
 
 ## Features
-- written in / generated with teal/tl => no external dependencies, (tex)lua should
-  be included in texlive.
+- written in / generated with `teal`/`tl? => no external dependencies, (tex)lua is
+  included in more recent TeXLive installations (`TeXLive-2019` or later
+  definitely works, older versions might work but were not tested)
 - avoid cluttering your project directory with aux files
 - watch input files and automatically rebuild on change
 - run `makindex`, BibTeX, `biber` if requested
