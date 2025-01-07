@@ -1,6 +1,6 @@
--- SPDX-FileCopyrightText: 2024 - 2025 Lukas Heindl
---
--- SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2024 - 2025 Lukas Heindl
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 name: nightly build
 
@@ -9,6 +9,12 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
 
 jobs:
   build:

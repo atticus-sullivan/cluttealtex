@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2020 Free Software Foundation Europe e.V.
 # SPDX-License-Identifier: CC0-1.0
+
 name: REUSE Compliance Check
 
 on:
@@ -7,6 +8,12 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
 
 jobs:
   test:
