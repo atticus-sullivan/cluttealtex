@@ -32,7 +32,7 @@ local record Module
 		synctex: string
 		tex_extraoptions: {string}
 		watch: string
-		watch_inc_exc: {WatchIncExc}
+		watch_filter: {WatchFilter}
 		fmt: string
 		makeindex: string
 		sagetex: string
@@ -43,7 +43,7 @@ local record Module
 
 		hooks: Hooks
 	end
-	record WatchIncExc
+	record WatchFilter
 		type: string
 		param: string
 	end

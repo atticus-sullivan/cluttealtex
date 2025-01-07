@@ -40,8 +40,8 @@
 | verbose | verbose | V | - |
 | version | version | v | - |
 | watch | watch[=watch] | - | auto |
-| watch_inc_exc | - | - | - |
-| watch_not_ext | watch-not-ext=watch_not_ext | - | - |
-| watch_not_path | watch-not-path=watch_not_path | - | - |
-| watch_only_ext | watch-only-ext=watch_only_ext | - | - |
-| watch_only_path | watch-only-path=watch_only_path | - | - |
+| watch_exc_ext | watch-exc-ext=watch_exc_ext | - | - |
+| watch_exc_path | watch-exc-path=watch_exc_path | - | - |
+| watch_filter | - | - | - |
+| watch_inc_ext | watch-inc-ext=watch_inc_ext | - | - |
+| watch_inc_path | watch-inc-path=watch_inc_path | - | - |

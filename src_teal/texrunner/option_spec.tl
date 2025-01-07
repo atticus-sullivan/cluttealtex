@@ -324,14 +324,14 @@ _M.spec = {
 			text = "Watch input files for change (Supported: auto, fswatch, inotifywait)\n[initial: auto]",
 		},
 	},
-	watch_only_path = {
-		long = "watch-only-path",
+	watch_inc_path = {
+		long = "watch-inc-path",
 		param = true,
 		no_cfg = true,
 		handle_cli = function(options:option_t.Options, param:string|boolean)
 			if param is string then
-				options.watch_inc_exc = options.watch_inc_exc or {}
-				table.insert(options.watch_inc_exc, {param=pathutil.abspath(param),type='only_path'})
+				options.watch_filter = options.watch_filter or {}
+				table.insert(options.watch_filter, {param=pathutil.abspath(param),type='inc_path'})
 			else
 				error("invalid param type")
 			end
@@ -342,14 +342,14 @@ _M.spec = {
 			text = "Add filter to which files are being watched",
 		},
 	},
-	watch_not_path = {
-		long = "watch-not-path",
+	watch_exc_path = {
+		long = "watch-exc-path",
 		param = true,
 		no_cfg = true,
 		handle_cli = function(options:option_t.Options, param:string|boolean)
 			if param is string then
-				options.watch_inc_exc = options.watch_inc_exc or {}
-				table.insert(options.watch_inc_exc, {param=pathutil.abspath(param),type='not_path'})
+				options.watch_filter = options.watch_filter or {}
+				table.insert(options.watch_filter, {param=pathutil.abspath(param),type='exc_path'})
 			else
 				error("invalid param type")
 			end
@@ -360,14 +360,14 @@ _M.spec = {
 			text = "Add filter to which files are not being watched",
 		},
 	},
-	watch_only_ext = {
-		long = "watch-only-ext",
+	watch_inc_ext = {
+		long = "watch-inc-ext",
 		param = true,
 		no_cfg = true,
 		handle_cli = function(options:option_t.Options, param:string|boolean)
 			if param is string then
-				options.watch_inc_exc = options.watch_inc_exc or {}
-				table.insert(options.watch_inc_exc, {param=param,type='only_ext'})
+				options.watch_filter = options.watch_filter or {}
+				table.insert(options.watch_filter, {param=param,type='inc_ext'})
 			else
 				error("invalid param type")
 			end
@@ -378,14 +378,14 @@ _M.spec = {
 			text = "Add filter to which extensions are being watched",
 		},
 	},
-	watch_not_ext = {
-		long = "watch-not-ext",
+	watch_exc_ext = {
+		long = "watch-exc-ext",
 		param = true,
 		no_cfg = true,
 		handle_cli = function(options:option_t.Options, param:string|boolean)
 			if param is string then
-				options.watch_inc_exc = options.watch_inc_exc or {}
-				table.insert(options.watch_inc_exc, {param=param,type='not_ext'})
+				options.watch_filter = options.watch_filter or {}
+				table.insert(options.watch_filter, {param=param,type='exc_ext'})
 			else
 				error("invalid param type")
 			end
@@ -396,14 +396,14 @@ _M.spec = {
 			text = "Add filter to which extensions are not being watched",
 		},
 	},
-	watch_inc_exc = {
+	watch_filter = {
 		no_cli = true,
 		accumulate = true,
 		handle_cfg = function(options:option_t.Options, param: {any})
 			for _,i in ipairs(param) do
-				if i is option_t.WatchIncExc then
-					if i.type and i.param and (i.type == "not_ext" or i.type == "only_ext" or i.type == "not_path" or i.type == "only_path") then
-						table.insert(options.watch_inc_exc, i)
+				if i is option_t.WatchFilter then
+					if i.type and i.param and (i.type == "exc_ext" or i.type == "inc_ext" or i.type == "exc_path" or i.type == "inc_path") then
+						table.insert(options.watch_filter, i)
 					end
 				end
 			end

@@ -14,16 +14,16 @@ describe("watcher", function()
 	describe("gather_input_files_to_watch", function()
 		it("returns an empty list if filelist is empty", function()
 			local max_watches = 10
-			local options = { watch_inc_exc = nil }
+			local options = { watch_filter = nil }
 			local filelist = {}
 
 			local result = watcher.gather_input_files_to_watch(max_watches, options, filelist)
 			expect.equal(#result, 0)
 		end)
 
-		it("filters files based on provided watch_inc_exc", function()
+		it("filters files based on provided watch_filter", function()
 			local max_watches = 10
-			local options = { watch_inc_exc = { { type = "only_ext", param = "tex" } } }
+			local options = { watch_filter = { { type = "inc_ext", param = "tex" } } }
 			local filelist = {
 				{ abspath = "file1.tex", kind = "input" },
 				{ abspath = "file2.pdf", kind = "input" },
@@ -37,7 +37,7 @@ describe("watcher", function()
 
 		it("limits the number of files to max_watches", function()
 			local max_watches = 2
-			local options = { watch_inc_exc = nil }
+			local options = { watch_filter = nil }
 			local filelist = {
 				{ abspath = "file1.tex", kind = "input" },
 				{ abspath = "file2.tex", kind = "input" },
