@@ -44,7 +44,6 @@ jobs:
         luarocks install --dev tl
         luarocks install cyan
         luarocks install lester
-        luarocks install md5
 
     - name: make
       run: make FD=fdfind build test
