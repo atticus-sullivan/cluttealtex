@@ -398,7 +398,7 @@ local function handle_cluttealtex_options(arg: {string}): string, TexEngine.Engi
 			halt_on_error         = true,
 			output_format         = "pdf",
 	}
-	init_hooks(default_options, option_spec)
+	init_hooks(default_options)
 
 	-- Parse configuration and command-line options
 	local config_options, inputfile = parse_config_file()

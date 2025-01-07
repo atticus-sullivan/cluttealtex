@@ -23,7 +23,7 @@ describe("handleoption", function()
 		it("should query options with valid long option", function()
 			local option, key, no = handleoption._internal.query_options("engine", "long")
 			-- it suffices if handle_cli is set, don't check the function
-			expect.equal(option, {short="e", long="engine", param=true, handle_cli=option.handle_cli or function()end})
+			expect.equal(option, {short="e", long="engine", param=true, handle_cli=option.handle_cli or function()end, help=option.help})
 			expect.equal(key, "engine")
 			expect.falsy(no)
 		end)
@@ -420,7 +420,7 @@ describe("handleoption", function()
 			})
 			expect.equal(inputfile, "main.tex")
 			local watch = handleoption._internal.query_options("watch", "long")
-			expect.equal(watch, {long="watch", default="inotify", handle_cli=watch.handle_cli, param=true})
+			expect.equal(watch, {long="watch", default="inotify", handle_cli=watch.handle_cli, param=true, help=watch.help})
 		end)
 
 		-- Test invalid config structure
