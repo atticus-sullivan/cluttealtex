@@ -33,7 +33,7 @@ baseurl="https://github.com/atticus-sullivan/cluttealtex/releases/download/${V}"
 curl -o "/usr/local/bin/cluttealtex" "${baseurl}/cluttealtex"
 ```
 
-This might be the simplest way of installing manually, though nicer is to setup your local \texttt{TEXMFHOME} and place the executable there.
+This might be the simplest way of installing manually, though nicer is to setup your local `TEXMFHOME` and place the executable there.
 For Linux again this could look like this:
 ```bash
 V="v0.9.1" # select the version to download
@@ -75,7 +75,7 @@ arguments/options](args.md).
 config file (`.cluttealtexrc.lua`)
 - arguments containing `[=...]` all have a default value, so when passing this
 option you don't have to specify a value. Like with usual CLI arguments, you can
-pass a custom value either seperated with a space \eg `--engine lualatex`
+pass a custom value either seperated with a space e.g. `--engine lualatex`
 (or seperated with an equal sign)
 
 ## For developers / advanced users
