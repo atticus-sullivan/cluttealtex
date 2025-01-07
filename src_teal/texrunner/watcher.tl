@@ -23,7 +23,6 @@ local pathutil       = require "texrunner.pathutil"
 local shellutil      = require "texrunner.shellutil"
 local options        = require "texrunner.option_type"
 local message        = require "texrunner.message"
-local reruncheck     = require "texrunner.reruncheck"
 local fswatcherlib_t = require"texrunner.fswatcher"
 local common_t       = require"texrunner.common_types"
 

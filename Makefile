@@ -1,10 +1,10 @@
-.PHONY: all checkAll doc install build clean
+.PHONY: all checkAll doc install build clean genArgs release genDemo
 
 FD ?= fd
 
-all: build test doc install
+all: build test doc install genArgs
 
-build: checkAll
+build: clean checkAll
 	@cyan version
 	mkdir -p src_lua/texrunner
 	cd src_teal && $(FD) "\.lua" . --exec cp {} ../src_lua/{}
@@ -15,10 +15,17 @@ build: checkAll
 	cp src_teal/os_.lua src_lua/
 	make -f Makefile.cluttealtex
 
+genArgs: build
+	LUA_PATH="./src_lua/?.lua;$$LUA_PATH" texlua utils/print_args.lua > args.md 2> doc/args.tex
+
+genDemo: build
+	cd demo && vhs main.tape
+
 clean:
 	$(RM) -r src_lua
+	l3build clean
 
-doc:
+doc: genArgs
 	l3build doc
 
 test: build
@@ -29,3 +36,13 @@ install: build
 
 checkAll:
 	eval $$(luarocks path) && cyan check $$($(FD) "\.tl" ./src_teal)
+
+release: clean checkAll build doc
+	# check if git is in a clean state
+	git update-index --refresh
+	git diff-index --quiet HEAD --
+	# check if on main branch
+	test $(shell git rev-parse --abbrev-ref HEAD) == "main"
+	# list all TODOs related to a new release
+	grep --exclude-dir '.git' --exclude 'Makefile' --color=always -r "TODO(release)" .
+	$$(read -p "Enter release number (last was $$(git describe --tags --abbre)): ") tag && git tag "$$(tag)" && git push "$$(tag)"

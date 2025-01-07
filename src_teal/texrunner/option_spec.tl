@@ -579,7 +579,7 @@ local spec = {
 			end
 		},
 		handle_cli = function(options:option_t.Options, param:string|boolean)
-			assert(not options.glossaries, "'makeindex' cannot be used together with 'glossaries'\nUse e.g. --glossaries='makeindex:main.ind:main.idx:main.ilg' instead of makeindex")
+			assert(not options.glossaries, "'makeindex' cannot be used together with 'glossaries'\nUse e.g. --glossaries='makeindex:ind:idx:ilg' instead of makeindex")
 			assert(options.makeindex == nil, "multiple --makeindex options")
 			if param is string then
 				options.makeindex = param
@@ -675,9 +675,9 @@ local spec = {
 		long = "glossaries",
 		param = true,
 		accumulate = true,
-		default = "makeindex:main.glo:main.gls:main.glg",
+		default = "makeindex:glo:gls:glg",
 		handle_cli = function(options:option_t.Options, param:string|boolean)
-			assert(not options.makeindex, "'glossaries' cannot be used together with 'makeindex'\nUse e.g. --glossaries='makeindex:main.ind:main.idx:main.ilg' instead of makeindex")
+			assert(not options.makeindex, "'glossaries' cannot be used together with 'makeindex'\nUse e.g. --glossaries='makeindex:ind:idx:ilg' instead of makeindex")
 			if not options.glossaries then
 				options.glossaries = {}
 			end

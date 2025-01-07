@@ -1,271 +1,1418 @@
-\documentclass[a4paper]{report}
-\usepackage[unicode]{hyperref}
-\usepackage{amsmath}
-\usepackage{tabularx}
+\documentclass[a4paper, 11pt]{scrartcl}
+
+% ----- Packages -----
 \usepackage{xspace}
-\usepackage{csquotes}
+\usepackage{scrlayer-scrpage}                           % header and footer
+\usepackage{microtype}
+\usepackage[unicode,colorlinks=false,breaklinks=true]{hyperref} % make e.g. toc clickable
+\usepackage[english=american]{csquotes}                  % pick always the right quotation marks
+% TODO remove this eventually before merging
+\usepackage{todo}                                       % to enter todos in the document
+\usepackage{pdflscape}
+\usepackage{cleveref}
+
+\usepackage{tabularx}         % better configuration of tables
+\usepackage{ltxtable}         % use tabularx as longtable (\LTXtable{width}{pathToTable}) where the table referenced to contains of \begin{longtable}{preamble}content\end{longtable}
+\usepackage{booktabs}         % more nice rules (headrule/midrule/crule/bottomrule)
+
+\usepackage[svgnames]{xcolor}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,listingsutf8,documentation}
+% TODO adjust colors?
+\renewcommand*{\tcbdocnew}[1]{\textcolor{green!50!black}{\sffamily\bfseries N} #1}
+\renewcommand*{\tcbdocupdated}[1]{\textcolor{blue!75!black}{\sffamily\bfseries U} #1}
+\tcbset{skin=enhanced,
+	doc head={colback=yellow!10!white,interior style=fill},
+	doc head key={colback=magenta!5!white,interior style=fill},
+	doc head path={colback=blue!50!gray!7!white,interior style=fill},
+	color key=DarkViolet,
+	color value=Teal,
+	color color=Teal,
+	color counter=Orange!85!black,
+	color length=Orange!85!black,
+	index colorize,
+	index annotate,
+}
+
+\usepackage{multicol}
+\usepackage{catppuccinpalette}
+\usepackage{listings} % for code
+
+\lstset{
+	rulecolor=\color{black},
+	emphstyle=\color{CtpYellow},
+	basicstyle=\tiny\ttfamily,
+	stringstyle=\color{CtpGreen},
+	commentstyle=\color{CtpOverlay2},
+	keywordstyle=\color{CtpMauve},
+	backgroundcolor=\color{CtpBase},
+	frame=none,
+	%
+	columns=fullflexible, % columns of chars
+	tabsize=2,
+	%
+	captionpos=b,
+	%
+	breakautoindent=true, %
+	breakindent=1em,
+	% postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
+	breaklines=true,
+	%
+	showstringspaces=false,
+	showtabs=false,
+	showspaces=false,
+	keepspaces=true,
+	%
+	inputencoding=utf8, extendedchars=true,
+	literate=
+	{á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+	{Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+	{à}{{\`a}}1 {è}{{\`e}}1 {ì}{{\`i}}1 {ò}{{\`o}}1 {ù}{{\`u}}1
+	{À}{{\`A}}1 {È}{{\'E}}1 {Ì}{{\`I}}1 {Ò}{{\`O}}1 {Ù}{{\`U}}1
+	{ä}{{\"a}}1 {ë}{{\"e}}1 {ï}{{\"i}}1 {ö}{{\"o}}1 {ü}{{\"u}}1
+	{Ä}{{\"A}}1 {Ë}{{\"E}}1 {Ï}{{\"I}}1 {Ö}{{\"O}}1 {Ü}{{\"U}}1
+	{â}{{\^a}}1 {ê}{{\^e}}1 {î}{{\^i}}1 {ô}{{\^o}}1 {û}{{\^u}}1
+	{Â}{{\^A}}1 {Ê}{{\^E}}1 {Î}{{\^I}}1 {Ô}{{\^O}}1 {Û}{{\^U}}1
+	{Ã}{{\~A}}1 {ã}{{\~a}}1 {Õ}{{\~O}}1 {õ}{{\~o}}1
+	{œ}{{\oe}}1 {Œ}{{\OE}}1 {æ}{{\ae}}1 {Æ}{{\AE}}1 {ß}{{\ss}}1
+	{ű}{{\H{u}}}1 {Ű}{{\H{U}}}1 {ő}{{\H{o}}}1 {Ő}{{\H{O}}}1
+	{ç}{{\c c}}1 {Ç}{{\c C}}1 {ø}{{\o}}1 {å}{{\r a}}1 {Å}{{\r A}}1
+	{€}{{\euro}}1 {£}{{\pounds}}1 {«}{{\guillemotleft}}1
+	{»}{{\guillemotright}}1 {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {¿}{{?`}}1
+}
+\lstdefinelanguage{none}{identifierstyle=}
+
+% ----- Settings -----
+\KOMAoptions{
+	paper=a4,           % set papersize
+	fontsize=12pt,      % set fontsize to 12pt
+	parskip=half,       % half a line will seperate paragraphs
+	headings=normal,    % headings in normalsize
+	BCOR=0cm,           % no space for binding
+	DIV=calc,           % calculare margins automatically, the calculated values can be found in the log file or use \areaset[BCOR]{width}{height}} to explicitly specify the textarea
+	twoside=false,      % onesided document
+	twocolumn=false,    % one columned pages
+	draft=false,         % show additional information
+	numbers=autoendperiod, % automatic punctuation in outline
+}
+\parindent0pt
+
+% ----- Commands -----
+\newcommand\eg{e.\,g.\xspace}
+\newcommand\tos{$\to$\xspace}
+\let\TeXold\TeX
 \newcommand\CluttealTeX{ClutTeal\TeX\xspace}
 \providecommand\BibTeX{\textsc{Bib}\TeX\xspace}
-\newcommand\texcmd[1]{\texttt{\textbackslash #1}}
-\newcommand\texenv[1]{\texttt{#1}}
-\newcommand\texpkg[1]{\texttt{#1}}
-\newcommand\metavar[1]{\textnormal{\textsf{#1}}}
+\renewcommand\TeX{\TeXold\xspace}
 
-\title{\CluttealTeX manual\\(Version 0.8.0)}
-\author{Lukas Heindl\thanks{thanks to ARATA Mizuki for writing cluttex of which \CluttealTeX is a fork}}
-\date{2024-03-11}
+\NewTCBListing{boxcode}{O{none}O{\scriptsize}}{%
+	listing options={style=tcblatex,language={#1},basicstyle=\ttfamily#2},%
+	listing only,%
+}
+
+\NewTotalTCBox{\iboxcmd}{v}{%
+	verbatim,colupper=CtpBase,colback=CtpText,colframe=black,left=0mm,right=0mm,%
+}{%
+	\rule[-2.5pt]{0pt}{.85em}\lstinline[basicstyle=\ttfamily\normalsize,language=none,keywordstyle=\color{CtpMauve}\bfseries]^#1^%
+}
+
+\title{\CluttealTeX manual\\(Version 0.8.0)} % TODO(release) update
+\author{%
+	Lukas Heindl\thanks{thanks to ARATA Mizuki for writing cluttex of which \CluttealTeX is a fork}\\
+	\url{oss.heindl+latex@protonmail.com} \\
+	\url{https://github.com/atticus-sullivan/cluttealtex}
+}
+\date{2024-03-11} % TODO(release) update
 
 \begin{document}
 \maketitle
 \tableofcontents
 
-\chapter{About \CluttealTeX}
+\section{About \CluttealTeX}
 \CluttealTeX is an automation tool for \LaTeX\ document processing.
 Basic features are,
 \begin{itemize}
-\item Does not clutter your working directory with ``extra'' files, like \texttt{.aux} or \texttt{.log}.
-\item If multiple runs are required to generate correct document, do so.
-\item Watch input files, and re-process documents if changes are detected\footnote{needs an external program if you are on a Unix system}.
-\item Run MakeIndex, \BibTeX, Biber, if requested.
-\item Produces a PDF, even if the engine (e.g.\ p\TeX) does not suport direct PDF generation.
-  If you want a DVI file, use \texttt{--output-format=dvi} option.
-\item No external dependencies, \CluttealTeX only uses texlua which should come with TeXLive
+	\item Does not clutter your working directory with \enquote{auxiliary} files, like \texttt{.aux} or \texttt{.log}.
+	\item If multiple runs are required to generate the correct final document (with all references resolved etc), do so.
+	\item Watch input files, and re-process documents if changes are detected\footnote{needs an external program if you are on a Unix system}.
+	\item Run MakeIndex, \BibTeX, Biber, and some other tools if requested and necessary.
+	\item Produces a PDF, even if the engine (e.g.\ p\TeX) does not support direct PDF generation.
+		If you want a DVI file, use the \texttt{--output-format=dvi} option.
+	\item No external dependencies, \CluttealTeX only uses \texttt{texlua} which comes with more recent TeXLive installations (\texttt{TeXLive-2019} or later definitely works, older versions might work but were not tested).
 \end{itemize}
+
+For a short demo see \url{https://github.com/atticus-sullivan/cluttealtex/blob/main/demo/main.gif}.
 
 The unique feature of this program is that, auxiliary files such as \texttt{.aux} or \texttt{.toc} are created in an isolated location, so you will not be annoyed with these extra files.
 
-% A competitor: \href{http://www.personal.psu.edu/jcc8/latexmk/}{Latexmk}
+Other similar programs include
+\begin{itemize}
+	\item \href{https://ctan.org/pkg/latexmk/}{latexmk}
+	\item \href{https://ctan.org/pkg/arara/}{arara}
+	\item \href{https://gitlab.com/latex-rubber/rubber/}{rubber}
+\end{itemize}
 
-\chapter{How to use \CluttealTeX}
-\section{Installation}
-If you want to install \CluttealTeX manually, fetch an archive from
-GitHub\footnote{\url{https://github.com/atticus-sullivan/cluttealtex}} (either
-release for stable builds or from github actions for nightly build), extract
-it, and copy \texttt{bin/cluttealtex} or \texttt{bin/cluttealtex.bat} to
-somewhere in your \texttt{PATH}.
+\subsection{Feedback}
+If any issues arise, be it a bug, a missing feature and\,/\,or missing support for an external tool\,/\,package, feel free to reach out and file an issue at \url{https://github.com/atticus-sullivan/cluttealtex/issues}.
 
-\subsection{Building}
-You might also clone the repository and run \texttt{make install} (note the
-required tools \texttt{fd}, \texttt{tl} (luarocks)) for installing to your
-\texttt{TEXMFHOME} tree.
+\section{How to use \CluttealTeX}
+\subsection{Installation}
+Installing manually:
+\begin{enumerate}
+	\renewcommand{\theenumi}{\arabic{enumi}}
+	\item fetch an archive from GitHub\footnote{\url{https://github.com/atticus-sullivan/cluttealtex}}
+		(either use the latest release for the stable build or from latest github actions for the nightly build)
+	\item extract the archive (or directly only download the executable)
+	\item copy \texttt{bin/cluttealtex} or \texttt{bin/cluttealtex.bat} to somewhere in your \texttt{PATH}
+\end{enumerate}
 
-\section{Command-line usage}
-Usage:
-\begin{center}
-  \texttt{cluttealtex -e \metavar{ENGINE} \metavar{OPTIONs} [--] \metavar{INPUT}.tex}
-\end{center}
+An example how a basic installation on Linux could look like (using the latest release, not the nightly build):
+% TODO(release)
+\begin{boxcode}[bash]
+V="v0.9.1" # select the version to download
+baseurl="https://github.com/atticus-sullivan/cluttealtex/releases/download/${V}"
 
-\subsection{Basic options}
-\begin{description}
-\item[\texttt{-e}, \texttt{--engine=\metavar{ENGINE}}]
-  Set which \TeX\ engine/format to use.
-  \metavar{ENGINE} is one of the following:
-  \texttt{pdflatex}, \texttt{pdftex},
-  \texttt{lualatex}, \texttt{luatex}, \texttt{luajittex},
-  \texttt{xelatex}, \texttt{xetex},
-  \texttt{latex}, \texttt{etex}, \texttt{tex},
-  \texttt{platex}, \texttt{eptex}, \texttt{ptex},
-  \texttt{uplatex}, \texttt{euptex}, or \texttt{uptex}.
-  Required.
-\item[\texttt{-o}, \texttt{--output=\metavar{FILE}}]
-  Set output file name.
-  Default: \texttt{\metavar{JOBNAME}.\metavar{FORMAT}}
-\item[\texttt{-q}, \texttt{--quiet[=\metavar{LEVEL}]}]
-  Supress some output of the issued TeX command.\\
-  Level 0: show all\\
-  Level 1: avoid over-/underfull boxes (to some extend)\\
-  Level 2: only show output generated inside document environment\\
-  Default: \texttt{1}
+curl -o "/usr/local/bin/cluttealtex" "${baseurl}/cluttealtex"
+\end{boxcode}
 
-  It is recomended to disable quiet output eventually to really make sure no warning goes unnoticed.
-\item[\texttt{--fresh}]
-  Clean auxiliary files before run.
-  Cannot be used in conjunction with \texttt{--output-directory}.
-\item[\texttt{--max-iterations=\metavar{N}}]
-  Set maximum number of run, for resolving cross-references and etc.
-  Default: 3
-\item[\texttt{--skip-first}]
-  Skips the first iteration by using the aux files of previous runs if the
-  output is still newer than all other files. If the aux files are not found,
-  this obviously will have no effect.
-\item[\texttt{--watch[=\metavar{ENGINE}]}]
-  Watch input files for change.
-  May need an external program to be available.
-  See \autoref{sec:watch-mode} for details.
-\item[\texttt{--watch-only-path=\metavar{PATH}}]
-\item[\texttt{--watch-not-path=\metavar{PATH}}]
-\item[\texttt{--watch-only-ext=\metavar{EXT}}]
-\item[\texttt{--watch-not-ext=\metavar{EXT}}]
-  Watching engines often have an upper limit of how many files can be watched at once
-  (inotifywait for instance seems to only be able to watch at most 1024\footnote{\url{https://github.com/inotify-tools/inotify-tools/blob/210b019fb621d32fd6986b512508fc845f6c9fcb/src/common.cpp\#L18C20-L18C24}} files). Thus, these options provide means to filter the files that shall be watched so that this limit is not exceeded.
+This might be the simplest way of installing manually, though nicer is to setup your local \texttt{TEXMFHOME} and place the executable there.
+For Linux again this could look like this:
+% TODO(release)
+\begin{boxcode}[bash]
+V="v0.9.1" # select the version to download
+kpsewhich --var-value TEXMFHOME # should be set to be set -> see https://tug.org/texlive/doc/texlive-en/texlive-en.html#x1-350003.4.6
+baseurl="https://github.com/atticus-sullivan/cluttealtex/releases/download/${V}"
+dir="$(kpsewhich --var-value TEXMFHOME)"
 
-  Note: You can use all of these options more than once.
-  They will always be processed in the order you specified them (meaning the last option will always take precedence)
+# install the executable
+make -p "${dir}/scripts/cluttealtex"
+curl -o "${dir}/scripts/cluttealtex/cluttealtex" "${baseurl}/cluttealtex"
 
-  Note: No matter which of these options you use, the default is always to not watch a file.
-  So by only using \texttt{--watch-not-path=./aux/} you will end up by not watching any path.
-  You can of course change this by specifying \texttt{--watch-only-path=/} before.
-\item[\texttt{--color[=\metavar{WHEN}]}]
-  Colorize messages.
-  \metavar{WHEN} is one of \texttt{always}, \texttt{auto}, or \texttt{never}.
-  If \texttt{--color} option is omitted, \texttt{auto} is used.
-  If \metavar{WHEN} is omitted, \texttt{always} is used.
-\item[\texttt{--includeonly=\metavar{NAMEs}}]
-  Insert \texttt{\texcmd{includeonly}\{\metavar{NAMEs}\}}.
-\item[\texttt{--make-depends=\metavar{FILE}}]
-  Write Makefile-style dependencies information to \metavar{FILE}.
-\item[\texttt{--engine-executable=\metavar{COMMAND}}]
-  The actual \TeX\ command to use.
-\item[\texttt{--tex-option=\metavar{OPTION}}, \texttt{--tex-options=\metavar{OPTIONs}}]
-  Pass extra options to \TeX.
-\item[\texttt{--dvipdfmx-option=\metavar{OPTION}}, \texttt{--dvipdfmx-options=\metavar{OPTIONs}}]
-  Pass extra options to \texttt{dvipdfmx}.
-\item[\texttt{--[no-]change-directory}]
-  Change to the output directory when run.
-  May be useful with shell-escaping packages.
-\item[\texttt{-h}, \texttt{--help}]
-\item[\texttt{-v}, \texttt{--version}]
-\item[\texttt{-V}, \texttt{--verbose}]
-\item[\texttt{--print-output-directory}]
-  Print the output directory and exit.
-\item[\texttt{--package-support=PKG1[,PKG2,...,PKGn]}]
-  Enable special support for shell-escaping packages.
-  Currently supported packages are `\texttt{minted}` and `\texttt{epstopdf}`.
-\item[\texttt{--check-driver=DRIVER}]
-  Check that the correct driver file is loaded for certain packages.
-  \metavar{DRIVER} is one of \texttt{dvipdfmx}, \texttt{dvips}, or \texttt{dvisvgm}.
-  Can only be used with \texttt{--output-format=dvi}.
-\end{description}
+# install the documentation -> `texdoc cluttealtex` brings up the documentation in your pdf viewer
+make -p "${dir}/doc/latex/cluttealtex"
+curl -o "${dir}/doc/latex/cluttealtex/cluttealtex.pdf" "${baseurl}/cluttealtex.pdf"
+\end{boxcode}
 
-\subsection{Options for running auxiliary programs}
-\begin{description}
-\item[\texttt{--makeindex=\metavar{COMMAND}}]
-  Run MakeIndex.
-\item[\texttt{--bibtex=\metavar{COMMAND}}]
-  Run \BibTeX.
-\item[\texttt{--biber[=\metavar{COMMAND}]}]
-  Run Biber. Default value for \metavar{COMMAND}: \texttt{biber}
-\item[\texttt{--sagetex[=\metavar{COMMAND}]}]
-  Run sagetex. Experimental.
-\item[\texttt{--glossaries[=\metavar{OPTION\_STRING}]}]
-  Setup a custom glossary. See \autoref{sec:glossaries} for the syntax of \metavar{OPTION\_STRING} and examples.
-\item[\texttt{--memoize[=\metavar{python|perl|extract-command}]}]
-  Enable the hook for running an extract script or for the memoize package. Set
-  either to \texttt{python} or \texttt{perl} (default) to select which
-  extraction script to run or directly specify the executable which shall be
-  run. This will also set the key \texttt{no memo dir} as cluttealtex itself
-  already provides the feature of avoiding to clutter the working directory. It
-  also sets the key \texttt{extract=no} since cluttealtex performs the
-  extraction on its own.
-\item[\texttt{--memoize\_opts=\metavar{PACKAGE OPT}}]
-  Pass additional options like \texttt{readonly} to the memoize package. Pass
-  this option multiple times to add more than one option.
-  Especially \texttt{readonly} might be useful since this allows to build with
-  the current set of memoized pictures and then after finishing writing a new
-  picture memoize the new picture as well (compile once without
-  \texttt{readonly}).
-\end{description}
+Installing via CTAN (\eg \texttt{tlmgr}) currently is not possible, but uploading this as CTAN package is planned in the near future\footnote{see \url{https://github.com/atticus-sullivan/cluttealtex/issues/5} for tracking}.
 
-\subsection{\TeX-compatible options}
-\begin{description}
-\item[\texttt{--[no-]shell-escape}]
-\item[\texttt{--shell-restricted}]
-\item[\texttt{--synctex=\metavar{NUMBER}}]
-  Generate Sync\TeX\ file.
-  Note that \texttt{.synctex.gz} is created alongside the final \texttt{.pdf}.
-  See \autoref{sec:synctex} for details.
-\item[\texttt{--[no-]file-line-error}]
-  Default: Yes
-\item[\texttt{--[no-]halt-on-error}]
-  Default: Yes
-\item[\texttt{--interaction=\metavar{STRING}}]
-  \metavar{STRING} is one of \texttt{batchmode}, \texttt{nonstopmode}, \texttt{scrollmode}, or \texttt{errorstopmode}.
-  Default: \texttt{nonstopmode}
-\item[\texttt{--jobname=\metavar{STRING}}]
-\item[\texttt{--fmt=\metavar{FORMAT}}]
-\item[\texttt{--output-directory=\metavar{DIR}}]
-  Set output directory for \TeX\ engine.
-  Auxiliary files are produced in this directory.
-  Default: somewhere in the temporary directory.
-\item[\texttt{--output-format=\metavar{FORMAT}}]
-  Set output format.
-  Possible values are \texttt{pdf} or \texttt{dvi}.
-  Default: \texttt{pdf}
-\end{description}
+\subsubsection{Building}
+You can also build \CluttealTeX yourself:
+\begin{enumerate}
+	\renewcommand{\theenumi}{\arabic{enumi}}
+	\item Clone the repository from GitHub
+	\item run \texttt{make install}. For this you need the tools
+		\begin{itemize}
+			\item \texttt{fd}
+			\item \texttt{tl} (installable via \texttt{luarocks})
+			\item \texttt{l3build}
+		\end{itemize}
+		this will install \CluttealTeX into your \texttt{TEXMFHOME} tree
+\end{enumerate}
 
-Long options, except \TeX-compatible ones, need two hyphens (e.g. \texttt{-synctex=1} is accepted, but not \texttt{--color}).
+\subsection{Quickstart}
+For building a simple (pdf)\LaTeX document running:
+\begin{boxcode}[none][\normalsize]
+cluttealtex main.tex
+\end{boxcode}
+
+If you need a different \TeX engine like Lua\LaTeX or Xe\LaTeX, you can specify this as well:
+\begin{boxcode}[none][\normalsize]
+cluttealtex -e ENGINE main.tex
+\end{boxcode}
+
+Similarly if your main file is not called \texttt{main.tex} you only have to adjust this parameter:
+\begin{boxcode}[none][\normalsize]
+cluttealtex -e ENGINE MAINFILE.tex
+\end{boxcode}
+
+\subsection{Usage}
+The general usage is as follows:
+\begin{boxcode}[none][\normalsize]
+cluttealtex -e ENGINE OPTIONs [--] path_to_main_input.tex
+\end{boxcode}
+
+I encourage you to also read \cref{sec:output-dir} for a discussion on where *\TeX is executed (there are two options both with pros and cons).
+
+\CluttealTeX also supports specifying options via a config file (to avoid having to repeat them over and over again).
+This config file must be located in the current working directory and must be called \texttt{.cluttealtexrc.lua}.
+This way, you can achieve it that you can build your document by only executing
+\begin{boxcode}[none][\normalsize]
+cluttealtex
+\end{boxcode}
+without any options.
+
+Apart from this, the config file also offers some advanced features like changing\,/\,setting default values or defining new options (only for advanced users).
+In the future some options might only be available via the config file as setting them via CLI is too complicated\,/\,not feasible (like \eg adding a hook which gets called after every successful compilation).
+
+For further documentation on the config file see \cref{sec:config-file}
+
+\subsubsection{About how Options are documented} \label{sec:opt-doc}
+
+You find a complete list of all available options at the end of this documentation in \cref{sec:listOpt}.
+The following sections will explain the various options in detail, grouped by category.
+
+The following sections show the options similar to how keys in pgf\,/\,tikz are described.
+The path \texttt{/cmd/} refers to CLI arguments (multi-letter \tos two\,/\,one hyphens, single-letter \tos one hyphen).
+The path \texttt{/cfg/} refers to how to use the option in the config file.
+
+Most of the options have \texttt{default} and \texttt{initial} associated with them.
+Here \texttt{initial} refers to the value of this option if nothing is passed via cli\,/\,config file.
+On the other hand, \texttt{default} refers to which value gets implicitly passed as parameter if you don't provide one (or just pass \texttt{true} in the config file).
+
+\begin{itemize}
+	\item[Note:] The special value \texttt{none} for the \texttt{default} means you have to pass a parameter to this option.
+	\item[Note:] \texttt{bool-opt} means this option is enabled when passed.
+		In order to disable it, you can pass the same option prefixed with \texttt{no-} on the CLI.
+		In the config file, these options simply take \texttt{true}\,/\,\texttt{false}.
+	\item[Note:] When referencing options in the document only the \texttt{/cli} ones are referenced for brevity (except when there is on the \texttt{/cfg} option).
+\end{itemize}
+
+Long options, except \TeX-compatible ones, need two hyphens (\eg \texttt{-synctex=1} is accepted, but not \texttt{--color}).
 Combining multiple short options, like \texttt{-Ve pdflatex}, is not supported.
 
-\section{Sync\TeX}\label{sec:synctex}
-You can generate Sync\TeX\ data with \texttt{--synctex=1} option.
+\subsubsection{Basic Options}
 
-Although \CluttealTeX\ has \enquote{Don't clutter your working directory} as its motto, the \texttt{.synctex.gz} file is always produced alongside the PDF file.
-This is because Sync\TeX\ cannot find its data file if it's not in the same directory as the PDF.
+\paragraph{\TeX}
+\begin{docKeys}[
+		doc parameter={=\meta{engine}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=engine,
+			doc description={default: none, initial: none, \textcolor{CtpRed}{\bfseries\sffamily required}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=e,
+			doc description={default: none, initial: none, \textcolor{CtpRed}{\bfseries\sffamily required}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=engine,
+			doc description={default: none, initial: none, \textcolor{CtpRed}{\bfseries\sffamily required}},
+		},
+	}
+	Set which \TeX\ engine/format to use.
+	\meta{ENGINE} is one of the following:
+	\begin{multicols}{3}
+		\begin{itemize}
+			\item \texttt{pdflatex}
+			\item \texttt{pdftex}
+			\item \texttt{lualatex}
+			\item \texttt{luatex}
+			\item \texttt{luajittex}
+			\item \texttt{xelatex}
+			\item \texttt{xetex}
+			\item \texttt{latex}
+			\item \texttt{etex}
+			\item \texttt{tex}
+			\item \texttt{platex}
+			\item \texttt{eptex}
+			\item \texttt{ptex}
+			\item \texttt{uplatex}
+			\item \texttt{euptex}
+			\item \texttt{uptex}
+			\item[]
+			\item[]
+		\end{itemize}
+	\end{multicols}
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{engine\_executable}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=engine-executable,
+			doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=engine_executable,
+			doc description={default: none, initial: none},
+		},
+	}
+	The actual \TeX\ command to use.
+\end{docKeys}
+\begin{docKeys}{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=tex-option,
+			doc description={default: none, initial: none},
+			doc parameter={=\meta{tex\_option}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=tex-options,
+			doc description={default: none, initial: none},
+			doc parameter={=\meta{tex\_options}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=tex_option,
+			doc description={default: none, initial: none},
+			doc parameter={=\meta{tex\_option}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=tex_options,
+			doc description={default: none, initial: none},
+			doc parameter={=\meta{tex\_options}},
+		},
+	}
+	Pass extra options to \TeX.
+\end{docKeys}
+\begin{docKeys}{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=dvipdfmx-option,
+			doc description={default: none, initial: none},
+			doc parameter={=\meta{dvipdfmx\_option}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=dvipdfmx-options,
+			doc description={default: none, initial: none},
+			doc parameter={=\meta{dvipdfmx\_options}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=dvipdfmx_option,
+			doc description={default: none, initial: none},
+			doc parameter={=\meta{dvipdfmx\_option}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=dvipdfmx_options,
+			doc description={default: none, initial: none},
+			doc parameter={=\meta{dvipdfmx\_options}},
+		},
+	}
+	Pass extra options to \texttt{dvipdfmx}.
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{interaction}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=interaction,
+			doc description={default: none, initial: \texttt{nonstopmode}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=interaction,
+			doc description={default: none, initial: \texttt{nonstopmode}},
+		},
+	}
+	\meta{interaction} is one of
+	\begin{multicols}{3}
+		\begin{itemize}
+			\item \texttt{batchmode}
+			\item \texttt{nonstopmode}
+			\item \texttt{scrollmode}
+			\item \texttt{errorstopmode}
+			\item[]
+			\item[]
+		\end{itemize}
+	\end{multicols}
+	% Default: \texttt{nonstopmode}
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{jobname}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=jobname,
+			doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=jobname,
+			doc description={default: none, initial: none},
+		},
+	}
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{output}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=output,
+			doc description={default: none, initial: \texttt{\meta{jobname}.\meta{format}}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=o,
+			doc description={default: none, initial: \texttt{\meta{jobname}.\meta{format}}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=output,
+			doc description={default: none, initial: \texttt{\meta{jobname}.\meta{format}}},
+		},
+	}
+	Set output file name.
+\end{docKeys}
+\begin{docKeys}[
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=shell-escape,
+			doc description={bool-opt, initial: \texttt{false}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=shell_escape,
+			doc description={initial: \texttt{false}},
+		},
+	}
+	This option cannot be combined with \refKey{/cli/shell-restricted}.
+\end{docKeys}
+\begin{docKeys}[
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=shell-restricted,
+			doc description={bool-opt, initial: \texttt{false}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=shell_restricted,
+			doc description={initial: \texttt{false}},
+		},
+	}
+	This option cannot be combined with \refKey{/cli/shell-escape}.
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{synctex}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=synctex,
+			doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=synctex,
+			doc description={default: none, initial: none},
+		},
+	}
+	Generate Sync\TeX\ file.
+	\begin{itemize}
+		\item[Note:] \texttt{.synctex.gz} is created alongside the final \texttt{.pdf}.
+	\end{itemize}
 
-\section{Watch mode}\label{sec:watch-mode}
-If \texttt{--watch} option is given, \CluttealTeX\ enters \emph{watch mode} after processing the document.
+	You can pass the following values:
+	\begin{itemize}
+		\item[< 0] search and copy uncompressed Sync\TeX file (\texttt{.synctex})
+		\item[> 0] search and copy   compressed Sync\TeX file (\texttt{.synctex.gz})
+		\item[= 0] no Sync\TeX handling
+	\end{itemize}
+\end{docKeys}
+\begin{docKeys}[
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=halt-on-error,
+			doc description={bool-opt, initial: \texttt{true}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=halt_on_error,
+			doc description={initial: \texttt{true}},
+		},
+	}
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{fmt}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=fmt,
+			doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=fmt,
+			doc description={default: none, initial: none},
+		},
+	}
+\end{docKeys}
+\begin{docKeys}[
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=file-line-error,
+			doc description={bool-opt, initial: \texttt{true}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=file_line_error,
+			doc description={initial: \texttt{true}},
+		},
+	}
+\end{docKeys}
+
+\paragraph{\CluttealTeX}
+\begin{docKeys}[
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=version,
+			% doc description={},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=v,
+			% doc description={},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=version,
+			% doc description={},
+		},
+	}
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{output\_format}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=output-format,
+			doc description={default: none, initial: \texttt{pdf}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=output_format,
+			doc description={default: none, initial: \texttt{pdf}},
+		},
+	}
+	Set output format.
+	Possible values are
+	\begin{multicols}{3}
+		\begin{itemize}
+			\item \texttt{pdf}
+			\item \texttt{dvi}
+			\item[]
+		\end{itemize}
+	\end{multicols}
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{check\_driver}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=check-driver,
+			doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=check_driver,
+			doc description={default: none, initial: none},
+		},
+	}
+	Check that the correct driver file is loaded for certain packages.
+	Is one of
+	\begin{multicols}{3}
+		\begin{itemize}
+			\item \texttt{dvipdfmx}
+			\item \texttt{dvips}
+			\item \texttt{dvisvgm}
+		\end{itemize}
+	\end{multicols}
+	Can only be used with \refKey{/cli/output-format}\texttt{=dvi}.
+\end{docKeys}
+
+\subparagraph{Compilation}
+\begin{docKeys}[
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=start-with-draft,
+			doc description={bool-opt, initial: \texttt{false}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=start_with_draft,
+			doc description={initial: \texttt{false}},
+		},
+	}
+	Sets \texttt{draftmode} for the first iteration
+	\footnote{Maybe this is boosting the performance, but this is something inherited from Clut\TeX}.
+\end{docKeys}
+\begin{docKeys}[
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=skip-first,
+			doc description={bool-opt, initial: \texttt{false}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=skip_first,
+			doc description={initial: \texttt{false}},
+		},
+	}
+	Skips the first iteration by using the aux files of previous runs if the output is still newer than all other input and aux files.
+	If the aux files are not found, this obviously will have no effect.
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{max\_iterations}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=max-iterations,
+			doc description={default: none, initial: 3},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=max_iterations,
+			doc description={default: none, initial: 3},
+		},
+	}
+	Set maximum number of run, for resolving cross-references and etc.
+\end{docKeys}
+\begin{docKeys}[
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=fresh,
+			doc description={bool-opt, initial: \texttt{false}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=fresh,
+			doc description={initial: \texttt{false}},
+		},
+	}
+	Clean auxiliary files before run.
+	Cannot be used in conjunction with \refKey{/cli/output-directory}.
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{includeonly}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=includeonly,
+			doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=includeonly,
+			doc description={default: none, initial: none},
+		},
+	}
+	Insert \cs{includeonly}\marg{\meta{includeonly}}.
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{make\_depends}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=make-depends,
+			doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=make_depends,
+			doc description={default: none, initial: none},
+		},
+	}
+	Write Makefile-style dependencies information to \meta{make\_depends}.
+
+	More details on how this can be useful in \cref{sec:makefile-example}
+\end{docKeys}
+
+\subparagraph{Console output}
+\begin{docKeys}[
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=help,
+			% doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=h,
+			% doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=help,
+			% doc description={default: none, initial: none},
+		},
+	}
+	Prints a short help output describing the CLI-Interface and exits.
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{color}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=color,
+			doc description={default: \texttt{always}, initial: auto},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=color,
+			doc description={default: \texttt{always}, initial: auto},
+		},
+	}
+	Colorize messages.
+	\meta{color} is one of
+	\begin{multicols}{3}
+		\begin{itemize}
+			\item \texttt{always}
+			\item \texttt{auto}
+			\item \texttt{never}
+		\end{itemize}
+	\end{multicols}
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{quiet}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=quiet,
+			doc description={default: \texttt{1}, initial: 0},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=quiet,
+			doc description={default: \texttt{1}, initial: 0},
+		},
+	}
+	Try to make execution more silent (refers to the output of *\TeX.
+	\meta{quiet} may be a positive integer.
+	At level
+	\begin{itemize}
+		\item[0] everything is shown as normal
+		\item[1] over-/underfull boxes are omitted (if possible)
+		\item[2] only shows the output generated inside the document environment
+	\end{itemize}
+	If you really want to disable all output from *\TeX, you may have a look at \refKey{/cli/interaction}.
+
+	I recomend to disable quiet output in the end to really make sure no warning goes unnoticed.
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{verbose}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=verbose,
+			doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=V,
+			doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=quiet,
+			doc description={default: none, initial: none},
+		},
+	}
+	Refers to \CluttealTeX output.
+	Pass this option in order to view which hooks are executed or why exactly an additional run of *\TeX was issued.
+	Pass this option multiple times to increase the verbosity.
+\end{docKeys}
+
+\subsubsection{Output directory}
+\begin{docKeys}[
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=change-directory,
+			doc description={bool-opt, initial: \texttt{false}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=change_directory,
+			doc description={initial: \texttt{false}},
+		},
+	}
+	Change to the output directory when run.
+	May be useful with shell-escaping packages.
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{output\_directory}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=output-directory,
+			doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=output_directory,
+			doc description={default: none, initial: none},
+		},
+	}
+	Set output directory for *\TeX engine.
+	Auxiliary files are produced in this directory.
+	Initial somewhere in the temporary directory.
+\end{docKeys}
+\begin{docKeys}[
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=print-output-directory,
+			doc description={bool-opt, initial: \texttt{false}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=print_output_directory,
+			doc description={initial: \texttt{false}},
+		},
+	}
+	Print the output directory and exit.
+\end{docKeys}
+
+\subsubsection{Watch Mode}
+\begin{docKeys}[
+		doc parameter={=\meta{watch}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=watch,
+			doc description={default: \texttt{auto}, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=watch,
+			doc description={default: \texttt{auto}, initial: none},
+		},
+	}
+	Watch input files for change.
+	May need an external program to be available.
+	In case you want to select the tool used you can pass
+	\begin{multicols}{2}
+		\begin{itemize}
+			\item \texttt{inotifywait}
+			\item \texttt{fswatch}
+		\end{itemize}
+	\end{multicols}
+	to this option.
+
+	See \cref{sec:watch-mode} for details.
+\end{docKeys}
+\begin{docKeys}[
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=watch-not-ext,
+			doc parameter={=\meta{ext}},
+			doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=watch-not-path,
+			doc parameter={=\meta{path}},
+			doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=watch-ext,
+			doc parameter={=\meta{ext}},
+			doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=watch-path,
+			doc parameter={=\meta{path}},
+			doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=watch_inc_exc,
+			doc parameter={=lua-table},
+			doc description={default: none, initial: none},
+		},
+	}
+	Filter the list of watched files by these rules.
+	This is important as some watching engines have an upper limit of how many files can be watched at once (inotifywait for instance seems to only be able to watch at most 1024\footnote{\url{https://github.com/inotify-tools/inotify-tools/blob/210b019fb621d32fd6986b512508fc845f6c9fcb/src/common.cpp\#L18C20-L18C24}} files).
+	See \cref{sec:watch-mode} for details, particularly on the structure of the \texttt{lua-table}.
+
+	\begin{itemize}
+		\item[Note:] The order of the argument matters.
+		\item[Note:] No matter which of these options you use, the default is always to not watch a file.
+			So by only using \texttt{--watch-not-path=./aux/} you will end up by not watching any path.
+			You can of course change this by specifying \texttt{--watch-only-path=/} before.
+	\end{itemize}
+\end{docKeys}
+
+\subsubsection{Auxiliary/External Programs}
+
+\paragraph{\BibTeX\,/\,Biber}
+\begin{docKeys}[
+		doc parameter={=\meta{biber}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=biber,
+			doc description={default: \texttt{biber}, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=biber,
+			doc description={default: \texttt{biber}, initial: none},
+		},
+	}
+	After each run, check if \emph{biber} should run.
+	As an argument \meta{biber} you can pass another binary\,/\,path to execute instead of \texttt{biber} (\eg in case your biber binary is not in your \texttt{PATH}).
+
+	\begin{itemize}
+		\item[Note:] The options \refKey{/cli/biber} and \refKey{/cli/bibtex} are exclusive.
+	\end{itemize}
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{bibtex}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=bibtex,
+			doc description={default: \texttt{bibtex}, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=bibtex,
+			doc description={default: \texttt{bibtex}, initial: none},
+		},
+	}
+	After each run, check if \BibTeX should run.
+	As an argument \meta{bibtex} you can pass another binary\,/\,path to execute instead of \texttt{bibtex} (\eg in case your bibtex binary is not in your \texttt{PATH}).
+
+	\begin{itemize}
+		\item[Note:] The options \refKey{/cli/biber} and \refKey{/cli/bibtex} are exclusive.
+	\end{itemize}
+\end{docKeys}
+
+\paragraph{Glossaries}
+\begin{docKeys}[
+		doc parameter={=\meta{makeindex}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=makeindex,
+			doc description={default: \texttt{makeindex}, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=makeindex,
+			doc description={default: \texttt{makeindex}, initial: none},
+		},
+	}
+	After each run, check if \emph{makeindex} should run.
+	As an argument \meta{makeindex} you can pass another binary\,/\,path to execute instead of \texttt{makeindex} (\eg in case your makeindex binary is not in your \texttt{PATH}).
+
+	\begin{itemize}
+		\item[Note:] The options \refKey{/cli/makeindex} and \refKey{/cli/glossaries} are exclusive.
+	\end{itemize}
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{glossaries}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=glossaries,
+			doc description={initial:none, default: \\\texttt{makeindex:glo:gls:glg}},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=glossaries,
+			doc description={initial:none, default: \\\texttt{makeindex:glo:gls:glg}},
+		},
+	}
+	Similar to \refKey{/cli/makeindex} but more flexible.
+	In case you are not using a classical index but \eg abbreviations instead, the files to watch differ from the standard case.
+	Thus, this needs to be setup differently.
+
+	This option allows you to freely build your \emph{makeindex}\,/\,\emph{xindy} command.
+	Everytime you pass this option the parameter will be used to register a new glossary.
+
+	The default parameter reflects what a normal index (like when using simple \refKey{/cmd/makeindex}) is specified.
+	As you can see this more complicated. In the config file, you can also pass the parameter as a \emph{table} which avoids needing to split and parse the parameter.
+
+	See \cref{sec:glossaries} for details on the parameter and\,/\,or table structure.
+
+	\begin{itemize}
+		\item[Note:] The options \refKey{/cli/makeindex} and \refKey{/cli/glossaries} are exclusive.
+	\end{itemize}
+\end{docKeys}
+
+\paragraph{Sage\TeX}
+\begin{docKeys}[
+		doc parameter={=\meta{sagetex}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=sagetex,
+			doc description={default: \texttt{sage}, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=sagetex,
+			doc description={default: \texttt{sage}, initial: none},
+		},
+	}
+	After each run, check if \emph{sage} should run.
+\end{docKeys}
+
+\paragraph{memoize}
+\begin{docKeys}[
+		doc parameter={=\meta{memoize}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=memoize,
+			doc description={default: \texttt{perl}, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=memoize,
+			doc description={default: \texttt{perl}, initial: none},
+		},
+	}
+	After each run, check if the external memoize executable should run.
+
+	\meta{memoize} can be
+	\begin{multicols}{3}
+		\begin{itemize}
+			\item \texttt{perl}
+			\item \texttt{python}
+		\end{itemize}
+	\end{multicols}
+	depending on which memoize script you want to run.
+
+	Using this option also sets the \texttt{no memo dir} option for the \texttt{memoize} package as \CluttealTeX itself already provides the feature of avoiding to clutter the working directory.
+	It also sets the key \texttt{extract=no} since \CluttealTeX performs the extraction on its own.
+\end{docKeys}
+\begin{docKeys}[
+		doc parameter={=\meta{memoize\_opt}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=memoize-opt,
+			doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=memoize_opt,
+			doc description={default: none, initial: none},
+		},
+	}
+	Pass additional options to the memoize package.
+	This might be useful in particular for generating the final document for which it is recomended to disable memoization.
+
+	Especially the \texttt{readonly} option might be one you want to pass, since this allows to build with the current set of memoized pictures and then after finishing writing a new picture memoize the new picture as well (compile once without \texttt{readonly} after finishing).
+\end{docKeys}
+
+\paragraph{Special packages}
+\begin{docKeys}[
+		doc parameter={=\meta{package\_support}},
+	]{
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cli,
+			doc name=package-support,
+			doc description={default: none, initial: none},
+		},
+		{
+			% doc new=2025-01-01,
+			% doc updated=2025-01-01,
+			doc keypath=cfg,
+			doc name=package_support,
+			doc description={default: none, initial: none},
+		},
+	}
+	Enable special support for certain packages which make use of shell-escaping (and might thus have trouble with the changed directory).
+	Currently supported are:
+	\begin{multicols}{2}
+		\begin{itemize}
+			\item \texttt{minted}
+			\item \texttt{epstopdf}
+		\end{itemize}
+	\end{multicols}
+\end{docKeys}
+
+\subsection{Watch mode}\label{sec:watch-mode}
+If \refKey{/cli/watch} option is given, \CluttealTeX enters \emph{watch mode} after processing the document.
 
 On Windows, a built-in filesystem watcher is implemented.
 
 On other platforms, an auxiliary program \texttt{fswatch}\footnote{\url{http://emcrisostomo.github.io/fswatch/}} or \texttt{inotifywait} needs to be installed.
-The auxiliary program will be detected automatically, but you can also select one specific tool via the paramter of the \texttt{--watch} option.
+The auxiliary program will be detected automatically, but you can also select one specific tool via the paramter of the \refKey{/cmd/watch} option.
 
-\section{MakeIndex and \BibTeX}
-If you want to generate index or bibliography, using MakeIndex or \BibTeX, set \texttt{--makeindex}, \texttt{--bibtex}, or \texttt{--biber} option.
-You need to explicitly specify the command name as an argument (e.g. \texttt{--makeindex=makeindex}, \texttt{--bibtex=bibtex}).
+\subsubsection{Filter watched files}
+The \texttt{watch*} options are constructed systematically with two building blocks \emph{rules} and \emph{matchers} (in this order).
 
-If you want to use Biber to process bibliography, the option to use is \texttt{--biber}, not \texttt{--bibtex=biber}.
+There are the following \emph{rules}:
+\begin{itemize}
+	\item \iboxcmd{not} files matching this rule will be excluded
+	\item \iboxcmd{only} files matching this rule will be included
+\end{itemize}
+and the following \emph{matchers}:
+\begin{itemize}
+	\item \iboxcmd{path} matches all files contained in the subtree of this path
+	\item \iboxcmd{ext} matches all files having this extension
+\end{itemize}
 
-\subsection{Glossaries}
-\label{sec:glossaries}
+\begin{itemize}
+	\item[Note:] A file continues to traverse the filters even if it was matched.
+		So for example \texttt{watch-only-ext="tex" watch-not-path="/usr/local/texlive"} will watch all \texttt{tex} files except the ones located in \texttt{/usr/local/texlive}.
+\end{itemize}
+
+This is what happens to each file that is being a candidate for being watched:
+\begin{enumerate}
+	\item (In case you did not define any filtering (none of \texttt{watch-\{not,only\}-\{path,ext\}} passed), the file is marked was being watched and the following steps are skipped)
+	\item The file always begins as being marked as \emph{not watched}
+	\item Then it traverses all filters and might change (multiple times, no stopping if one filter matches\footnote{
+		This enables you to use \texttt{--watch-only-path=/} to change the default easily
+	}) its state.
+\end{enumerate}
+
+\paragraph{Using the Table Option \texttt{watch\_inc\_exc} to specify Filters}
+In the lua table we can make options accumulating, then we pass an array instead of a table.
+But this alone does not help in this case as the option is split across multiple options.
+In this case the ordering in particularly is important.
+So we would need to specify the order in which what filter of which option should be applied.
+This is tedious and error prone to configure.
+Thus for configuring the filters in the config file all filters are defined in a single table.
+
+\begin{docKey}[config][
+		% doc new=2025-01-01,
+		% doc updated=2025-01-01,
+	]{watch_inc_exc[].type}{=\meta{type}}{}
+	Sets the type of the filter. Can be
+	\begin{multicols}{4}
+		\begin{itemize}
+			\item \texttt{not\_ext}
+			\item \texttt{only\_ext}
+			\item \texttt{not\_path}
+			\item \texttt{only\_path}
+		\end{itemize}
+	\end{multicols}
+\end{docKey}
+\begin{docKey}[config][
+		% doc new=2025-01-01,
+		% doc updated=2025-01-01,
+	]{watch_inc_exc[].param}{=\meta{param}}{}
+	Sets the parameter (\texttt{ext}\,/\,\texttt{path}) of the filter
+\end{docKey}
+
+\begin{itemize}
+	\item[Note:] the \texttt{[]} marks the array used to store the sequence of the filters
+	\item[Note:] the \texttt{.} denotes drilling into the table used to represent one single filter
+\end{itemize}
+
+\subsection{Glossaries} \label{sec:glossaries}
 For more complex setups of indices you can use the \texttt{glossaries} option.
-Its parameter takes the form
-\texttt{type:outputExt:inputExt:logExt:pathToCommand:commandArgs} (colons
-need to be escaped with \texttt{\textbackslash{}:}).
+Its parameter takes the form\\
+\iboxcmd{type:outputExt:inputExt:logExt:pathToCommand:commandArgs} (colons need to be escaped with \iboxcmd{\:}).
 
 You might obmit trailing arguments which you do not need.
 
-\begin{tabularx}{\linewidth}{cX}
-	\texttt{type} &
-	type of the glossary, used to determine which tool to run (e.g. \texttt{makeindex})
-	\newline
-	(this or \texttt{pathToCommand} are mandatory)
+For the documentation of the keys please see the keys as defined in \cref{sec:glossary-table}.
+How arguments are automatically derived when missing works exactly the same as described there.
+
+\begin{tabularx}{\linewidth}{rX}
+	\texttt{type} & \refKey{/config/glossaries[].type}
 	\\
-	\texttt{outputExt} &
-	extension of the output file of the tool being run. The actual output file will
-	be the tex-file you passed to \CluttealTeX{} with the extension replaced
-	with this argument.
-	\newline
-	Same procedure is applied to the other extensions you pass (optionally) here.
-	\newline
-	(mandatory)
+	\texttt{outputExt} & \refKey{/config/glossaries[].out}
 	\\
-	\texttt{inputExt} &
-	file generated by \LaTeX which then is being read by the tool being run
-	\newline
-	(optional -- generated from \texttt{outputExt} by using \texttt{.XXs} as extension)
+	\texttt{inputExt} & \refKey{/config/glossaries[].inp}
 	\\
-	\texttt{logExt} &
-	log file of the tool being run
-	(optional -- generated from \texttt{outputExt} by using \texttt{.XXl} as extension)
+	\texttt{logExt} & \refKey{/config/glossaries[].log}
 	\\
-	\texttt{pathToCommand} &
-	specify an exact path to the tool which shall be run to avoid needing to
-	put it in your \texttt{PATH}
-	\newline
-	(this or \texttt{pathToCommand} are mandatory)
+	\texttt{pathToCommand} & \refKey{/config/glossaries[].path}
 	\\
-	\texttt{commandArgs} &
-	additional argument for the tool being run
+	\texttt{commandArgs} & \refKey{/config/glossaries[].cmd}
 \end{tabularx}
 
 Examples:
 \begin{itemize}
-	\item  \texttt{makeindex:main.acr:main.acn:main.alg}
+	\item  \texttt{makeindex:acr:acn:alg}
 		\newline
 		default setup for
 		acronyms with the glossaries package
-	\item \texttt{makeindex:main.glo:main.gls:main.glg}
+	\item \texttt{makeindex:glo:gls:glg}
 		\newline
 		default setup for the
 		normal glossary with the glossaries package
@@ -273,24 +1420,85 @@ Examples:
 		(default if no argument is givent to the \texttt{glossaries} option)
 \end{itemize}
 
-\section{For writing a large document}
-When writing a large document with \LaTeX, you usually split the \TeX\ files with \texcmd{include} command.
-When doing so, \texcmd{includeonly} can be used to eliminate processing time.
-But writing \texcmd{includeonly} in the \TeX\ source file is somewhat inconvenient.
-After all, \texcmd{includeonly} is about \emph{how} to process the document, not about its content.
+\paragraph{Using the Table Option of \texttt{glossaries}} \label{sec:glossary-table}
+This basically lets you directly set the keys in the table representing the glossary without all the splitting and parsing described above.
+After the parsing and splitting, the cli parameter is put in the same structure described here.
 
-Therefore, \CluttealTeX\ provides an command-line option to use \texcmd{includeonly}.
-See \autoref{sec:makefile-example} for example.
+\begin{itemize}
+	\item[Note:] Some parameters only specify the \emph{extension}.
+		The actual file passed to the selected tool will be the tex-file passed to \CluttealTeX with the extension replaced to the one specified here.
+	\item[Note:] the \texttt{[]} marks the array used to store the sequence of registered glossaries
+	\item[Note:] the \texttt{.} denotes drilling into the table used to represent one single glossary
+\end{itemize}
 
-Tips: When using \texttt{includeonly}, avoid using \texttt{--makeindex} or \texttt{--biber}.
+\begin{docKey}[config][
+		% doc new=2025-01-01,
+		% doc updated=2025-01-01,
+	]{glossaries[].type}{=\meta{param}}{mandatory\\(or \refKey{/config/glossaries[].path})}
+	Type of the glossary, used to determine which tool to run.
+	Can be
+	\begin{multicols}{2}
+		\begin{itemize}
+			\item \texttt{makeindex}
+			\item \texttt{xindy}
+		\end{itemize}
+	\end{multicols}
+\end{docKey}
+\begin{docKey}[config][
+		% doc new=2025-01-01,
+		% doc updated=2025-01-01,
+	]{glossaries[].out}{=\meta{param}}{\textcolor{CtpRed}{\bfseries\sffamily required}}
+	Extension of the output file of the tool being run.
+\end{docKey}
+\begin{docKey}[config][
+		% doc new=2025-01-01,
+		% doc updated=2025-01-01,
+	]{glossaries[].inp}{=\meta{param}}{can be derived from \\\refKey{/config/glossaries[].out}}
+	Extension of the file generated by *\TeX which then is being read by the selected tool.
+	\\
+	(optional -- derived from \refKey{/config/glossaries[].out} by using \texttt{.XXs} as extension)
+\end{docKey}
+\begin{docKey}[config][
+		% doc new=2025-01-01,
+		% doc updated=2025-01-01,
+	]{glossaries[].log}{=\meta{param}}{can be derived from \\\refKey{/config/glossaries[].out}}
+	Extension of the log file of the selected tool
+	\\
+	(optional -- derived from \refKey{/config/glossaries[].out} by using \texttt{.XXl} as extension)
+\end{docKey}
+\begin{docKey}[config][
+		% doc new=2025-01-01,
+		% doc updated=2025-01-01,
+	]{glossaries[].path}{=\meta{param}}{mandatory\\(or \refKey{/config/glossaries[].type})}
+	This allows to specify an exact path to the tool which shall be run to avoid needing to put it in your \texttt{PATH}.
+	\\
+	(this or \texttt{pathToCommand} are mandatory)
+\end{docKey}
+\begin{docKey}[config][
+		% doc new=2025-01-01,
+		% doc updated=2025-01-01,
+	]{glossaries[].cmd}{=\meta{param}}{optional}
+	Additional argument for the selected tool
+\end{docKey}
 
-Another technique for eliminating time is, setting \texttt{--max-iterations=1}.
-It stops \CluttealTeX\ from processing the document multiple times, which may take several extra minutes.
+\subsection{For writing a large document}
+When writing a large document with \LaTeX, you usually split the \TeX files with \cs{include} command.
+When doing so, \cs{includeonly} can be used to eliminate processing time.
+But writing \cs{includeonly} in the \TeX source file is somewhat inconvenient.
+After all, \cs{includeonly} is about \emph{how} to process the document, not about its content.
 
-\section{Using Makefile}\label{sec:makefile-example}
-You can create Makefile to avoid writing \CluttealTeX\ options each time.
+Therefore, \CluttealTeX provides an command-line option to use \cs{includeonly}.
+See \cref{sec:makefile-example} for example.
+
+Tips: When using \refKey{/cli/includeonly}, avoid using \refKey{/cli/makeindex} or \refKey{/cli/biber}.
+
+Another technique for eliminating time is, setting \refKey{/cli/max-iterations=1}.
+It stops \CluttealTeX from processing the document multiple times, which may take several extra minutes.
+
+\subsection{Using Makefile}\label{sec:makefile-example}
+You can create Makefile to avoid writing \CluttealTeX options each time.
 Example:
-\begin{verbatim}
+\begin{boxcode}[make]
 main.pdf: main.tex chap1.tex chap2.tex
     cluttealtex -e lualatex -o $@ --makeindex=mendex $<
 
@@ -302,79 +1510,144 @@ chap1-preview.pdf: main.tex chap1.tex
 
 chap2-preview.pdf: main.tex chap2.tex
     cluttealtex -e lualatex -o $@ --max-iterations=1 --includeonly=chap2 $<
-\end{verbatim}
+\end{boxcode}
 
-With \texttt{--make-depends} option, you can let \CluttealTeX\ infer sub-files and omit them from Makefile.
+With \refKey{/cli/make-depends} option, you can let \CluttealTeX infer sub-files and omit them from Makefile.
 Example:
 
-\begin{verbatim}
+\begin{boxcode}[make]
 main.pdf: main.tex
     cluttealtex -e lualatex -o $@ --make-depends=main.pdf.dep $<
 
 -include main.pdf.dep
-\end{verbatim}
+\end{boxcode}
 
 After initial \texttt{make} run, \texttt{main.pdf.dep} will contain something like this:
-\begin{verbatim}
+\begin{boxcode}[make]
 main.pdf: ... main.tex ... chap1.tex chap2.tex
-\end{verbatim}
+\end{boxcode}
 
-Note that \texttt{--make-depends} option is still experimental, and may not work well with other options like \texttt{--makeindex}.
+\begin{itemize}
+	\item[Note:] \refKey{/cli/make-depends} option is still experimental, and may not work well with other options like \refKey{/cli/makeindex}.
+\end{itemize}
 
-\section{Default output directory}
-The auxiliary files like \texttt{.aux} are generated somewhere in the temporary directory, by default.
+\subsection{Output directory} \label{sec:output-dir}
+By default, auxiliary files like \texttt{.aux} are generated somewhere in a temporary directory by using the \texttt{-output-directory} flag of \TeX.
 The directory name depends on the following three parameters:
 \begin{itemize}
-\item The absolute path of the input file
-\item \texttt{--jobname} option
-\item \texttt{--engine} option
-\end{itemize}
-On the other hand, the following parameters doesn't affect the directory name:
-\begin{itemize}
-\item \texttt{--includeonly}
-\item \texttt{--makeindex}, \texttt{--bibtex}, \texttt{--biber}, \texttt{--glossaries}
+	\item The absolute path of the input file
+	\item \refKey{/cli/jobname}
+	\item \refKey{/cli/engine}
 \end{itemize}
 
-If you need to know the exact location of the automatically-generated output directory, you can invoke \CluttealTeX with \texttt{--print-output-directory}.
+If you need to know the exact location of the automatically-generated output directory, you can invoke \CluttealTeX with \refKey{/cli/print-output-directory}.
 For example, \texttt{clean} target of your Makefile could be written as:
-\begin{verbatim}
+\begin{boxcode}[make]
 clean:
     -rm -rf $(shell cluttealtex -e pdflatex --print-output-directory main.tex)
-\end{verbatim}
+\end{boxcode}
 
-\CluttealTeX itself doesn't erase the auxiliary files, unless \texttt{--fresh} option is set.
-Note that, the use of a temporary directory means, the auxiliary files may be cleared when the computer is rebooted.
+\begin{itemize}
+	\item[Note:] \CluttealTeX itself doesn't erase the auxiliary files, unless \refKey{/cli/fresh} option is set.
+	\item[Note:] The use of a temporary directory means, the auxiliary files may be cleared when the computer is rebooted.
+\end{itemize}
 
-\section{Support for \texpkg{minted} and \texpkg{epstopdf}}
+\subsubsection{Recommendations}
+I personally recoment using \refKey{/cli/change-directory}.
+This option uses \texttt{cd} to change into the directory where the compilation should take place.
+Therefore this avoids some of the troubles referenced in \cref{sec:supp-pkg}.
+
+On the other hand using \refKey{/cli/change-directory} introduces some other problems.
+In order to make *\TeX still find all the files the environment variables used for locating files get the original working directory prepended.
+This usually works well, but you should be aware of the prodecure in case you run into issues with some fixed paths.
+If you run into troubles, please open an issue \footnote{\url{https://github.com/atticus-sullivan/cluttealtex/issues}} for it so we can improve.
+
+\subsubsection{Support for \refPkg{minted} and \refPkg{epstopdf}} \label{sec:supp-pkg}
 In general, packages that execute external commands (shell-escape) don't work well with \texttt{-output-directory}.
 Therefore, they don't work well with \CluttealTeX.
 
 However, some packages provide a package option to let them know the location of \texttt{-output-directory}.
-For example, \texpkg{minted} provides \texttt{outputdir}, and \texpkg{epstopdf} provides \texttt{outdir}.
+For example, \refPkg{minted} provides \texttt{outputdir}, and \refPkg{epstopdf} provides \texttt{outdir}.
 
-\CluttealTeX\ can supply them the appropriate options, but only if it knows that the package is going to be used.
-To let \CluttealTeX\ what packages are going to be used, use \texttt{--package-support} option.
+\CluttealTeX can supply them the appropriate options, but only if it knows that the package is going to be used.
+To let \CluttealTeX know what packages are going to be used, use the \texttt{--package-support} option.
 
-For example, if you want to typeset a document that uses \texpkg{minted}, run the following:
+For example, if you want to typeset a document that uses \refPkg{minted}, run the following:
 \begin{verbatim}
 cluttealtex -e pdflatex --shell-escape --package-support=minted document.tex
 \end{verbatim}
 
-\section{Check for driver file}
+\subsection{Check for driver file}
 
-\CluttealTeX\ can check that the correct driver file is loaded when certain packages are loaded.
-Currently, the list of supported packages are \texpkg{graphics}, \texpkg{color}, \texpkg{expl3}, \texpkg{hyperref}, and \texpkg{xy}.
+\CluttealTeX can check that the correct driver file is loaded when certain packages are loaded.
+Currently, the list of supported packages are
+\begin{multicols}{3}
+	\begin{itemize}
+		\item \refPkg{graphics}
+		\item \refPkg{color}
+		\item \refPkg{expl3}
+		\item \refPkg{hyperref}
+		\item \refPkg{xy}
+	\end{itemize}
+\end{multicols}
 
 The check is always done with PDF mode.
-To check the driver with DVI mode, use \texttt{--check-driver} option.
+To check the driver with DVI mode, use \refKey{/cli/check-driver} option.
 
-\section{Configuration file}
-When calling \CluttealTeX, it will search for a file named \verb|.cluttealtexrc.lua| in the current working directory. If it finds such a file, \CluttealTeX will load that lua file and use the tables defined there as configuration options. Options set via the cli will always have a higher priority and overwrite anything that was set via the configuration file.
+\subsection{Configuration file} \label{sec:config-file}
+When calling \CluttealTeX, it will search for a file named \texttt{.cluttealtexrc.lua} in the current working directory.
+If it finds such a file, \CluttealTeX will execute that lua file and use the return value as configuration.
+This returned value should be a table of a certain structure, definely shortly after this.
+Options set via the cli will always have a higher priority and overwrite anything that was set via the configuration file.
 
-Note: The configuration file must return the table used to configure \CluttealTeX
+\begin{itemize}
+	\item[Note:] The configuration file must return the table used to configure \CluttealTeX
+	\item[Note:] Missing keys\,/\,tables will be replaced with an empty table so they simply have no effect
+	\item[Note:] Options passed via the CLI always take precedence over those defined in the config file
+	\item[Note:]
+		Generally in the config, but particularly for the passed functions, you can write arbitrary Lua code.
+		You can even use \texttt{require} to load additional (lua) libraries.
+		The environment of the config and the environment of \CluttealTeX is partially shared.
+		When the config accesses a global variable, it gets passed a (deep) copy of that value to avoid the config intervening with the execution of \CluttealTeX.
+		This makes functions in the config \emph{powerful but also dangerous}, so \emph{be careful with that}.
+\end{itemize}
 
-An example looks like this:
-\begin{verbatim}
+These three keys of the retured table are actually processed by \CluttealTeX (in the order like specified):
+\begin{docKey}[configFile][
+		% doc new=2025-01-01,
+		% doc updated=2025-01-01,
+	]{add_cli_options}{=lua-table}{advanced usecases}
+	Allows to define own options that can be passed (on the CLI and\,/\,or via the config file).
+	The structure (and types) of the table that needs to be passed here is defined in \texttt{cluttealtex/src\_lua/texrunner/option.tl} (see the \texttt{Option} record).
+	Together with the hooking mechanism 
+	\begin{description}
+		\item[\textcolor{CtpRed}{\bfseries\sffamily Caution:}] Complete lua-functions can be (and are intended to be) passed here.
+			These functions can tamper real bad with the internal options table used by \CluttealTeX as well as install hooks which are executed at certain points in the \CluttealTeX execution.
+			Since the environment of the config file is not constraint, these functions can execute anything (this is intended in order to provide maximal flexibility).
+			This reaches from \enquote{normal} lua-code to \texttt{os.execute} (equivalent to \texttt{system()}).
+			Be careful here, you might break things!
+	\end{description}
+\end{docKey}
+\begin{docKey}[configFile][
+		% doc new=2025-01-01,
+		% doc updated=2025-01-01,
+	]{defaults}{=lua-table}{}
+	Some options have a default value that comes into effect if no parameter was passed to the option.
+	With this table, you can modify the default values.
+	The keys being used are the same as defined throughout this document.
+	Currently, default values always need to be strings (like parameters passed on the CLI).
+\end{docKey}
+\begin{docKey}[configFile][
+		% doc new=2025-01-01,
+		% doc updated=2025-01-01,
+	]{options}{=lua-table}{}
+	Equivalent to passing options on the CLI.
+	Keys are defined throughout this document and in the end there is a table summarizing all available options, denoted as CLI option as well as table key.
+\end{docKey}
+
+\subsubsection{Examples}
+A rather small example setting some options and setting a default value:
+\begin{boxcode}[{[5.3]Lua}]
 return {
 	options = {
 		file = "main.tex",
@@ -390,9 +1663,69 @@ return {
 		watch = "inotify", -- changes the default value of this option. Only has an effect on cli arguments 
 	}
 }
-\end{verbatim}
+\end{boxcode}
 
-For now refer to \url{https://github.com/atticus-sullivan/cluttealtex/pull/22} for further details.
-The docs will be rewritten soon and this option described in more detail.
+An example for a config file I used for one document:
+\begin{boxcode}[{[5.3]Lua}]
+return {
+	options = {
+		file = "main.tex",
+		output_directory = "tex-aux",
+		change_directory = true,
+		engine = "pdflatex",
+		biber = true, -- uses the default value of biber
+		-- could also be an array of these tables to configure multiple glossaries
+		-- equivalent to "--glossaries=makeindex:acr:acn:alg"
+		glossaries = {
+			type="makeindex",
+			out="acr",
+			inp="acn",
+			log="alg"
+		},
+		-- just something high to disable this upper limit
+		max_iterations = "50",
+		quiet = "0",
+	},
+	-- Change/Set the default value of an option. Only has an effect on cli arguments.
+	defaults = {
+		-- now if you pass --watch, "inofity" will be passed by default instead of "auto"
+		watch = "inotify",
+	},
+}
+\end{boxcode}
+
+Example for an \emph{advanced usecase} adding a new option which can be passed via the CLI (and the \texttt{options} key in the config file):
+\begin{boxcode}[{[5.3]Lua}]
+return {
+	-- probably setting some options also here
+	cli_options = {
+		echo_after_build = {
+			long = "echo-after-build",
+			handle_cli = function(options, _)
+			io.stderr:write("hello world\n") -- printed when the argument is handled
+			options.hooks.post_build[1] = {function(_)
+				io.stderr:write("finished building =====================\n") -- only printed when the build succeeded
+			end, "testing post_build hook"}
+			end
+		},
+	}
+}
+\end{boxcode}
+You can see this allows you to register arbitrary code after the document was completely built.
+This can be used to \eg sync the final output to some other location.
+It can also break \CluttealTeX.
+But this can also add code to \CluttealTeX you \emph{do not want} in it!
+So be careful with this feature and only use it if you \emph{know what you are doing!}
+
+\begin{landscape}
+\section{Summary of all available Options} \label{sec:listOpt}
+\begin{itemize}
+	\item \emph{optname} refers to the name of the option when passing it via the config file (\texttt{.cluttealtexrc.lua})
+	\item arguments containing \texttt{[=...]} all have a default value, so when passing this option you don't have to specify a value.
+		Like with usual CLI arguments, you can pass a custom value either seperated with a space \eg \iboxcmd{--engine lualatex} (or seperated with an equal sign)
+\end{itemize}
+
+\LTXtable{\linewidth}{args.tex}
+\end{landscape}
 
 \end{document}

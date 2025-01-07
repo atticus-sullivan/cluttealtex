@@ -5,6 +5,8 @@ using teal to transpile typed lua to classic lua.**
 
 See `-h` and/or the documentation in `pdf` format.
 
+![Example run of a simple document using cluttealtex](./demo/main.gif)
+
 ## How to install
 You can either
 - download the executable form the current release (`cluttealtex` or `cluttealtex.bat`)
@@ -13,9 +15,40 @@ will use `l3build` to install the script to your `TEXMFHOME`.
 - eventually I'll also publish this on ctan.org, but currently I feel this is
 mostly a duplicate of `cluttex` which is already published there.
 
+### Guide: Manual installation (on Linux)
+<details><summary>Click to expand</summary>
+
+An example how a basic installation on Linux could look like (using the latest release, not the nightly build):
+```bash
+V="v0.9.1" # select the version to download
+baseurl="https://github.com/atticus-sullivan/cluttealtex/releases/download/${V}"
+
+curl -o "/usr/local/bin/cluttealtex" "${baseurl}/cluttealtex"
+```
+
+This might be the simplest way of installing manually, though nicer is to setup your local \texttt{TEXMFHOME} and place the executable there.
+For Linux again this could look like this:
+```bash
+V="v0.9.1" # select the version to download
+kpsewhich --var-value TEXMFHOME # should be set to be set -> see https://tug.org/texlive/doc/texlive-en/texlive-en.html#x1-350003.4.6
+baseurl="https://github.com/atticus-sullivan/cluttealtex/releases/download/${V}"
+dir="$(kpsewhich --var-value TEXMFHOME)"
+
+# install the executable
+make -p "${dir}/scripts/cluttealtex"
+curl -o "${dir}/scripts/cluttealtex/cluttealtex" "${baseurl}/cluttealtex"
+
+# install the documentation -> `texdoc cluttealtex` brings up the documentation in your pdf viewer
+make -p "${dir}/doc/latex/cluttealtex"
+curl -o "${dir}/doc/latex/cluttealtex/cluttealtex.pdf" "${baseurl}/cluttealtex.pdf"
+```
+
+</details>
+
 ## Features
-- written in / generated with teal/tl => no external dependencies, (tex)lua should
-  be included in texlive.
+- written in / generated with `teal`/`tl? => no external dependencies, (tex)lua is
+  included in more recent TeXLive installations (`TeXLive-2019` or later
+  definitely works, older versions might work but were not tested)
 - avoid cluttering your project directory with aux files
 - watch input files and automatically rebuild on change
 - run `makindex`, BibTeX, `biber` if requested
@@ -24,7 +57,21 @@ mostly a duplicate of `cluttex` which is already published there.
   `cluttealtex` and put `\usepackage{memoize}` in your LaTeX file. Also you can
   pass arbitrary additional parameters to `memoize` (useful for e.g. `readonly` key)
 
-## For developers
+## Arguments
+For a detailed reference, have a look at the `cluttealtex.pdf` which comes
+bundled with every release.
+
+For a short lookup you can also have a look at [this table containing all valid
+arguments/options](args.md).
+
+- `optname` refers to the name of the option when passing it via the
+config file (`.cluttealtexrc.lua`)
+- arguments containing `[=...]` all have a default value, so when passing this
+option you don't have to specify a value. Like with usual CLI arguments, you can
+pass a custom value either seperated with a space \eg `--engine lualatex`
+(or seperated with an equal sign)
+
+## For developers / advanced users
 <details><summary>Click to expand</summary>
 
 ### Hooking
