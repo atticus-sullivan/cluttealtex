@@ -59,7 +59,6 @@ jobs:
       run: |
         luarocks install --dev tl
         luarocks install cyan
-        luarocks install lester
 
     - name: make
       run: make FD=fdfind build doc
