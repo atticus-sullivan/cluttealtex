@@ -5,7 +5,7 @@
 **Note: This is a fork of [cluttex](https://github.com/minoki/cluttex) which is
 using teal to transpile typed lua to classic lua.**
 
-[![REUSE status](https://api.reuse.software/badge/git.fsfe.org/reuse/api)](https://api.reuse.software/info/git.fsfe.org/reuse/api)
+[![REUSE status](https://api.reuse.software/badge/github.com/atticus-sullivan/cluttealtex)](https://api.reuse.software/info/github.com/atticus-sullivan/cluttealtex)
 [![.github/workflows/run_tests.yaml](https://github.com/atticus-sullivan/cluttealtex/actions/workflows/run_tests.yaml/badge.svg)](https://github.com/atticus-sullivan/cluttealtex/actions/workflows/run_tests.yaml)
 
 # clutealtex
