@@ -81,6 +81,33 @@ pass a custom value either seperated with a space e.g. `--engine lualatex`
 ## For developers / advanced users
 <details><summary>Click to expand</summary>
 
+### Setup development environment
+#### teal/lua packages
+Like you can see in the GitHub-Actions, we are trying to use the most recent
+version of teal since usually there are quite some improvements in the language.
+
+To install teal (and related lua packages) just use the same commands like in
+the GitHub-Actions:
+```bash
+luarocks install --dev tl # teal
+luarocks install cyan     # build system for teal
+luarocks install lester   # for running tests in lua
+```
+I really recomend using `luarocks` to install these packages as this is just the
+easiest way. But as long as the packages are available everything will work out
+as well.
+
+#### pre-commit
+Currently only for REUSE compliance, but maybe in the future also for more
+related things, we are using [pre-commit](https://pre-commit.com/) to run hooks
+before committing. This is supposed to ensure some constraints on commited code
+already locally (without the need of running the GitHub-Action).
+
+Still you need to
+1. Install the `pre-commit` tool (it's python so you can also use a `venv` for
+   this)
+2. Activate it in this repository: `pre-commit install`
+
 ### Hooking
 For some parts, cluttealtex makes use of a hooking mechanism. The initial idea
 was to keep the functions in `typeset.tl` smaller and to avoid piling up code
