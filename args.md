@@ -42,6 +42,6 @@
 | watch | watch[=watch] | - | auto |
 | watch_exc_ext | watch-exc-ext=watch_exc_ext | - | - |
 | watch_exc_path | watch-exc-path=watch_exc_path | - | - |
-| watch_inc_exc | - | - | - |
+| watch_filter | - | - | - |
 | watch_inc_ext | watch-inc-ext=watch_inc_ext | - | - |
 | watch_inc_path | watch-inc-path=watch_inc_path | - | - |
