@@ -103,7 +103,6 @@ local function env_setup(options: option_t.Options, original_wd: string): Env
 	if not os.getenv("max_print_line") then
 		os.setenv("max_print_line", options.bibtex and "19999" or "65536")
 	end
-	-- TODO: error_line, half_error_line
 	--[[
 	  According to texmf.cnf:
 		45 < error_line < 255,

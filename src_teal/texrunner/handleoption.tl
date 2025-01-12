@@ -352,18 +352,7 @@ local function handle_input_file(arg: {string}, inputfile: string, non_option_in
 end
 
 -- Function to determine the TeX engine to use based on options or input file
--- TODO(refactor) remove
--- If run as 'cllualatex', then the default engine is lualatex
-local function determine_engine(options: options.Options, arg: {string}): TexEngine.Engine
-	if options.engine == nil and type(arg[0]) == "string" then
-		-- If engine is not specified, infer it from the input file
-		local basename = pathutil.trimext(pathutil.basename(arg[0]))
-		local engine_part = string.match(basename, "^cl(%w+)$")
-		if engine_part and KnownEngines[engine_part] then
-			options.engine = engine_part
-		end
-	end
-
+local function determine_engine(options: options.Options): TexEngine.Engine
 	if options.engine == nil then
 		-- Error if engine is still not determined
 		message.error("Engine not specified.")
@@ -416,7 +405,7 @@ local function handle_cluttealtex_options(arg: {string}): string, TexEngine.Engi
 	inputfile = handle_input_file(arg, inputfile, non_option_index)
 
 	-- Determine the TeX engine to use based on the options or input
-	local engine = determine_engine(options, arg)
+	local engine = determine_engine(options)
 
 	-- TODO: Add validation logic here
 	-- better: move validationlogic to option_spec
@@ -458,7 +447,7 @@ local record Module
 	_internal: internal
 	record internal
 		add_custom_cli_options:     function(add_cli_options: {string: table})
-		determine_engine:           function(options: options.Options, arg: {string}): TexEngine.Engine
+		determine_engine:           function(options: options.Options): TexEngine.Engine
 		handle_boolean_option:      function(o: Option, optname: string, options: {string: any}, value: boolean)
 		handle_config_defaults:     function(defaults: {string: string})
 		handle_config_option:       function(optname: string, opt: any, options: {string: any})

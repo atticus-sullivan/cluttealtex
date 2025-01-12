@@ -26,7 +26,6 @@ local record Module
 		-- Engine-specific function to handle additional options
 		handle_additional_options:function(self:Engine, args:{string}, options:Module.Option)
 
-		-- TODO(refactor)
 		setup_luatex_initialization: function(self:Engine, Module.Option, string): string
 	end
 	record Option

@@ -69,7 +69,6 @@ local record lfs
 
    touch: function(string, ?number, ?number): boolean, string
 
-   -- TODO: FILE needs to be renamed to io.FILE in tl itself
    lock: function(FILE, LockMode, number, number): boolean, string
    unlock: function(FILE, number, number): boolean, string
 

@@ -117,7 +117,6 @@ local function parseoption(arg:{string}, query_long_options:(function(string):Mo
 
 		if current == "--" then
 			-- "--" marks the end of options; subsequent arguments are not parsed
-			-- TODO i += 1 ?
 			break
 		elseif current:sub(1, 2) == "--" then
 			-- Handles long options (e.g., --option or --option=value)
