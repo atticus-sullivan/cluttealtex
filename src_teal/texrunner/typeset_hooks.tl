@@ -119,8 +119,6 @@ local function glossaries(options:option_t.Options, args:option_t.PostCompileArg
 				local inputfileinfo = {path = file.path, abspath = file.abspath, kind = "auxiliary"}
 				local outputfile = args.path_in_output_directory(cfg.out)
 				if reruncheck.comparefileinfo({inputfileinfo}, args.auxstatus) or reruncheck.comparefiletime(file.abspath, outputfile, args.auxstatus) then
-					-- TODO remove print statement?
-					print(cfg.cmd(args.path_in_output_directory))
 					coroutine.yield(cfg.cmd(args.path_in_output_directory))
 					table.insert(args.filelist, {path = outputfile, abspath = outputfile, kind = "auxiliary"})
 				else
