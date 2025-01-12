@@ -19,7 +19,7 @@
   along with CluttealTeX.  If not, see <http://www.gnu.org/licenses/>.
 ]]
 
-global CLUTTEALTEX_VERSION: string = "v0.8.0" -- TODO(release)
+global CLUTTEALTEX_VERSION: string = "v0.9.9" -- TODO(release)
 
 -- Standard libraries
 local io = io

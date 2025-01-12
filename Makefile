@@ -1,4 +1,4 @@
-.PHONY: all checkAll doc install build clean genArgs release genDemo
+.PHONY: all checkAll doc install build clean genArgs release releasePre releasePost genDemo
 
 FD ?= fd
 
@@ -37,12 +37,25 @@ install: build
 checkAll:
 	eval $$(luarocks path) && cyan check $$($(FD) "\.tl" ./src_teal)
 
-release: clean checkAll build doc
+release: releasePre
+
+releasePre: clean checkAll build test doc
 	# check if git is in a clean state
 	git update-index --refresh
 	git diff-index --quiet HEAD --
 	# check if on main branch
 	test $(shell git rev-parse --abbrev-ref HEAD) == "main"
+	@echo -e "\n"
 	# list all TODOs related to a new release
-	grep --exclude-dir '.git' --exclude 'Makefile' --color=always -r "TODO(release)" .
-	$$(read -p "Enter release number (last was $$(git describe --tags --abbre)): ") tag && git tag "$$(tag)" && git push "$$(tag)"
+	grep --exclude-dir '.git' --exclude-dir 'src_lua' --exclude-dir 'build' --exclude 'Makefile' --color=always -r "TODO(release)" .
+	@echo -e "\n"
+	read -p "Check that version numbers are correct" muell
+	make releasePost
+
+releasePost: clean checkAll build test doc
+	# check if git is in a clean state
+	git update-index --refresh
+	git diff-index --quiet HEAD --
+	# check if on main branch
+	test $(shell git rev-parse --abbrev-ref HEAD) == "main"
+	read -i "$$(git describe --tags --abbre=0)" -p "Enter release number (last was $$(git describe --tags --abbre=0)): " tag && git tag "$${tag}" && git push origin "$${tag}"

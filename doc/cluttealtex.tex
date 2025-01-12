@@ -114,13 +114,13 @@
 	\rule[-2.5pt]{0pt}{.85em}\lstinline[basicstyle=\ttfamily\normalsize,language=none,keywordstyle=\color{CtpMauve}\bfseries]^#1^%
 }
 
-\title{\CluttealTeX manual\\(Version 0.8.0)} % TODO(release) update
+\title{\CluttealTeX manual\\(Version 0.9.9)} % TODO(release) update
 \author{%
 	Lukas Heindl\thanks{thanks to ARATA Mizuki for writing cluttex of which \CluttealTeX is a fork}\\
 	\url{oss.heindl+latex@protonmail.com} \\
 	\url{https://github.com/atticus-sullivan/cluttealtex}
 }
-\date{2024-03-11} % TODO(release) update
+\date{2025-01-12} % TODO(release) update
 
 \begin{document}
 \maketitle
@@ -167,7 +167,7 @@ Installing manually:
 An example how a basic installation on Linux could look like (using the latest release, not the nightly build):
 % TODO(release)
 \begin{boxcode}[bash]
-V="v0.9.1" # select the version to download
+V="v0.9.9" # select the version to download
 baseurl="https://github.com/atticus-sullivan/cluttealtex/releases/download/${V}"
 
 curl -o "/usr/local/bin/cluttealtex" "${baseurl}/cluttealtex"
@@ -177,7 +177,7 @@ This might be the simplest way of installing manually, though nicer is to setup 
 For Linux again this could look like this:
 % TODO(release)
 \begin{boxcode}[bash]
-V="v0.9.1" # select the version to download
+V="v0.9.9" # select the version to download
 kpsewhich --var-value TEXMFHOME # should be set to be set -> see https://tug.org/texlive/doc/texlive-en/texlive-en.html#x1-350003.4.6
 baseurl="https://github.com/atticus-sullivan/cluttealtex/releases/download/${V}"
 dir="$(kpsewhich --var-value TEXMFHOME)"
