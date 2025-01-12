@@ -183,11 +183,9 @@ baseurl="https://github.com/atticus-sullivan/cluttealtex/releases/download/${V}"
 dir="$(kpsewhich --var-value TEXMFHOME)"
 
 # install the executable
-make -p "${dir}/scripts/cluttealtex"
 curl -o "${dir}/scripts/cluttealtex/cluttealtex" "${baseurl}/cluttealtex"
 
 # install the documentation -> `texdoc cluttealtex` brings up the documentation in your pdf viewer
-make -p "${dir}/doc/latex/cluttealtex"
 curl -o "${dir}/doc/latex/cluttealtex/cluttealtex.pdf" "${baseurl}/cluttealtex.pdf"
 \end{boxcode}
 
