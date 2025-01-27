@@ -38,6 +38,7 @@ describe("typeset_hooks", function()
 			memoize_opts = {"opt1", "opt2"},
 			quiet = 2,
 			output_directory = "./output",
+			outfile = "./tex-aux/main.pdf",
 			makeindex = "makeindex",
 			glossaries = {
 				{ inp = "glo", out = "gls", cmd = function(_) return "makeglossaries" end }
