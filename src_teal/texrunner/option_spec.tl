@@ -622,6 +622,8 @@ _M.spec = {
 					options.memoize = "memoize-extract.py"
 				elseif param == "perl" then
 					options.memoize = "memoize-extract.pl"
+				elseif param == "lua" then
+					options.memoize = "memoize-extract.lua"
 				else
 					options.memoize = param
 				end

@@ -20,7 +20,8 @@ local record Module
 		jobname: string
 		make_depends: string
 		max_iterations: integer
-		output: string
+		output: string -- file in which the output is in the end
+		outfile: string -- file to which *TeX is compiling to
 		output_directory: string
 		output_format: string
 		package_support: {string:boolean}
