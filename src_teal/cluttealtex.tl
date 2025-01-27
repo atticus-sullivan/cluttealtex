@@ -60,6 +60,7 @@ local tex_options = utils.construct_tex_options(options, engine)
 
 -- Shortcut for path_in_output_directory with some arguments already filled in
 local path_in_output_directory = function(x: string): string return utils.path_in_output_directory(x, options, jobname) end
+options.outfile = path_in_output_directory(output_extension)
 
 -- Setup LuaTeX initialization script
 tex_options.lua_initialization_script = engine:setup_luatex_initialization(tex_options, path_in_output_directory("cluttealtexinit.lua"))

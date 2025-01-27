@@ -86,8 +86,7 @@ local function single_run_coroutine(args: Module.typesetArgs): boolean|string
 			end
 		end
 		if args.iteration == 1 and not args.options.watch then
-			local outfile = args.path_in_output_directory(args.output_extension)
-			if not reruncheck.anyNonOutputNewerThan(filelist, outfile) then
+			if not reruncheck.anyNonOutputNewerThan(filelist, args.options.outfile) then
 				return false
 			end
 		end
@@ -199,7 +198,6 @@ local function do_typeset_coroutine(args:Module.typesetArgs): string, function
 	-- Successful
 	if args.options.output_format == "dvi" or args.engine.supports_pdf_generation then
 		-- Output file (DVI/PDF) is generated in the output directory
-		local outfile = args.path_in_output_directory(args.output_extension)
 		local oncopyerror:function():boolean
 		if os.type == "windows" then
 			oncopyerror = function(): boolean
@@ -207,7 +205,7 @@ local function do_typeset_coroutine(args:Module.typesetArgs): string, function
 				return false
 			end
 		end
-		coroutine.yield(fsutil.copy_command(outfile, args.options.output), oncopyerror)
+		coroutine.yield(fsutil.copy_command(args.options.outfile, args.options.output), oncopyerror)
 		if #args.options.dvipdfmx_extraoptions > 0 then
 			message.warn("--dvipdfmx-option[s] are ignored.")
 		end

@@ -225,7 +225,9 @@ local function memoize_run(options:option_t.Options, args:option_t.PostCompileAr
 			if must_extract then
 				local extract_command = {
 					options.memoize, -- Do not escape options.memoize to allow additional options
-					pathutil.basename(pathutil.replaceext(file.abspath, "tex"))
+					"-F", "latex",
+					"-P", pathutil.abspath(options.outfile),
+					pathutil.basename(pathutil.replaceext(file.abspath, "mmz"))
 				}
 				coroutine.yield(table.concat(extract_command, " "))
 				-- ensure document gets recompiled afterwards
