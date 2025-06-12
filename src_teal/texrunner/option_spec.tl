@@ -636,7 +636,7 @@ _M.spec = {
 				options.memoize_opts = options.memoize_opts or {}
 				table.insert(options.memoize_opts, param)
 				if not options.hooks then _M.init_hooks(options) end
-				options.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.memoize-0.2)] = {typeset_hooks.memoize_opts, "memoize_opts"}
+				options.hooks.tex_injection[assert(option_t.hook_prios.tex_injection.memoize+0.2)] = {typeset_hooks.memoize_opts, "memoize_opts"}
 			else
 				error("invalid param type")
 			end

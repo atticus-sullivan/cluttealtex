@@ -393,7 +393,7 @@ local function handle_cluttealtex_options(arg: {string}): string, TexEngine.Engi
 	local engine = determine_engine(options)
 
 	-- TODO: Add validation logic here
-	-- better: move validationlogic to option_spec
+	-- better: move validation logic to option_spec
 	if options.watch then
 		if options.watch ~= "fswatch" and options.watch ~= "inotifywait" then
 			message.error("Unknown wait engine '", options.watch, "'.")
