@@ -233,7 +233,7 @@ local function check_auxiliary_file(path: string, fileinfo: common_t.Filemap_ele
 		local modified_because:string = nil
 
 		local attrs = get_file_attributes(path, false, true)
-		local size = attrs.size
+		local size = attrs.size as integer
 
 		if status.size ~= size then
 			really_modified = true
