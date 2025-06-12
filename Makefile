@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2024 - 2025 Lukas Heindl
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+.PHONY: all checkAll doc install build clean genArgs release genDemo
 .PHONY: all checkAll doc install build clean genArgs release releasePre releasePost genDemo
 
 FD ?= fd

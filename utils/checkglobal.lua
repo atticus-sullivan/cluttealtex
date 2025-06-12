@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2016 - 2024 ARATA Mizuki
+--
+-- SPDX-License-Identifier: GPL-3.0-or-later
+
 if #arg == 0 then
 	io.stderr:write[[
 Usage: lua checkglobal.lua <file.lua>

@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2024 - 2025 Lukas Heindl
+--
+-- SPDX-License-Identifier: GPL-3.0-or-later
+
 local option_spec = require"src_lua.texrunner.option_spec".spec
 
 -- outputs a table of all registered options/arguments.
